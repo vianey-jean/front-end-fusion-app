@@ -93,10 +93,16 @@ const AdminPubLayoutPage: React.FC = () => {
 
   // Gestionnaire pour soumettre le formulaire
   const onSubmit = (values: PubLayoutFormValues) => {
+    // Cast to PubLayoutInput to ensure type consistency
+    const pubLayoutData: PubLayoutInput = {
+      icon: values.icon,
+      text: values.text
+    };
+    
     if (editingPub) {
-      updateMutation.mutate({ id: editingPub.id, data: values });
+      updateMutation.mutate({ id: editingPub.id, data: pubLayoutData });
     } else {
-      addMutation.mutate(values);
+      addMutation.mutate(pubLayoutData);
     }
   };
 
