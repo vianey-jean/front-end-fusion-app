@@ -19,7 +19,8 @@ export default defineConfig({
         manualChunks: {
           'emoji-mart': ['@emoji-mart/data', '@emoji-mart/react']
         }
-      }
+      },
+      external: []
     }
   },
   server: {
