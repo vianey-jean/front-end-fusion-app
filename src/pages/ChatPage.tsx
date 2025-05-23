@@ -16,8 +16,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator 
 } from '@/components/ui/dropdown-menu';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data/sets/14/apple.json';
+import Picker from '@emoji-mart/react/dist/index.js';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Link } from 'react-router-dom';
 
