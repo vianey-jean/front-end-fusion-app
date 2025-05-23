@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminLayout from './AdminLayout';
@@ -18,8 +17,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data/sets/14/apple.json';
+import Picker from '@emoji-mart/react/dist/index.js';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { VideoCallProvider, useVideoCall } from '@/contexts/VideoCallContext';
 import CallNotification from '@/components/admin/CallNotification';
@@ -261,6 +260,7 @@ const AdminChatContent = () => {
     return `il y a ${days}j`;
   };
 
+  // Fonctions qui utilisent le picker d'emoji
   const handleEmojiSelect = (emoji: any) => {
     setMessageText((prev) => prev + emoji.native);
   };
