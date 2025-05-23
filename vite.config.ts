@@ -17,11 +17,30 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'emoji-mart': ['@emoji-mart/data', '@emoji-mart/react']
+          'emoji-mart': ['@emoji-mart/data', '@emoji-mart/react'],
+          'vendor': [
+            'react', 
+            'react-dom', 
+            'react-router-dom',
+            'framer-motion',
+            'lucide-react',
+            'recharts'
+          ],
+          'ui': [
+            '@/components/ui'
+          ]
         }
       },
       external: []
-    }
+    },
+    chunkSizeWarningLimit: 1000, // Augmenter la limite d'avertissement pour les gros chunks
+    sourcemap: false, // Désactiver les sourcemaps en production pour réduire la taille
+    minify: 'terser', // Utiliser terser pour une meilleure minification
+    terserOptions: {
+      compress: {
+        drop_console: true, // Supprimer les console.log en production
+      },
+    },
   },
   server: {
     port: 8080,
