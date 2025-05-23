@@ -1,4 +1,3 @@
-
 import React, { useEffect, lazy, Suspense } from 'react';
 import './App.css';
 import { Toaster } from './components/ui/sonner';
@@ -68,7 +67,7 @@ const AdminClientChatPage = lazy(() => import('./pages/admin/AdminClientChatPage
 
 const AdminCodePromosPage = lazy(() => import('./pages/admin/AdminCodePromosPage'));
 
-
+const AdminPubLayoutPage = lazy(() => import('./pages/admin/AdminPubLayoutPage'));
 
 // Création d'un nouveau QueryClient avec configuration optimisée
 const queryClient = new QueryClient({
@@ -253,6 +252,11 @@ function AppRoutes() {
         <Route path="/admin/service-client" element={<Navigate to={secureRoutes.get('/admin/service-client') || '/'} replace />} />
         
         {/* Page 404 */}
+        <Route path="/admin/pub-layout" element={
+          <ProtectedRoute>
+            <AdminPubLayoutPage />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

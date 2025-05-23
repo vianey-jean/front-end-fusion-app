@@ -1,0 +1,18 @@
+
+[
+  {
+    "id": "1",
+    "icon": "ThumbsUp",
+    "text": "Livraison gratuite à partir de 50€ d'achat"
+  },
+  {
+    "id": "2",
+    "icon": "Gift",
+    "text": "-10% sur votre première commande avec le code WELCOME10"
+  },
+  {
+    "id": "3",
+    "icon": "Clock",
+    "text": "Satisfait ou remboursé sous 30 jours"
+  }
+]
