@@ -3,15 +3,22 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:10000';
 
-interface PubLayout {
+// Define the PubLayout interface with required fields
+export interface PubLayout {
   id: string;
+  icon: string;
+  text: string;
+}
+
+// Define the input type for creating/updating a pub layout
+export interface PubLayoutInput {
   icon: string;
   text: string;
 }
 
 const pubLayoutAPI = {
   // Récupérer toutes les publicités
-  getAll: async () => {
+  getAll: async (): Promise<PubLayout[]> => {
     try {
       const response = await axios.get(`${API_URL}/api/pub-layout`);
       return response.data;
@@ -22,7 +29,7 @@ const pubLayoutAPI = {
   },
 
   // Ajouter une nouvelle publicité
-  add: async (pubData: { icon: string; text: string }) => {
+  add: async (pubData: PubLayoutInput): Promise<PubLayout> => {
     try {
       const response = await axios.post(`${API_URL}/api/pub-layout`, pubData);
       return response.data;
@@ -33,7 +40,7 @@ const pubLayoutAPI = {
   },
 
   // Mettre à jour une publicité
-  update: async (id: string, pubData: { icon: string; text: string }) => {
+  update: async (id: string, pubData: PubLayoutInput): Promise<PubLayout> => {
     try {
       const response = await axios.put(`${API_URL}/api/pub-layout/${id}`, pubData);
       return response.data;
@@ -44,7 +51,7 @@ const pubLayoutAPI = {
   },
 
   // Supprimer une publicité
-  delete: async (id: string) => {
+  delete: async (id: string): Promise<any> => {
     try {
       const response = await axios.delete(`${API_URL}/api/pub-layout/${id}`);
       return response.data;
@@ -55,5 +62,4 @@ const pubLayoutAPI = {
   }
 };
 
-export type { PubLayout };
 export default pubLayoutAPI;

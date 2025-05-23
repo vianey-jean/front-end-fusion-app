@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import AdminLayout from './AdminLayout';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import pubLayoutAPI, { PubLayout } from '@/services/pubLayoutAPI';
+import pubLayoutAPI, { PubLayout, PubLayoutInput } from '@/services/pubLayoutAPI';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -24,6 +24,7 @@ const pubLayoutSchema = z.object({
   text: z.string().min(5, 'Le texte doit contenir au moins 5 caractères').max(100, 'Le texte ne doit pas dépasser 100 caractères')
 });
 
+// Utiliser le type inféré à partir du schéma zod pour garantir la cohérence des types
 type PubLayoutFormValues = z.infer<typeof pubLayoutSchema>;
 
 const AdminPubLayoutPage: React.FC = () => {
@@ -48,7 +49,7 @@ const AdminPubLayoutPage: React.FC = () => {
 
   // Mutation pour ajouter une publicité
   const addMutation = useMutation({
-    mutationFn: pubLayoutAPI.add,
+    mutationFn: (data: PubLayoutInput) => pubLayoutAPI.add(data),
     onSuccess: () => {
       toast.success('Publicité ajoutée avec succès');
       queryClient.invalidateQueries({ queryKey: ['pub-layout'] });
@@ -63,7 +64,7 @@ const AdminPubLayoutPage: React.FC = () => {
 
   // Mutation pour mettre à jour une publicité
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string, data: PubLayoutFormValues }) => 
+    mutationFn: ({ id, data }: { id: string, data: PubLayoutInput }) => 
       pubLayoutAPI.update(id, data),
     onSuccess: () => {
       toast.success('Publicité mise à jour avec succès');
