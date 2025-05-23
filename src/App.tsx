@@ -251,12 +251,17 @@ function AppRoutes() {
         <Route path={getSecureRoute('/admin/code-promos')} element={<AdminCodePromosPage />} />
         <Route path="/admin/service-client" element={<Navigate to={secureRoutes.get('/admin/service-client') || '/'} replace />} />
         
-        {/* Page 404 */}
-        <Route path="/admin/pub-layout" element={
-          <ProtectedRoute>
-            <AdminPubLayoutPage />
-          </ProtectedRoute>
+        {/* Ajout de la route sécurisée pour la page pub-layout */}
+        <Route path={secureRoutes.get('/admin/pub-layout')?.substring(1)} element={
+          <SecureRoute>
+            <ProtectedRoute requireAdmin>
+              <AdminPubLayoutPage />
+            </ProtectedRoute>
+          </SecureRoute>
         } />
+        <Route path="/admin/pub-layout" element={<Navigate to={secureRoutes.get('/admin/pub-layout') || '/'} replace />} />
+        
+        {/* Route 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
