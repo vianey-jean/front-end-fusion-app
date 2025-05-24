@@ -1,4 +1,3 @@
-
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -201,7 +200,7 @@ router.post('/', isAuthenticated, async (req, res) => {
       }
       
       return product;
-    });
+    };
     
     // Enregistrer les produits mis à jour
     const productsSaved = writeJSON(productsPath, updatedProducts);
@@ -216,6 +215,109 @@ router.post('/', isAuthenticated, async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la création de la commande:', error);
     res.status(500).json({ message: 'Erreur interne du serveur: ' + error.message });
+  }
+});
+
+// Route pour annuler une commande ou des items spécifiques
+router.post('/:id/cancel', isAuthenticated, async (req, res) => {
+  try {
+    const { itemsToCancel } = req.body;
+    const orderId = req.params.id;
+    
+    // Lire les commandes existantes
+    const orders = readJSON(ordersPath);
+    const commandes = readJSON(commandesPath);
+    const products = readJSON(productsPath);
+    
+    // Trouver la commande
+    const orderIndex = orders.findIndex(o => o.id === orderId);
+    const commandeIndex = commandes.findIndex(c => c.id === orderId);
+    
+    if (orderIndex === -1 || commandeIndex === -1) {
+      return res.status(404).json({ message: 'Commande non trouvée.' });
+    }
+    
+    const order = orders[orderIndex];
+    
+    // Vérifier si l'utilisateur est autorisé (propriétaire de la commande ou admin)
+    if (req.user.role !== 'admin' && order.userId !== req.user.id) {
+      return res.status(403).json({ message: 'Accès non autorisé à cette commande.' });
+    }
+    
+    // Vérifier si la commande peut être annulée
+    if (order.status !== 'confirmée' && order.status !== 'en préparation') {
+      return res.status(400).json({ message: 'Cette commande ne peut plus être annulée.' });
+    }
+    
+    // Si aucun item spécifique n'est fourni, annuler toute la commande
+    const itemsToRemove = itemsToCancel && itemsToCancel.length > 0 
+      ? itemsToCancel 
+      : order.items.map(item => item.productId);
+    
+    // Restaurer le stock pour les items annulés
+    const updatedProducts = products.map(product => {
+      const cancelledItem = order.items.find(item => 
+        itemsToRemove.includes(item.productId) && item.productId === product.id
+      );
+      
+      if (cancelledItem) {
+        const newStock = (product.stock || 0) + cancelledItem.quantity;
+        return {
+          ...product,
+          stock: newStock,
+          isSold: newStock > 0
+        };
+      }
+      
+      return product;
+    });
+    
+    // Sauvegarder les produits mis à jour
+    writeJSON(productsPath, updatedProducts);
+    
+    // Filtrer les items qui ne sont pas annulés
+    const remainingItems = order.items.filter(item => 
+      !itemsToRemove.includes(item.productId)
+    );
+    
+    if (remainingItems.length === 0) {
+      // Supprimer complètement la commande si tous les items sont annulés
+      orders.splice(orderIndex, 1);
+      commandes.splice(commandeIndex, 1);
+    } else {
+      // Mettre à jour la commande avec les items restants
+      const newTotalAmount = remainingItems.reduce((sum, item) => sum + item.subtotal, 0);
+      
+      const updatedOrder = {
+        ...order,
+        items: remainingItems,
+        totalAmount: newTotalAmount,
+        updatedAt: new Date().toISOString()
+      };
+      
+      orders[orderIndex] = updatedOrder;
+      commandes[commandeIndex] = updatedOrder;
+    }
+    
+    // Sauvegarder les commandes mises à jour
+    writeJSON(ordersPath, orders);
+    writeJSON(commandesPath, commandes);
+    
+    console.log(`Commande ${orderId} - Items annulés:`, itemsToRemove);
+    
+    if (remainingItems.length === 0) {
+      res.json({ message: 'Commande complètement annulée', cancelled: true });
+    } else {
+      res.json({ 
+        message: 'Items sélectionnés annulés avec succès', 
+        cancelled: false,
+        updatedOrder: orders[orderIndex]
+      });
+    }
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'annulation de la commande:', error);
+    res.status(500).json({ message: 'Erreur interne du serveur.' });
   }
 });
 
