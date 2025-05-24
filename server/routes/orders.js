@@ -200,7 +200,7 @@ router.post('/', isAuthenticated, async (req, res) => {
       }
       
       return product;
-    };
+    });
     
     // Enregistrer les produits mis à jour
     const productsSaved = writeJSON(productsPath, updatedProducts);
