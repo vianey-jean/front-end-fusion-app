@@ -288,10 +288,34 @@ router.post('/:id/cancel', isAuthenticated, async (req, res) => {
       // Mettre à jour la commande avec les items restants
       const newTotalAmount = remainingItems.reduce((sum, item) => sum + item.subtotal, 0);
       
+      // Recalculer la remise si un code promo était appliqué
+      let newDiscount = 0;
+      let newCodePromoUsed = order.codePromoUsed;
+      
+      if (order.codePromoUsed) {
+        // Vérifier si le produit avec le code promo est encore dans la commande
+        const promoProductStillInOrder = remainingItems.find(
+          item => item.productId === order.codePromoUsed.productId
+        );
+        
+        if (promoProductStillInOrder) {
+          // Recalculer la remise sur le produit restant
+          newDiscount = (order.codePromoUsed.pourcentage / 100) * promoProductStillInOrder.subtotal;
+        } else {
+          // Le produit avec le code promo a été annulé, supprimer le code promo
+          newCodePromoUsed = null;
+        }
+      }
+      
+      const finalTotalAmount = newTotalAmount - newDiscount;
+      
       const updatedOrder = {
         ...order,
         items: remainingItems,
-        totalAmount: newTotalAmount,
+        totalAmount: finalTotalAmount,
+        originalAmount: newTotalAmount,
+        discount: newDiscount,
+        codePromoUsed: newCodePromoUsed,
         updatedAt: new Date().toISOString()
       };
       

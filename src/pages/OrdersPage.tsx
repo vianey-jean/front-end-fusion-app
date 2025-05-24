@@ -90,12 +90,16 @@ const OrdersPage = () => {
       setCancellingOrder(orderId);
       const itemsToCancel = selectedItems[orderId] || [];
       
-      await ordersAPI.cancelOrder(orderId, itemsToCancel);
+      const response = await ordersAPI.cancelOrder(orderId, itemsToCancel);
       
-      toast.success('Commande annulée avec succès');
+      if (response.data.cancelled) {
+        toast.success('Commande complètement annulée');
+      } else {
+        toast.success('Produits sélectionnés annulés avec succès');
+      }
       
-      // Recharger les commandes
-      fetchOrders();
+      // Recharger les commandes pour voir les changements
+      await fetchOrders();
       
       // Réinitialiser les sélections
       setSelectedItems(prev => ({ ...prev, [orderId]: [] }));
