@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import _ from 'lodash';
 import Cookies from 'js-cookie';
@@ -66,6 +65,11 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Re-export des APIs séparées pour maintenir la compatibilité
+export * from './auth.api';
+export * from './products.api';
+export * from './orders.api';
 
 // Interface Auth
 export interface AuthResponse {
@@ -182,7 +186,7 @@ export interface Review {
   productRating: number;
   deliveryRating: number;
   comment: string;
-  photos?: string[]; // Nouveau champ pour les photos
+  photos?: string[];
   createdAt: string;
   updatedAt: string;
 }
