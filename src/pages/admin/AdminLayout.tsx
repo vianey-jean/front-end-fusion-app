@@ -11,7 +11,8 @@ import {
   LogOut,
   Percent,
   MessageSquare,
-  Megaphone
+  Megaphone,
+  RotateCcw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSecureRoute } from '@/services/secureIds';

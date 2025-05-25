@@ -1,4 +1,3 @@
-
 import React, { useEffect, lazy, Suspense } from 'react';
 import './App.css';
 import { Toaster } from './components/ui/sonner';
@@ -69,6 +68,8 @@ const AdminClientChatPage = lazy(() => import('./pages/admin/AdminClientChatPage
 const AdminCodePromosPage = lazy(() => import('./pages/admin/AdminCodePromosPage'));
 
 const AdminPubLayoutPage = lazy(() => import('./pages/admin/AdminPubLayoutPage'));
+
+const AdminRefundsPage = lazy(() => import('./pages/admin/AdminRefundsPage'));
 
 // Création d'un nouveau QueryClient avec configuration optimisée
 const queryClient = new QueryClient({
@@ -268,6 +269,15 @@ function AppRoutes() {
         
         {/* Route 404 - tous les liens qui n'existent pas */}
         <Route path="*" element={<NotFound />} />
+        
+        <Route path={secureRoutes.get('/admin/remboursements')?.substring(1)} element={
+          <SecureRoute>
+            <ProtectedRoute requireAdmin>
+              <AdminRefundsPage />
+            </ProtectedRoute>
+          </SecureRoute>
+        } />
+        <Route path="/admin/remboursements" element={<Navigate to={secureRoutes.get('/admin/remboursements') || '/'} replace />} />
       </Routes>
     </Suspense>
   );
