@@ -81,6 +81,16 @@ export interface Cart {
   total: number;
 }
 
+export interface ShippingAddress {
+  nom: string;
+  prenom: string;
+  adresse: string;
+  ville: string;
+  codePostal: string;
+  pays: string;
+  telephone: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -98,15 +108,7 @@ export interface Order {
   totalAmount: number;
   originalAmount: number;
   discount: number;
-  shippingAddress: {
-    nom: string;
-    prenom: string;
-    adresse: string;
-    ville: string;
-    codePostal: string;
-    pays: string;
-    telephone: string;
-  };
+  shippingAddress: ShippingAddress;
   paymentMethod: string;
   codePromoUsed: {
     code: string;
@@ -163,8 +165,19 @@ export interface Message {
   userId?: string;
   userName?: string;
   message: string;
+  content?: string;
   timestamp: string;
   isAdmin?: boolean;
+}
+
+export interface ServiceConversation {
+  id: string;
+  userId: string;
+  userName: string;
+  messages: Message[];
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Définition des objets API pour chaque entité
@@ -202,6 +215,9 @@ export const authAPI = {
   resetPassword: async (resetCode: string, newPassword: string) => {
     return await axiosInstance.post('/auth/reset-password', { resetCode, newPassword });
   },
+  checkEmail: async (email: string) => {
+    return await axiosInstance.post('/auth/check-email', { email });
+  },
 };
 
 export const productsAPI = {
@@ -217,7 +233,13 @@ export const productsAPI = {
   getMostFavorited: async () => {
     return await axiosInstance.get('/products/most-favorited');
   },
+  getNewArrivals: async () => {
+    return await axiosInstance.get('/products/new-arrivals');
+  },
   search: async (query: string) => {
+    return await axiosInstance.get(`/products/search?q=${query}`);
+  },
+  searchProducts: async (query: string) => {
     return await axiosInstance.get(`/products/search?q=${query}`);
   },
   create: async (productData: any) => {
@@ -328,6 +350,18 @@ export const clientChatAPI = {
   deleteMessage: async (messageId: string) => {
     return await axiosInstance.delete(`/client-chat/${messageId}`);
   },
+  setOnline: async () => {
+    return await axiosInstance.post('/client-chat/status', { status: 'online' });
+  },
+  setOffline: async () => {
+    return await axiosInstance.post('/client-chat/status', { status: 'offline' });
+  },
+  getServiceConversations: async () => {
+    return await axiosInstance.get('/client-chat/service/conversations');
+  },
+  sendServiceReply: async (conversationId: string, messageData: any) => {
+    return await axiosInstance.post(`/client-chat/service/${conversationId}/reply`, messageData);
+  },
 };
 
 export const adminChatAPI = {
@@ -336,6 +370,27 @@ export const adminChatAPI = {
   },
   sendMessage: async (messageData: any) => {
     return await axiosInstance.post('/admin-chat', messageData);
+  },
+  getAdmins: async () => {
+    return await axiosInstance.get('/admin-chat/admins');
+  },
+  getConversation: async (userId: string) => {
+    return await axiosInstance.get(`/admin-chat/conversation/${userId}`);
+  },
+  setOnline: async () => {
+    return await axiosInstance.post('/admin-chat/status', { status: 'online' });
+  },
+  setOffline: async () => {
+    return await axiosInstance.post('/admin-chat/status', { status: 'offline' });
+  },
+  getStatus: async () => {
+    return await axiosInstance.get('/admin-chat/status');
+  },
+  editMessage: async (messageId: string, newContent: string) => {
+    return await axiosInstance.put(`/admin-chat/${messageId}`, { message: newContent });
+  },
+  deleteMessage: async (messageId: string) => {
+    return await axiosInstance.delete(`/admin-chat/${messageId}`);
   },
 };
 
@@ -413,6 +468,12 @@ export const codePromoAPI = {
   },
   validateCode: async (code: string, productId?: string) => {
     return await axiosInstance.post('/code-promos/validate', { code, productId });
+  },
+  verify: async (code: string, productId?: string) => {
+    return await axiosInstance.post('/code-promos/validate', { code, productId });
+  },
+  searchProducts: async (query: string) => {
+    return await axiosInstance.get(`/products/search?q=${query}`);
   },
 };
 
