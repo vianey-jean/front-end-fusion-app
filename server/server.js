@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -177,7 +178,6 @@ const usersRoutes = require('./routes/users');
 const reviewRoutes = require('./routes/reviews');
 const codePromoRoutes = require('./routes/code-promos');
 const pubLayoutRoutes = require('./routes/pub-layout'); // Ajouté la route pour les publicités
-const refundRoutes = require('./routes/refunds');
 
 // Routes de l'API
 app.use('/api/auth', authRoutes);
@@ -192,7 +192,6 @@ app.use('/api/users', usersRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/code-promos', codePromoRoutes);
 app.use('/api/pub-layout', pubLayoutRoutes); // Ajouté la route pour les publicités
-app.use('/api/refunds', refundRoutes);
 
 // Socket.io pour la communication en temps réel
 const io = socketIO(server, {
