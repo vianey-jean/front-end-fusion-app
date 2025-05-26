@@ -35,3 +35,27 @@ export const clientChatAPI = {
   markAsRead: (messageId: string, conversationId: string) => 
     API.put(`/client-chat/messages/${messageId}/read`, { conversationId })
 };
+
+// Export des types pour utilisation dans les composants
+export interface Message {
+  id: string;
+  senderId: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+  isAutoReply?: boolean;
+  isEdited?: boolean;
+  isAdminReply?: boolean;
+  isSystemMessage?: boolean;
+}
+
+export interface ServiceConversation {
+  id: string;
+  clientInfo: {
+    id: string;
+    nom: string;
+    email: string;
+  };
+  messages: Message[];
+  unreadCount: number;
+}

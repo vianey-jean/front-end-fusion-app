@@ -7,6 +7,7 @@ import BenefitsSection from './BenefitsSection';
 import PaymentBadges from './PaymentBadges';
 import SecurityInfo from './SecurityInfo';
 import LayoutPrompts from './LayoutPrompts';
+import LiveChatWidget from '@/components/chat/LiveChatWidget';
 import { useQuery } from '@tanstack/react-query';
 import { Product } from '@/contexts/StoreContext';
 import { productsAPI } from '@/services/api';
@@ -80,6 +81,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hidePrompts = false }) => {
         trendingProducts={trendingProducts}
         hasScrolled={hasScrolled}
       />
+      
+      {/* Widget de chat en direct */}
+      <LiveChatWidget />
     </div>
   );
 };
