@@ -27,7 +27,7 @@ interface Message {
 const LiveChatWidget: React.FC = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
   const [message, setMessage] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -58,13 +58,14 @@ const LiveChatWidget: React.FC = () => {
       ).length;
       setUnreadCount(unread);
 
-      // Auto-minimiser si nouveau message non lu
-      if (unread > 0 && isOpen && !isMinimized) {
-        setIsMinimized(true);
+      // Ouvrir automatiquement si nouveau message non lu
+      if (unread > 0 && !isOpen) {
+        setIsOpen(true);
+        setIsMinimized(false);
         toast.info("Nouveau message reçu !");
       }
     }
-  }, [conversation?.messages, user?.id, isOpen, isMinimized]);
+  }, [conversation?.messages, user?.id, isOpen]);
 
   // Mutation pour envoyer un message
   const sendMessageMutation = useMutation({
@@ -111,6 +112,14 @@ const LiveChatWidget: React.FC = () => {
     setUnreadCount(0);
   };
 
+  // Fonction pour agrandir légèrement le chat pour envoyer un message
+  const expandForMessage = () => {
+    if (!isOpen) {
+      setIsOpen(true);
+    }
+    setIsMinimized(false);
+  };
+
   if (!user) return null;
 
   return (
@@ -128,7 +137,7 @@ const LiveChatWidget: React.FC = () => {
           <MessageCircle className="h-6 w-6 text-white" />
         </Button>
         
-        {/* Badge de notification */}
+        {/* Badge de notification - seulement si messages non lus */}
         {unreadCount > 0 && (
           <motion.div
             animate={{ scale: [1, 1.2, 1] }}
@@ -242,6 +251,7 @@ const LiveChatWidget: React.FC = () => {
                         <Input
                           value={message}
                           onChange={(e) => setMessage(e.target.value)}
+                          onFocus={expandForMessage}
                           placeholder="Tapez votre message..."
                           className="pr-10"
                         />
@@ -275,6 +285,20 @@ const LiveChatWidget: React.FC = () => {
                     </form>
                   </div>
                 </>
+              )}
+
+              {/* Zone de saisie rapide quand minimisé */}
+              {isMinimized && (
+                <div className="absolute bottom-0 right-0 left-0 p-2 bg-white border-t" style={{ transform: 'translateY(100%)' }}>
+                  <Button
+                    onClick={expandForMessage}
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                  >
+                    Écrire un message...
+                  </Button>
+                </div>
               )}
             </Card>
           </motion.div>

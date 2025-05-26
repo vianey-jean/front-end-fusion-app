@@ -38,7 +38,7 @@ const AdminServiceChatWidget: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(true);
   const [message, setMessage] = useState('');
   const [selectedConversation, setSelectedConversation] = useState<string>('');
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
@@ -46,7 +46,7 @@ const AdminServiceChatWidget: React.FC = () => {
   const queryClient = useQueryClient();
 
   // Ne pas afficher le widget si on est sur la page de chat admin ou si ce n'est pas le bon utilisateur
-  const isOnChatPage = location.pathname.includes('/admin/chat');
+  const isOnChatPage = location.pathname.includes('/admin/chat') || location.pathname.includes('/admin/client-chat');
   const isServiceClientAdmin = user?.email === 'service.client@example.com';
 
   // Récupérer les conversations de service
@@ -55,7 +55,8 @@ const AdminServiceChatWidget: React.FC = () => {
     queryFn: async () => {
       try {
         const response = await clientChatAPI.getServiceConversations();
-        return response.data || [];
+        // S'assurer que la réponse est un tableau
+        return Array.isArray(response.data) ? response.data : [];
       } catch (error) {
         console.error("Erreur lors du chargement des conversations:", error);
         return [];
@@ -67,16 +68,17 @@ const AdminServiceChatWidget: React.FC = () => {
 
   // Compter les messages non lus total
   useEffect(() => {
-    const totalUnread = conversations.reduce((total: number, conv: ServiceConversation) => 
-      total + (conv.unreadCount || 0), 0
-    );
-    setTotalUnreadCount(totalUnread);
+    if (Array.isArray(conversations)) {
+      const totalUnread = conversations.reduce((total: number, conv: ServiceConversation) => 
+        total + (conv.unreadCount || 0), 0
+      );
+      setTotalUnreadCount(totalUnread);
 
-    // Auto-ouvrir si nouveau message non lu
-    if (totalUnread > 0 && !isOpen) {
-      setIsOpen(true);
-      setIsMinimized(true);
-      toast.info("Nouveau message client reçu !");
+      // Auto-ouvrir si nouveau message non lu
+      if (totalUnread > 0 && !isOpen) {
+        setIsOpen(true);
+        setIsMinimized(false);
+      }
     }
   }, [conversations, isOpen]);
 
@@ -113,6 +115,7 @@ const AdminServiceChatWidget: React.FC = () => {
   };
 
   const getSelectedConversationData = () => {
+    if (!Array.isArray(conversations)) return null;
     return conversations.find((conv: ServiceConversation) => conv.id === selectedConversation);
   };
 
@@ -124,7 +127,7 @@ const AdminServiceChatWidget: React.FC = () => {
   }, [getSelectedConversationData()?.messages, isMinimized]);
 
   // Ne pas afficher si conditions non remplies
-  if (!user || !isServiceClientAdmin || isOnChatPage || conversations.length === 0) {
+  if (!user || !isServiceClientAdmin || isOnChatPage || !Array.isArray(conversations) || conversations.length === 0) {
     return null;
   }
 
