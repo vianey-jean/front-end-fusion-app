@@ -20,24 +20,6 @@ export interface Conversation {
 
 export interface ServiceConversation extends Conversation {
   type: 'service';
-  id: string;
-  clientInfo?: User & {
-    id: string;
-    nom: string;
-    email: string;
-  };
+  clientInfo?: User;
   unreadCount?: number;
-}
-
-export interface AdminConversation extends Conversation {
-  type: 'admin';
-  id: string;
-  participantInfo?: User;
-}
-
-export interface ChatWidget {
-  isOpen: boolean;
-  isMinimized: boolean;
-  unreadCount: number;
-  selectedConversation?: string;
 }

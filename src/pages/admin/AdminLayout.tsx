@@ -1,175 +1,129 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/contexts/AuthContext';
-import AdminServiceChatWidget from '@/components/admin/AdminServiceChatWidget';
-import {
-  LayoutDashboard,
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { 
+  ShoppingBag,
   Package,
-  ShoppingCart,
+  MessageCircle,
   Users,
-  MessageSquare,
-  Tag,
+  Truck,
   Settings,
   LogOut,
-  Menu,
-  X,
-  Gift,
+  Percent,
+  MessageSquare,
   Megaphone,
-  MessageCircle,
   RefreshCw
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { getSecureRoute } from '@/services/secureIds';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const { user } = useAuth();
+  const [isServiceAdmin, setIsServiceAdmin] = useState(false);
+  
+  useEffect(() => {
+    // Check if the current user is a service client admin
+    if (user && user.email === "service.client@example.com") {
+      setIsServiceAdmin(true);
+    }
+  }, [user]);
+  
+  // Obtenir les routes sécurisées
+  const secureRoutes = {
+    produits: getSecureRoute('/admin/produits'),
+    utilisateurs: getSecureRoute('/admin/utilisateurs'),
+    messages: getSecureRoute('/admin/messages'),
+    commandes: getSecureRoute('/admin/commandes'),
+    chat: getSecureRoute('/admin'),
+    serviceClient: getSecureRoute('/admin/service-client'),
+    codePromo: getSecureRoute('/admin/code-promos'),
+    parametres: getSecureRoute('/admin/parametres'),
+    pubLayout: getSecureRoute('/admin/pub-layout'),
+    remboursements: getSecureRoute('/admin/remboursements'),
   };
-
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Tableau de bord', path: '/admin' },
-    { icon: Package, label: 'Produits', path: '/admin/products' },
-    { icon: ShoppingCart, label: 'Commandes', path: '/admin/orders' },
-    { icon: Users, label: 'Utilisateurs', path: '/admin/users' },
-    { icon: MessageSquare, label: 'Messages', path: '/admin/messages' },
-    { icon: MessageCircle, label: 'Chat Admin', path: '/admin/chat' },
-    { icon: MessageCircle, label: 'Service Client', path: '/admin/client-chat' },
-    { icon: Tag, label: 'Codes Promo', path: '/admin/code-promos' },
-    { icon: Gift, label: 'Codes de Réduction', path: '/admin/promo-codes' },
-    { icon: Megaphone, label: 'Pub Layout', path: '/admin/pub-layout' },
-    { icon: RefreshCw, label: 'Remboursements', path: '/admin/remboursements' },
-    { icon: Settings, label: 'Paramètres', path: '/admin/settings' },
+  
+  const navItems = [
+    { name: 'Produits', path: secureRoutes.produits, realPath: '/admin/produits', icon: Package },
+    { name: 'Utilisateurs', path: secureRoutes.utilisateurs, realPath: '/admin/utilisateurs', icon: Users },
+    { name: 'Messages', path: secureRoutes.messages, realPath: '/admin/messages', icon: MessageCircle },
+    { name: 'Commandes', path: secureRoutes.commandes, realPath: '/admin/commandes', icon: Truck },
+    { name: 'CodePromo', path: secureRoutes.codePromo, realPath: '/admin/code-promos', icon: Percent },
+    { name: 'Publicités', path: secureRoutes.pubLayout, realPath: '/admin/pub-layout', icon: Megaphone },
+    { name: 'Remboursements', path: secureRoutes.remboursements, realPath: '/admin/remboursements', icon: RefreshCw },
+    { name: 'Chat Admin', path: secureRoutes.chat, realPath: '/admin', icon: ShoppingBag },
+    // Conditional item for service client admin
+    ...(isServiceAdmin ? [{ 
+      name: 'Service Client', 
+      path: secureRoutes.serviceClient, 
+      realPath: '/admin/service-client',
+      icon: MessageSquare 
+    }] : []),
+    { name: 'Paramètres', path: secureRoutes.parametres, realPath: '/admin/parametres', icon: Settings },
   ];
 
-  const SidebarContent = () => (
-    <div className="flex h-full flex-col">
-      <div className="border-b p-6">
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-red-800 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold">R</span>
-          </div>
-          <span className="text-xl font-bold text-red-800">Riziky Admin</span>
-        </Link>
-      </div>
+  // Verifier si le chemin actuel correspond à un chemin réel (pour la mise en surbrillance du menu)
+  const isActivePath = (realPath: string) => {
+    return location.pathname === realPath || location.pathname.startsWith(realPath + '/');
+  };
 
-      <ScrollArea className="flex-1 px-3">
-        <div className="space-y-2 py-4">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            
-            return (
+  return (
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Sidebar */}
+      <div className="w-full md:w-64 bg-gray-900 text-white md:min-h-screen">
+        {/* Mobile Header */}
+        <div className="md:hidden p-4 bg-gray-900 text-white flex justify-between items-center">
+          <span className="font-bold text-lg">Admin Dashboard</span>
+          <button className="focus:outline-none">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+        
+        {/* Sidebar Content */}
+        <div className="p-4">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold mb-1">Riziky-Boutic</h1>
+            <p className="text-gray-400 text-sm">Administration</p>
+          </div>
+          
+          <nav className="space-y-1">
+            {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-700 transition-all hover:bg-gray-100 ${
-                  isActive ? 'bg-red-50 text-red-800 border-l-4 border-red-800' : ''
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActivePath(item.realPath)
+                    ? 'bg-red-800 text-white'
+                    : 'text-gray-300 hover:bg-gray-800'
                 }`}
-                onClick={() => setIsSidebarOpen(false)}
               >
-                <Icon className="h-4 w-4" />
-                <span className="text-sm font-medium">{item.label}</span>
+                <item.icon className="h-5 w-5 mr-3" />
+                {item.name}
               </Link>
-            );
-          })}
-        </div>
-      </ScrollArea>
-
-      <div className="border-t p-4">
-        <div className="mb-4 text-xs text-gray-500">
-          Connecté en tant que: {user?.email}
-        </div>
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          className="w-full"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Déconnexion
-        </Button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/50 lg:hidden" 
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:static lg:inset-0`}>
-        <SidebarContent />
-      </div>
-
-      {/* Main Content */}
-      <div className="lg:ml-64">
-        {/* Top Bar */}
-        <header className="border-b bg-white px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            
-            <div className="lg:hidden">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-red-800 rounded flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">R</span>
-                </div>
-                <span className="font-bold text-red-800">Riziky Admin</span>
-              </Link>
-            </div>
-
-            <div className="hidden lg:block">
-              <h1 className="text-2xl font-semibold text-gray-800">
-                Administration
-              </h1>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                {user?.nom} {user?.prenom}
-              </span>
-            </div>
+            ))}
+          </nav>
+          
+          <div className="mt-auto pt-8 border-t border-gray-700 mt-8">
+            <Link to="/" className="flex items-center px-4 py-3 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors">
+              <LogOut className="h-5 w-5 mr-3" />
+              Quitter
+            </Link>
           </div>
-        </header>
-
-        {/* Page Content */}
-        <main className="p-6">
-          <Card className="min-h-[calc(100vh-12rem)]">
-            <div className="p-6">
-              {children}
-            </div>
-          </Card>
-        </main>
+        </div>
       </div>
-
-      {/* Widget de chat service client pour admin */}
-      <AdminServiceChatWidget />
+      
+      {/* Main Content */}
+      <div className="flex-1 bg-gray-50">
+        <div className="p-6">
+          {children}
+        </div>
+      </div>
     </div>
   );
 };
