@@ -34,11 +34,6 @@ const ClientServiceChatWidget: React.FC = () => {
   const queryClient = useQueryClient();
   const [previousUnreadCount, setPreviousUnreadCount] = useState(0);
 
-  // Ne pas afficher le widget si c'est l'admin service client
-  if (user?.email === "service.client@example.com") {
-    return null;
-  }
-
   // Récupérer la conversation de service client
   const { data: conversation, isLoading } = useQuery({
     queryKey: ['serviceConversation'],
@@ -101,6 +96,11 @@ const ClientServiceChatWidget: React.FC = () => {
     }
   }, [user]);
 
+  // Ne pas afficher le widget si c'est l'admin service client ou si pas d'utilisateur
+  if (!user || user?.email === "service.client@example.com") {
+    return null;
+  }
+
   const handleSendMessage = () => {
     if (!message.trim()) return;
     sendMessageMutation.mutate(message);
@@ -117,8 +117,6 @@ const ClientServiceChatWidget: React.FC = () => {
       minute: '2-digit'
     });
   };
-
-  if (!user) return null;
 
   return (
     <>
