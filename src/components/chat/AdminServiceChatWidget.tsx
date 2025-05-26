@@ -44,6 +44,7 @@ const AdminServiceChatWidget: React.FC = () => {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
+  const [previousUnreadCount, setPreviousUnreadCount] = useState(0);
 
   // Vérifier si on est sur la page admin service client
   const isOnAdminServicePage = location.pathname.includes('/admin/service-client');
@@ -87,6 +88,15 @@ const AdminServiceChatWidget: React.FC = () => {
     (total, conv) => total + (conv.unreadCount || 0), 0
   ) : 0;
 
+  // Ouvrir automatiquement le widget quand il y a de nouveaux messages
+  useEffect(() => {
+    if (totalUnreadCount > previousUnreadCount && totalUnreadCount > 0) {
+      setIsOpen(true);
+      setIsMinimized(false);
+    }
+    setPreviousUnreadCount(totalUnreadCount);
+  }, [totalUnreadCount, previousUnreadCount]);
+
   // Sélectionner automatiquement la première conversation avec des messages non lus
   useEffect(() => {
     if (conversations && !activeConversationId) {
@@ -95,14 +105,11 @@ const AdminServiceChatWidget: React.FC = () => {
       
       if (unreadConversation) {
         setActiveConversationId(unreadConversation[0]);
-        if (totalUnreadCount > 0 && !isOpen) {
-          setIsOpen(true);
-        }
       } else if (conversationsArray.length > 0) {
         setActiveConversationId(conversationsArray[0][0]);
       }
     }
-  }, [conversations, activeConversationId, totalUnreadCount, isOpen]);
+  }, [conversations, activeConversationId]);
 
   // Scroll vers le bas quand les messages changent
   useEffect(() => {
@@ -140,10 +147,10 @@ const AdminServiceChatWidget: React.FC = () => {
 
   return (
     <>
-      {/* Bouton flottant */}
+      {/* Bouton flottant - déplacé à droite en rouge */}
       {!isOpen && (
         <motion.div
-          className="fixed bottom-6 left-6 z-50"
+          className="fixed bottom-6 right-6 z-50"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -167,14 +174,14 @@ const AdminServiceChatWidget: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Fenêtre de chat */}
+      {/* Fenêtre de chat - déplacée à droite */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className={`fixed bottom-6 left-6 z-50 ${
+            className={`fixed bottom-6 right-6 z-50 ${
               isMinimized ? 'w-80 h-20' : 'w-80 h-96'
             }`}
           >

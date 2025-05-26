@@ -32,6 +32,12 @@ const ClientServiceChatWidget: React.FC = () => {
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
+  const [previousUnreadCount, setPreviousUnreadCount] = useState(0);
+
+  // Ne pas afficher le widget si c'est l'admin service client
+  if (user?.email === "service.client@example.com") {
+    return null;
+  }
 
   // Récupérer la conversation de service client
   const { data: conversation, isLoading } = useQuery({
@@ -68,6 +74,15 @@ const ClientServiceChatWidget: React.FC = () => {
   const unreadCount = conversation?.messages?.filter(
     (msg: Message) => !msg.read && msg.senderId !== user?.id && !msg.isSystemMessage
   ).length || 0;
+
+  // Ouvrir automatiquement le widget quand il y a de nouveaux messages
+  useEffect(() => {
+    if (unreadCount > previousUnreadCount && unreadCount > 0) {
+      setIsOpen(true);
+      setIsMinimized(false);
+    }
+    setPreviousUnreadCount(unreadCount);
+  }, [unreadCount, previousUnreadCount]);
 
   // Scroll vers le bas quand les messages changent
   useEffect(() => {
