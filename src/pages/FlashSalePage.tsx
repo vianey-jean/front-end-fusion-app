@@ -83,6 +83,7 @@ const FlashSalePage: React.FC = () => {
                   <ProductCard 
                     product={{
                       ...product,
+                      description: product.name, // Utilise le nom comme description temporaire
                       price: product.discountedPrice,
                       originalPrice: product.originalPrice,
                       promotion: flashSale.discount

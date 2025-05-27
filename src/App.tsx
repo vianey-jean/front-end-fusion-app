@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,7 +25,7 @@ import ReviewsPage from '@/pages/ReviewsPage';
 import CodePromosPage from '@/pages/CodePromosPage';
 import RemboursementsPage from '@/pages/RemboursementsPage';
 
-import AdminLayout from '@/pages/admin/AdminLayout';
+import AdminLayoutComponent from '@/pages/admin/AdminLayout';
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import AdminProductsPage from '@/pages/admin/AdminProductsPage';
 import AdminOrdersPage from '@/pages/admin/AdminOrdersPage';
@@ -46,20 +47,16 @@ interface SecureRouteProps {
 }
 
 const SecureRoute: React.FC<SecureRouteProps> = ({ children, requiredRole }) => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isAuthenticated) {
       console.warn('Accès non autorisé : utilisateur non authentifié');
-    } else if (!isLoading && requiredRole === 'admin' && user?.role !== 'admin') {
+    } else if (requiredRole === 'admin' && user?.role !== 'admin') {
       console.warn('Accès non autorisé : rôle admin requis');
     }
-  }, [isLoading, isAuthenticated, user, requiredRole]);
-
-  if (isLoading) {
-    return <div>Chargement...</div>;
-  }
+  }, [isAuthenticated, user, requiredRole]);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -247,7 +244,6 @@ const App: React.FC = () => {
   );
 };
 
-// Dans le composant AppRoutes, ajoutons les nouvelles routes :
 const AppRoutes = () => {
   return (
     <Routes>
@@ -270,25 +266,13 @@ const AppRoutes = () => {
       
       {/* Admin routes */}
       <Route 
-        path="/admin" 
+        path="/admin/*" 
         element={
           <SecureRoute requiredRole="admin">
             <AdminLayout />
           </SecureRoute>
         } 
-      >
-        <Route path="" element={<AdminDashboardPage />} />
-        <Route path="products" element={<AdminProductsPage />} />
-        <Route path="orders" element={<AdminOrdersPage />} />
-        <Route path="users" element={<AdminUsersPage />} />
-        <Route path="reviews" element={<AdminReviewsPage />} />
-        <Route path="contacts" element={<AdminContactsPage />} />
-        <Route path="code-promos" element={<AdminCodePromosPage />} />
-        <Route path="remboursements" element={<AdminRemboursementsPage />} />
-        <Route path="chat" element={<AdminChatPage />} />
-        <Route path="pub-layout" element={<AdminPubLayoutPage />} />
-        <Route path="flash-sales" element={<AdminFlashSalesPage />} />
-      </Route>
+      />
       
       {/* Route par défaut - redirige vers la page d'accueil */}
       <Route path="*" element={<Navigate to="/" />} />
