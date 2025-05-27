@@ -6,7 +6,6 @@ import { ScrollToTop } from '@/utils/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import SecureRoute from '@/components/SecureRoute';
 import { siteConfig } from '@/config/site';
-import { Settings } from '@radix-ui/react-icons';
 import { Icons } from '@/components/icons';
 
 // Import des pages principales
@@ -24,7 +23,7 @@ import ReviewsPage from '@/pages/ReviewsPage';
 import CodePromosPage from '@/pages/CodePromosPage';
 import RemboursementsPage from '@/pages/RemboursementsPage';
 import FlashSalePage from '@/pages/FlashSalePage';
-import AdminLayout from '@/pages/admin/AdminLayout';
+import AdminLayoutComponent from '@/pages/admin/AdminLayout';
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
 import AdminUsersPage from '@/pages/admin/AdminUsersPage';
 import AdminProductsPage from '@/pages/admin/AdminProductsPage';
@@ -40,8 +39,8 @@ import AdminFlashSalesPage from '@/pages/admin/AdminFlashSalesPage';
 import NotFound from '@/pages/NotFound';
 import ClientChatWidget from '@/components/chat/ClientChatWidget';
 
-// Import du composant de chargement
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
+// Import du composant de chargement - Fixed: default import instead of named import
+import LoadingSpinner from '@/components/ui/loading-spinner';
 
 // Composant de chargement pour Suspense
 const PageLoader = () => (
@@ -113,8 +112,10 @@ const AppRoutes = () => {
 
         {/* Routes admin */}
         <Route path="/admin" element={
-          <SecureRoute requiredRole="admin">
-            <AdminLayout />
+          <SecureRoute>
+            <AdminLayoutComponent>
+              <AdminDashboardPage />
+            </AdminLayoutComponent>
           </SecureRoute>
         }>
           <Route index element={<AdminDashboardPage />} />
