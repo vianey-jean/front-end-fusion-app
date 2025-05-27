@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -11,8 +12,7 @@ import {
   Percent,
   MessageSquare,
   Megaphone,
-  RefreshCw,
-  Flame
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSecureRoute } from '@/services/secureIds';
@@ -92,7 +92,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <p className="text-gray-400 text-sm">Administration</p>
           </div>
           
-          <nav className="space-y-2">
+          <nav className="space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -107,18 +107,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 {item.name}
               </Link>
             ))}
-            
-            <Link
-              to="/admin/flash-sales"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                location.pathname === '/admin/flash-sales'
-                  ? 'bg-red-100 text-red-900'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Flame className="h-5 w-5" />
-              <span>Flash Sales</span>
-            </Link>
           </nav>
           
           <div className="mt-auto pt-8 border-t border-gray-700 mt-8">
