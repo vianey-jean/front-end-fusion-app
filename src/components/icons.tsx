@@ -3,7 +3,7 @@ import {
   LucideProps, 
   Moon, 
   SunMedium, 
-  type Icon as LucideIcon,
+  type LucideIcon,
 } from "lucide-react"
 
 export type Icon = LucideIcon
