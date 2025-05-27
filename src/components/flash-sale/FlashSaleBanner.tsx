@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { flashSaleAPI } from '@/services/flashSaleAPI';
+import { getSecureRoute } from '@/services/secureIds';
 
 interface TimeLeft {
   days: number;
@@ -71,6 +72,9 @@ const FlashSaleBanner: React.FC = () => {
     { label: 'Sec', value: timeLeft.seconds }
   ];
 
+  // Générer l'URL sécurisée pour la page flash sale
+  const secureFlashSaleUrl = getSecureRoute('/flash-sale/:id').replace(':id', activeFlashSale.id);
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -96,7 +100,7 @@ const FlashSaleBanner: React.FC = () => {
                 className="bg-white text-red-600 hover:bg-gray-100 font-bold px-6 py-3 rounded-full"
                 asChild
               >
-                <Link to={`/flash-sale/${activeFlashSale.id}`}>
+                <Link to={secureFlashSaleUrl}>
                   Voir les produits
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
