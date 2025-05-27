@@ -1,6 +1,8 @@
 
-// Ajout du polyfill pour global
-window.global = window;
+// Polyfill pour global - approche plus robuste
+if (typeof global === 'undefined') {
+  (window as any).global = window;
+}
 
 import React from 'react'
 import ReactDOM from 'react-dom/client'
