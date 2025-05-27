@@ -1,304 +1,299 @@
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useLocation, Navigate, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useStore } from '@/contexts/StoreContext';
+import { ScrollToTop } from '@/utils/ScrollToTop';
+import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/components/theme-provider';
+import { cn } from "@/lib/utils";
+import { siteConfig } from "@/config/site";
+import { DashboardIcon, ImageIcon, SettingsIcon } from "@radix-ui/react-icons"
+import { Icons } from "@/components/icons"
 
-import React, { useEffect, lazy, Suspense } from 'react';
-import './App.css';
-import { Toaster } from './components/ui/sonner';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { StoreProvider } from './contexts/StoreContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import SecureRoute from './components/SecureRoute';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { initSecureRoutes, getSecureRoute } from './services/secureIds';
+import HomePage from '@/pages/HomePage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import ProductDetailsPage from '@/pages/ProductDetailsPage';
+import CategoryPage from '@/pages/CategoryPage';
+import ProfilePage from '@/pages/ProfilePage';
+import PanierPage from '@/pages/PanierPage';
+import FavoritesPage from '@/pages/FavoritesPage';
+import ContactPage from '@/pages/ContactPage';
+import OrdersPage from '@/pages/OrdersPage';
+import ReviewsPage from '@/pages/ReviewsPage';
+import CodePromosPage from '@/pages/CodePromosPage';
+import RemboursementsPage from '@/pages/RemboursementsPage';
 
-// Composant de chargement
-import { Skeleton } from './components/ui/skeleton';
+import AdminLayout from '@/pages/admin/AdminLayout';
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage';
+import AdminProductsPage from '@/pages/admin/AdminProductsPage';
+import AdminOrdersPage from '@/pages/admin/AdminOrdersPage';
+import AdminUsersPage from '@/pages/admin/AdminUsersPage';
+import AdminReviewsPage from '@/pages/admin/AdminReviewsPage';
+import AdminContactsPage from '@/pages/admin/AdminContactsPage';
+import AdminCodePromosPage from '@/pages/admin/AdminCodePromosPage';
+import AdminRemboursementsPage from '@/pages/admin/AdminRemboursementsPage';
+import AdminChatPage from '@/pages/admin/AdminChatPage';
+import AdminPubLayoutPage from '@/pages/admin/AdminPubLayoutPage';
 
-const LoadingFallback = () => (
-  <div className="container mx-auto px-4 py-10">
-    <div className="space-y-8 max-w-5xl mx-auto">
-      <Skeleton className="h-12 w-3/4 mx-auto" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="space-y-4">
-            <Skeleton className="h-52 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-          </div>
-        ))}
+import ClientChatWidget from '@/components/chat/ClientChatWidget';
+import FlashSalePage from '@/pages/FlashSalePage';
+import AdminFlashSalesPage from '@/pages/admin/AdminFlashSalesPage';
+
+interface SecureRouteProps {
+  children: React.ReactNode;
+  requiredRole?: 'admin' | 'user';
+}
+
+const SecureRoute: React.FC<SecureRouteProps> = ({ children, requiredRole }) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      console.warn('Accès non autorisé : utilisateur non authentifié');
+    } else if (!isLoading && requiredRole === 'admin' && user?.role !== 'admin') {
+      console.warn('Accès non autorisé : rôle admin requis');
+    }
+  }, [isLoading, isAuthenticated, user, requiredRole]);
+
+  if (isLoading) {
+    return <div>Chargement...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requiredRole === 'admin' && user?.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+interface AdminLayoutProps {
+  children?: React.ReactNode;
+}
+
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+  const location = useLocation();
+
+  return (
+    <div className="flex h-screen bg-gray-100 dark:bg-neutral-900">
+      {/* Sidebar */}
+      <div className="w-64 flex-shrink-0 bg-white dark:bg-neutral-800 border-r border-gray-200 dark:border-neutral-700">
+        <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-neutral-700">
+          <Link to="/" className="text-2xl font-bold text-red-600">
+            {siteConfig.name}
+          </Link>
+        </div>
+        <nav className="space-y-2">
+          <Link
+            to="/admin"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <DashboardIcon className="h-5 w-5" />
+            <span>Dashboard</span>
+          </Link>
+          <Link
+            to="/admin/products"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname.startsWith('/admin/products')
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <ImageIcon className="h-5 w-5" />
+            <span>Products</span>
+          </Link>
+          <Link
+            to="/admin/orders"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/orders'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.order className="h-5 w-5" />
+            <span>Orders</span>
+          </Link>
+          <Link
+            to="/admin/users"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/users'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.user className="h-5 w-5" />
+            <span>Users</span>
+          </Link>
+          <Link
+            to="/admin/reviews"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/reviews'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.review className="h-5 w-5" />
+            <span>Reviews</span>
+          </Link>
+          <Link
+            to="/admin/contacts"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/contacts'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.contact className="h-5 w-5" />
+            <span>Contacts</span>
+          </Link>
+          <Link
+            to="/admin/code-promos"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/code-promos'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.codePromo className="h-5 w-5" />
+            <span>Code Promos</span>
+          </Link>
+          <Link
+            to="/admin/remboursements"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/remboursements'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.remboursement className="h-5 w-5" />
+            <span>Remboursements</span>
+          </Link>
+          <Link
+            to="/admin/chat"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/chat'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.chat className="h-5 w-5" />
+            <span>Chat</span>
+          </Link>
+          <Link
+            to="/admin/pub-layout"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/pub-layout'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.pubLayout className="h-5 w-5" />
+            <span>Publicités</span>
+          </Link>
+          
+          <Link
+            to="/admin/flash-sales"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/admin/flash-sales'
+                ? 'bg-red-100 text-red-900'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-neutral-700'
+            }`}
+          >
+            <Icons.flame className="h-5 w-5" />
+            <span>Flash Sales</span>
+          </Link>
+        </nav>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 p-4">
+        <Routes>
+          <Route path="/" element={<AdminDashboardPage />} />
+          <Route path="products" element={<AdminProductsPage />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="reviews" element={<AdminReviewsPage />} />
+          <Route path="contacts" element={<AdminContactsPage />} />
+          <Route path="code-promos" element={<AdminCodePromosPage />} />
+          <Route path="remboursements" element={<AdminRemboursementsPage />} />
+          <Route path="chat" element={<AdminChatPage />} />
+          <Route path="pub-layout" element={<AdminPubLayoutPage />} />
+          <Route path="flash-sales" element={<AdminFlashSalesPage />} />
+        </Routes>
       </div>
     </div>
-  </div>
-);
-
-// Chargement paresseux des pages pour optimiser les performances
-const HomePage = lazy(() => import('./pages/HomePage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
-const ProductDetail = lazy(() => import('./pages/ProductDetail'));
-const CategoryPage = lazy(() => import('./pages/CategoryPage'));
-const DeliveryPage = lazy(() => import('./pages/DeliveryPage'));
-const ReturnsPage = lazy(() => import('./pages/ReturnsPage'));
-const AllProductsPage = lazy(() => import('./pages/AllProductsPage'));
-const CustomerServicePage = lazy(() => import('./pages/CustomerServicePage'));
-const ContactPage = lazy(() => import('./pages/ContactPage'));
-const BlogPage = lazy(() => import('./pages/BlogPage'));
-const CarriersPage = lazy(() => import('./pages/CarriersPage'));
-const HistoryPage = lazy(() => import('./pages/HistoryPage'));
-const TermsPage = lazy(() => import('./pages/TermsPage'));
-const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
-const CookiesPage = lazy(() => import('./pages/CookiesPage'));
-const FAQPage = lazy(() => import('./pages/FAQPage'));
-const ChatPage = lazy(() => import('./pages/ChatPage'));
-const CartPage = lazy(() => import('./pages/CartPage'));
-const FavoritesPage = lazy(() => import('./pages/FavoritesPage'));
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
-const OrdersPage = lazy(() => import('./pages/OrdersPage'));
-const OrderPage = lazy(() => import('./pages/OrderPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-
-// Pages Admin
-const AdminProductsPage = lazy(() => import('./pages/admin/AdminProductsPage'));
-const AdminUsersPage = lazy(() => import('./pages/admin/AdminUsersPage'));
-const AdminMessagesPage = lazy(() => import('./pages/admin/AdminMessagesPage'));
-const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage'));
-const AdminChatPage = lazy(() => import('./pages/admin/AdminChatPage'));
-const AdminOrdersPage = lazy(() => import('./pages/admin/AdminOrdersPage'));
-const AdminClientChatPage = lazy(() => import('./pages/admin/AdminClientChatPage'));
-const AdminCodePromosPage = lazy(() => import('./pages/admin/AdminCodePromosPage'));
-const AdminPubLayoutPage = lazy(() => import('./pages/admin/AdminPubLayoutPage'));
-const AdminRemboursementsPage = lazy(() => import('./pages/admin/AdminRemboursementsPage'));
-
-// Création d'un nouveau QueryClient avec configuration optimisée
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 60000, // 1 minute (données considérées fraiches pendant 1 min)
-      gcTime: 5 * 60 * 1000, // 5 minutes (conserver les données en cache 5 min)
-    },
-  },
-});
-
-// Initialiser les routes sécurisées
-const secureRoutes = initSecureRoutes();
-
-function AppRoutes() {
-  const location = useLocation();
-  
-  // Remonter la page au changement de route
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    console.log("Navigation vers:", location.pathname);
-  }, [location.pathname]);
-  
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        
-        {/* Routes d'authentification sécurisées */}
-        <Route path={secureRoutes.get('/login')?.substring(1)} element={<LoginPage />} />
-        <Route path="/login" element={<Navigate to={secureRoutes.get('/login') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/register')?.substring(1)} element={<RegisterPage />} />
-        <Route path="/register" element={<Navigate to={secureRoutes.get('/register') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/forgot-password')?.substring(1)} element={<ForgotPasswordPage />} />
-        <Route path="/forgot-password" element={<Navigate to={secureRoutes.get('/forgot-password') || '/'} replace />} />
-        
-        {/* Route de détail produit avec l'ID sécurisé directement dans le chemin */}
-        <Route path="/:productId" element={<ProductDetail />} />
-        <Route path="/produit/:productId" element={<Navigate to="/:productId" replace />} />
-        
-        <Route path="/categorie/:categoryName" element={<CategoryPage />} />
-        
-        {/* Pages d'information */}
-        <Route path="/livraison" element={<DeliveryPage />} />
-        <Route path="/mentions-legales" element={<ReturnsPage />} />
-        <Route path="/retours" element={<ReturnsPage />} />
-        
-        {/* Route sécurisée pour tous les produits */}
-        <Route path={secureRoutes.get('/tous-les-produits')?.substring(1)} element={<AllProductsPage />} />
-        <Route path="/tous-les-produits" element={<Navigate to={secureRoutes.get('/tous-les-produits') || '/'} replace />} />
-        
-        <Route path="/service-client" element={<CustomerServicePage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/carrieres" element={<CarriersPage />} />
-        <Route path="/notre-histoire" element={<HistoryPage />} />
-        <Route path="/conditions-utilisation" element={<TermsPage />} />
-        <Route path="/politique-confidentialite" element={<PrivacyPage />} />
-        <Route path="/politique-cookies" element={<CookiesPage />} />
-        <Route path="/faq" element={<FAQPage />} />
-
-        <Route path="/chat" element={
-          <ProtectedRoute>
-            <ChatPage />
-          </ProtectedRoute>
-        } />
-        
-        {/* Routes protégées avec URLs sécurisées */}
-        <Route path={secureRoutes.get('/panier')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute>
-              <CartPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/panier" element={<Navigate to={secureRoutes.get('/panier') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/favoris')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute>
-              <FavoritesPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/favoris" element={<Navigate to={secureRoutes.get('/favoris') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/paiement')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute>
-              <CheckoutPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/paiement" element={<Navigate to={secureRoutes.get('/paiement') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/commandes')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute>
-              <OrdersPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/commandes" element={<Navigate to={secureRoutes.get('/commandes') || '/'} replace />} />
-        
-        <Route path="/commande/:orderId" element={
-          <ProtectedRoute>
-            <OrderPage />
-          </ProtectedRoute>
-        } />
-        
-        <Route path={secureRoutes.get('/profil')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/profil" element={<Navigate to={secureRoutes.get('/profil') || '/'} replace />} />
-        
-        {/* Pages Admin avec URLs sécurisées */}
-        <Route path={secureRoutes.get('/admin/produits')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminProductsPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/admin/produits" element={<Navigate to={secureRoutes.get('/admin/produits') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/admin/utilisateurs')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminUsersPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/admin/utilisateurs" element={<Navigate to={secureRoutes.get('/admin/utilisateurs') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/admin/messages')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminMessagesPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/admin/messages" element={<Navigate to={secureRoutes.get('/admin/messages') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/admin/parametres')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminSettingsPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/admin/parametres" element={<Navigate to={secureRoutes.get('/admin/parametres') || '/'} replace />} />
-        
-        <Route path={`${secureRoutes.get('/admin')?.substring(1)}/:adminId?`} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminChatPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/admin/:adminId?" element={<Navigate to={secureRoutes.get('/admin') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/admin/commandes')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminOrdersPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/admin/commandes" element={<Navigate to={secureRoutes.get('/admin/commandes') || '/'} replace />} />
-        
-        <Route path={secureRoutes.get('/admin/service-client')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminClientChatPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-
-        <Route path={getSecureRoute('/admin/code-promos')} element={<AdminCodePromosPage />} />
-        <Route path="/admin/service-client" element={<Navigate to={secureRoutes.get('/admin/service-client') || '/'} replace />} />
-        
-        {/* Ajout de la route sécurisée pour la page pub-layout */}
-        <Route path={secureRoutes.get('/admin/pub-layout')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminPubLayoutPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/admin/pub-layout" element={<Navigate to={secureRoutes.get('/admin/pub-layout') || '/'} replace />} />
-        
-        {/* Ajout de la route sécurisée pour la page remboursements */}
-        <Route path={secureRoutes.get('/admin/remboursements')?.substring(1)} element={
-          <SecureRoute>
-            <ProtectedRoute requireAdmin>
-              <AdminRemboursementsPage />
-            </ProtectedRoute>
-          </SecureRoute>
-        } />
-        <Route path="/admin/remboursements" element={<Navigate to={secureRoutes.get('/admin/remboursements') || '/'} replace />} />
-        
-        {/* Route NotFound spécifique */}
-        <Route path="/page/notfound" element={<NotFound />} />
-        
-        {/* Route 404 - tous les liens qui n'existent pas */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
   );
-}
+};
 
-function App() {
+const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <StoreProvider>
-          <AppRoutes />
-          <Toaster closeButton richColors position="top-center" />
-        </StoreProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="system" storageKey="vite-react-theme">
+      <Router>
+        <ScrollToTop />
+        <AppRoutes />
+        <Toaster />
+        <ClientChatWidget />
+      </Router>
+    </ThemeProvider>
   );
-}
+};
+
+// Dans le composant AppRoutes, ajoutons les nouvelles routes :
+const AppRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/product/:id" element={<ProductDetailsPage />} />
+      <Route path="/category/:categoryName" element={<CategoryPage />} />
+      <Route path="/profile" element={<SecureRoute><ProfilePage /></SecureRoute>} />
+      <Route path="/panier" element={<SecureRoute><PanierPage /></SecureRoute>} />
+      <Route path="/favorites" element={<SecureRoute><FavoritesPage /></SecureRoute>} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/orders" element={<SecureRoute><OrdersPage /></SecureRoute>} />
+      <Route path="/reviews" element={<SecureRoute><ReviewsPage /></SecureRoute>} />
+      <Route path="/code-promos" element={<SecureRoute><CodePromosPage /></SecureRoute>} />
+      <Route path="/remboursements" element={<SecureRoute><RemboursementsPage /></SecureRoute>} />
+      
+      {/* Flash Sale routes */}
+      <Route path="/flash-sale/:id" element={<FlashSalePage />} />
+      
+      {/* Admin routes */}
+      <Route 
+        path="/admin" 
+        element={
+          <SecureRoute requiredRole="admin">
+            <AdminLayout />
+          </SecureRoute>
+        } 
+      >
+        <Route path="" element={<AdminDashboardPage />} />
+        <Route path="products" element={<AdminProductsPage />} />
+        <Route path="orders" element={<AdminOrdersPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="reviews" element={<AdminReviewsPage />} />
+        <Route path="contacts" element={<AdminContactsPage />} />
+        <Route path="code-promos" element={<AdminCodePromosPage />} />
+        <Route path="remboursements" element={<AdminRemboursementsPage />} />
+        <Route path="chat" element={<AdminChatPage />} />
+        <Route path="pub-layout" element={<AdminPubLayoutPage />} />
+        <Route path="flash-sales" element={<AdminFlashSalesPage />} />
+      </Route>
+      
+      {/* Route par défaut - redirige vers la page d'accueil */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
+};
 
 export default App;
