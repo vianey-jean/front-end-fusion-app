@@ -49,6 +49,7 @@ const AdminFlashSalesPage: React.FC = () => {
     mutationFn: flashSaleAPI.activate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-flash-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['active-flash-sale'] });
       toast({ title: 'Vente flash activée avec succès' });
     },
     onError: () => {
@@ -60,6 +61,7 @@ const AdminFlashSalesPage: React.FC = () => {
     mutationFn: flashSaleAPI.deactivate,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-flash-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['active-flash-sale'] });
       toast({ title: 'Vente flash désactivée avec succès' });
     },
     onError: () => {
@@ -81,6 +83,15 @@ const AdminFlashSalesPage: React.FC = () => {
     if (days > 0) return `${days}j ${hours}h ${minutes}m`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
+  };
+
+  const getProductNames = (productIds: string[]) => {
+    if (!productIds || productIds.length === 0) return 'Aucun produit';
+    
+    const selectedProducts = products.filter(product => productIds.includes(product.id));
+    if (selectedProducts.length === 0) return 'Produits non trouvés';
+    
+    return selectedProducts.map(product => product.name).join(', ');
   };
 
   const handleEdit = (flashSale: any) => {
@@ -147,13 +158,21 @@ const AdminFlashSalesPage: React.FC = () => {
                         </Badge>
                       </div>
                       <p className="text-gray-600 mb-3">{flashSale.description}</p>
+                      
+                      {/* Affichage des produits sélectionnés */}
+                      <div className="bg-blue-50 p-3 rounded-lg mb-3">
+                        <p className="text-sm font-medium text-blue-800 mb-1">
+                          Produits inclus ({flashSale.productIds?.length || 0}):
+                        </p>
+                        <p className="text-xs text-blue-600">
+                          {getProductNames(flashSale.productIds || [])}
+                        </p>
+                      </div>
+                      
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-1" />
                           Temps restant: {getTimeRemaining(flashSale.endDate)}
-                        </div>
-                        <div>
-                          Produits: {flashSale.productIds?.length || 0}
                         </div>
                         <div>
                           Du {new Date(flashSale.startDate).toLocaleDateString()} au {new Date(flashSale.endDate).toLocaleDateString()}

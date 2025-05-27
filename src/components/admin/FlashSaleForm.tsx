@@ -50,12 +50,15 @@ export const FlashSaleForm: React.FC<FlashSaleFormProps> = ({
 
   const createMutation = useMutation({
     mutationFn: flashSaleAPI.create,
-    onSuccess: () => {
+    onSuccess: (response) => {
+      console.log('Flash sale créée avec succès:', response.data);
       queryClient.invalidateQueries({ queryKey: ['admin-flash-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['active-flash-sale'] });
       toast({ title: 'Vente flash créée avec succès' });
       onClose();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Erreur lors de la création:', error);
       toast({ title: 'Erreur lors de la création', variant: 'destructive' });
     },
   });
@@ -63,12 +66,15 @@ export const FlashSaleForm: React.FC<FlashSaleFormProps> = ({
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<FlashSaleFormData> }) =>
       flashSaleAPI.update(id, data),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      console.log('Flash sale mise à jour avec succès:', response.data);
       queryClient.invalidateQueries({ queryKey: ['admin-flash-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['active-flash-sale'] });
       toast({ title: 'Vente flash mise à jour avec succès' });
       onClose();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Erreur lors de la mise à jour:', error);
       toast({ title: 'Erreur lors de la mise à jour', variant: 'destructive' });
     },
   });
@@ -86,6 +92,8 @@ export const FlashSaleForm: React.FC<FlashSaleFormProps> = ({
       return;
     }
 
+    console.log('Données du formulaire à envoyer:', formData);
+
     if (flashSale) {
       updateMutation.mutate({ id: flashSale.id, data: formData });
     } else {
@@ -94,12 +102,17 @@ export const FlashSaleForm: React.FC<FlashSaleFormProps> = ({
   };
 
   const handleProductToggle = (productId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      productIds: prev.productIds.includes(productId)
+    setFormData(prev => {
+      const newProductIds = prev.productIds.includes(productId)
         ? prev.productIds.filter(id => id !== productId)
-        : [...prev.productIds, productId]
-    }));
+        : [...prev.productIds, productId];
+      
+      console.log('Produits sélectionnés:', newProductIds);
+      return {
+        ...prev,
+        productIds: newProductIds
+      };
+    });
   };
 
   return (
@@ -199,9 +212,16 @@ export const FlashSaleForm: React.FC<FlashSaleFormProps> = ({
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-600 mt-2">
-              {formData.productIds.length} produit(s) sélectionné(s)
-            </p>
+            <div className="bg-blue-50 p-3 rounded-lg mt-3">
+              <p className="text-sm font-medium text-blue-800">
+                {formData.productIds.length} produit(s) sélectionné(s)
+              </p>
+              {formData.productIds.length > 0 && (
+                <div className="text-xs text-blue-600 mt-1">
+                  IDs: {formData.productIds.join(', ')}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end space-x-3 pt-4 border-t">
