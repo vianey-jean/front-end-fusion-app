@@ -11,14 +11,23 @@ import { Toaster } from "./components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './components/theme-provider'
 import CookieManager from './components/prompts/CookieManager'
+import { initPerformanceMonitoring } from './services/performanceMetrics';
 
+// Configurer le client de requête avec mise en cache optimisée
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      cacheTime: 1000 * 60 * 30, // 30 minutes
+      retry: 2,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
     },
   },
 })
+
+// Initialiser le monitoring de performances
+initPerformanceMonitoring();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
