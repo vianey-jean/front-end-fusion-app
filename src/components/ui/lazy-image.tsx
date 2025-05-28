@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface LazyImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'onDrag'> {
   placeholderUrl?: string;
   aspectRatio?: number;
   blurhash?: string;
@@ -20,7 +20,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
   blurhash,
   loadingBehavior = 'lazy',
   onLoad,
-  ...props
+  ...htmlProps
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -75,6 +75,9 @@ const LazyImage: React.FC<LazyImageProps> = ({
     ? { src }
     : {};
 
+  // Extract HTML props and exclude any conflicting ones
+  const { onDrag, ...safeHtmlProps } = htmlProps;
+
   return (
     <div 
       className={`relative overflow-hidden ${className}`}
@@ -99,6 +102,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         ref={imgRef}
         alt={alt}
         {...imageProps}
+        {...safeHtmlProps}
         className={`w-full h-full object-cover ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         loading={loadingBehavior}
         onLoad={handleImageLoad}
@@ -106,7 +110,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.3 }}
-        {...props}
       />
     </div>
   );
