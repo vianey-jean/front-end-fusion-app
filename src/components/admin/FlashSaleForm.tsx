@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +10,7 @@ import { flashSaleAPI } from '@/services/flashSaleAPI';
 import { useToast } from '@/hooks/use-toast';
 import { FlashSaleFormData } from '@/types/flashSale';
 import { Product } from '@/types/product';
+import { Search } from 'lucide-react';
 
 interface FlashSaleFormProps {
   flashSale?: any;
@@ -32,21 +32,46 @@ export const FlashSaleForm: React.FC<FlashSaleFormProps> = ({
     productIds: [],
   });
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (flashSale) {
+      // S'assurer que productIds est un array
+      let productIds = [];
+      if (Array.isArray(flashSale.productIds)) {
+        productIds = flashSale.productIds;
+      } else if (flashSale.productIds && typeof flashSale.productIds === 'object') {
+        productIds = Object.values(flashSale.productIds);
+      }
+
       setFormData({
         title: flashSale.title,
         description: flashSale.description,
         discount: flashSale.discount,
         startDate: flashSale.startDate.slice(0, 16),
         endDate: flashSale.endDate.slice(0, 16),
-        productIds: flashSale.productIds || [],
+        productIds: productIds,
       });
     }
   }, [flashSale]);
+
+  // Filtrage des produits par recherche
+  useEffect(() => {
+    if (searchTerm.length >= 3) {
+      const filtered = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts(products);
+    }
+  }, [searchTerm, products]);
 
   const createMutation = useMutation({
     mutationFn: flashSaleAPI.create,
@@ -92,27 +117,58 @@ export const FlashSaleForm: React.FC<FlashSaleFormProps> = ({
       return;
     }
 
-    console.log('Données du formulaire à envoyer:', formData);
+    // S'assurer que les productIds sont bien inclus dans les données envoyées comme array
+    const productIdsToSend = Array.isArray(formData.productIds) ? formData.productIds : [];
+    
+    const dataToSend = {
+      title: formData.title,
+      description: formData.description,
+      discount: Number(formData.discount),
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      productIds: productIdsToSend
+    };
+
+    console.log('=== ENVOI DES DONNÉES ===');
+    console.log('Données complètes à envoyer:', JSON.stringify(dataToSend, null, 2));
+    console.log('ProductIds sélectionnés:', productIdsToSend);
+    console.log('Nombre de produits:', productIdsToSend.length);
 
     if (flashSale) {
-      updateMutation.mutate({ id: flashSale.id, data: formData });
+      updateMutation.mutate({ id: flashSale.id, data: dataToSend });
     } else {
-      createMutation.mutate(formData);
+      createMutation.mutate(dataToSend);
     }
   };
 
   const handleProductToggle = (productId: string) => {
+    console.log('=== TOGGLE PRODUIT ===');
+    console.log('ID du produit cliqué:', productId);
+    
     setFormData(prev => {
-      const newProductIds = prev.productIds.includes(productId)
-        ? prev.productIds.filter(id => id !== productId)
-        : [...prev.productIds, productId];
+      const currentIds = Array.isArray(prev.productIds) ? prev.productIds : [];
+      console.log('IDs actuels:', currentIds);
       
-      console.log('Produits sélectionnés:', newProductIds);
+      let newProductIds;
+      if (currentIds.includes(productId)) {
+        newProductIds = currentIds.filter(id => id !== productId);
+        console.log('Produit retiré. Nouveaux IDs:', newProductIds);
+      } else {
+        newProductIds = [...currentIds, productId];
+        console.log('Produit ajouté. Nouveaux IDs:', newProductIds);
+      }
+      
       return {
         ...prev,
         productIds: newProductIds
       };
     });
+  };
+
+  const getSelectedProductNames = () => {
+    const currentIds = Array.isArray(formData.productIds) ? formData.productIds : [];
+    const selectedProducts = products.filter(product => currentIds.includes(product.id));
+    return selectedProducts.map(product => product.name).join(', ');
   };
 
   return (
@@ -190,35 +246,76 @@ export const FlashSaleForm: React.FC<FlashSaleFormProps> = ({
           <div>
             <Label className="text-base font-medium">Produits inclus dans la vente flash</Label>
             <p className="text-sm text-gray-600 mb-4">
-              Sélectionnez les produits qui bénéficieront de la réduction
+              Sélectionnez les produits qui bénéficieront de la réduction de {formData.discount}%
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
-              {products.map((product) => (
-                <div key={product.id} className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded">
-                  <Checkbox
-                    id={`product-${product.id}`}
-                    checked={formData.productIds.includes(product.id)}
-                    onCheckedChange={() => handleProductToggle(product.id)}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <label
-                      htmlFor={`product-${product.id}`}
-                      className="text-sm font-medium cursor-pointer block truncate"
-                    >
-                      {product.name}
-                    </label>
-                    <p className="text-xs text-gray-500 truncate">{product.price}€</p>
-                  </div>
-                </div>
-              ))}
+
+            {/* Barre de recherche */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Rechercher des produits (minimum 3 caractères)..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
+
+            {/* Affichage du message si recherche trop courte */}
+            {searchTerm.length > 0 && searchTerm.length < 3 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-yellow-800">
+                  Veuillez saisir au moins 3 caractères pour rechercher
+                </p>
+              </div>
+            )}
+
+            {/* Liste des produits filtrés */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
+              {filteredProducts.length === 0 ? (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  {searchTerm.length >= 3 ? 'Aucun produit trouvé' : 'Tous les produits'}
+                </div>
+              ) : (
+                filteredProducts.map((product) => (
+                  <div key={product.id} className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded">
+                    <Checkbox
+                      id={`product-${product.id}`}
+                      checked={Array.isArray(formData.productIds) && formData.productIds.includes(product.id)}
+                      onCheckedChange={() => handleProductToggle(product.id)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <label
+                        htmlFor={`product-${product.id}`}
+                        className="text-sm font-medium cursor-pointer block truncate"
+                      >
+                        {product.name}
+                      </label>
+                      <p className="text-xs text-gray-500 truncate">
+                        {product.price}€ 
+                        {formData.discount > 0 && (
+                          <span className="text-red-600 font-medium ml-2">
+                            → {(product.price * (1 - formData.discount / 100)).toFixed(2)}€
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-400 truncate">{product.category}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Résumé des produits sélectionnés */}
             <div className="bg-blue-50 p-3 rounded-lg mt-3">
               <p className="text-sm font-medium text-blue-800">
-                {formData.productIds.length} produit(s) sélectionné(s)
+                {Array.isArray(formData.productIds) ? formData.productIds.length : 0} produit(s) sélectionné(s)
               </p>
-              {formData.productIds.length > 0 && (
+              {Array.isArray(formData.productIds) && formData.productIds.length > 0 && (
                 <div className="text-xs text-blue-600 mt-1">
-                  IDs: {formData.productIds.join(', ')}
+                  <p className="font-medium">Produits sélectionnés:</p>
+                  <p className="truncate">{getSelectedProductNames()}</p>
+                  <p className="mt-1">IDs: {formData.productIds.join(', ')}</p>
                 </div>
               )}
             </div>
