@@ -76,17 +76,6 @@ const LazyImage: React.FC<LazyImageProps> = ({
     ? { src }
     : {};
 
-  // Filter out conflicting event handlers that conflict with Framer Motion
-  const {
-    onDrag,
-    onDragEnd,
-    onDragStart,
-    onAnimationStart,
-    onAnimationEnd,
-    onAnimationIteration,
-    ...safeHtmlProps
-  } = htmlProps;
-
   return (
     <div 
       className={`relative overflow-hidden ${className}`}
@@ -111,7 +100,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         ref={imgRef}
         alt={alt}
         {...imageProps}
-        {...safeHtmlProps}
+        {...htmlProps}
         className={`w-full h-full object-cover ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         loading={loadingBehavior}
         onLoad={handleImageLoad}
