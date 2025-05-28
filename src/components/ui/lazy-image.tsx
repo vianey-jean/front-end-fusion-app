@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface LazyImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'onDrag' | 'onDragEnd' | 'onDragStart'> {
+interface LazyImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 
+  'onDrag' | 'onDragEnd' | 'onDragStart' | 'onAnimationStart' | 'onAnimationEnd' | 'onAnimationIteration'> {
   placeholderUrl?: string;
   aspectRatio?: number;
   blurhash?: string;
@@ -75,6 +76,17 @@ const LazyImage: React.FC<LazyImageProps> = ({
     ? { src }
     : {};
 
+  // Filter out conflicting event handlers that conflict with Framer Motion
+  const {
+    onDrag,
+    onDragEnd,
+    onDragStart,
+    onAnimationStart,
+    onAnimationEnd,
+    onAnimationIteration,
+    ...safeHtmlProps
+  } = htmlProps;
+
   return (
     <div 
       className={`relative overflow-hidden ${className}`}
@@ -99,7 +111,7 @@ const LazyImage: React.FC<LazyImageProps> = ({
         ref={imgRef}
         alt={alt}
         {...imageProps}
-        {...htmlProps}
+        {...safeHtmlProps}
         className={`w-full h-full object-cover ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
         loading={loadingBehavior}
         onLoad={handleImageLoad}
