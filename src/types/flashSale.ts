@@ -6,8 +6,8 @@ export interface FlashSale {
   discount: number;
   startDate: string;
   endDate: string;
-  productIds: string[];
   isActive: boolean;
+  productIds: string[];
   createdAt: string;
 }
 
