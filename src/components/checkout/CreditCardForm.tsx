@@ -1,10 +1,15 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
 import LoadingSpinner from '@/components/ui/loading-spinner';
+import CardInputField from './CardInputField';
+import { 
+  validateCardNumber, 
+  validateExpiryDate, 
+  formatCardNumber, 
+  formatExpiryDate 
+} from './CardValidation';
 
 interface CreditCardFormProps {
   onSuccess: () => void;
@@ -22,28 +27,6 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({ onSuccess }) => {
     expiryDate: '',
     cvv: ''
   });
-
-  const formatCardNumber = (value: string) => {
-    // Remove non-digit characters
-    const digits = value.replace(/\D/g, '');
-    // Limit to 16 digits
-    const limitedDigits = digits.slice(0, 16);
-    // Add spaces every 4 digits
-    const formatted = limitedDigits.replace(/(\d{4})(?=\d)/g, '$1 ');
-    return formatted;
-  };
-
-  const formatExpiryDate = (value: string) => {
-    // Remove non-digit characters
-    const digits = value.replace(/\D/g, '');
-    // Limit to 4 digits
-    const limitedDigits = digits.slice(0, 4);
-    // Add slash after first 2 digits
-    if (limitedDigits.length > 2) {
-      return `${limitedDigits.slice(0, 2)}/${limitedDigits.slice(2)}`;
-    }
-    return limitedDigits;
-  };
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCardNumber(formatCardNumber(e.target.value));
@@ -64,36 +47,6 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({ onSuccess }) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 3);
     setCvv(value);
     setErrors(prev => ({ ...prev, cvv: '' }));
-  };
-
-  const validateCardNumber = (number: string) => {
-    const digits = number.replace(/\s/g, '');
-    if (digits.length !== 16) return false;
-    
-    // For testing purposes, accept any 16 digit number
-    return /^\d{16}$/.test(digits);
-  };
-  
-  const validateExpiryDate = (date: string) => {
-    if (date.length !== 5) return false;
-    
-    const parts = date.split('/');
-    if (parts.length !== 2) return false;
-    
-    const month = parseInt(parts[0], 10);
-    const year = parseInt('20' + parts[1], 10);
-    
-    if (isNaN(month) || isNaN(year)) return false;
-    if (month < 1 || month > 12) return false;
-    
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-    
-    if (year < currentYear) return false;
-    if (year === currentYear && month < currentMonth) return false;
-    
-    return true;
   };
 
   const validateForm = () => {
@@ -138,12 +91,10 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({ onSuccess }) => {
     
     setLoading(true);
     
-    // Pour test seulement - simuler un paiement réussi après 1.5 secondes
     setTimeout(() => {
       setLoading(false);
       toast.success("Paiement accepté");
       
-      // Call onSuccess to proceed with order creation
       if (onSuccess && typeof onSuccess === 'function') {
         console.log("Calling onSuccess after payment");
         onSuccess();
@@ -155,57 +106,49 @@ const CreditCardForm: React.FC<CreditCardFormProps> = ({ onSuccess }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="cardName">Titulaire de la carte</Label>
-        <Input
-          id="cardName"
-          placeholder="John Doe"
-          value={cardName}
-          onChange={handleNameChange}
-          required
-          className={errors.cardName ? "border-red-500" : ""}
-        />
-        {errors.cardName && <p className="text-red-500 text-sm mt-1">{errors.cardName}</p>}
-      </div>
+      <CardInputField
+        id="cardName"
+        label="Titulaire de la carte"
+        value={cardName}
+        onChange={handleNameChange}
+        placeholder="John Doe"
+        error={errors.cardName}
+        required
+      />
       
-      <div>
-        <Label htmlFor="cardNumber">Numéro de carte</Label>
-        <Input
-          id="cardNumber"
-          placeholder="1234 5678 9012 3456"
-          value={cardNumber}
-          onChange={handleCardNumberChange}
-          required
-          className={errors.cardNumber ? "border-red-500" : ""}
-        />
-        {errors.cardNumber && <p className="text-red-500 text-sm mt-1">{errors.cardNumber}</p>}
-      </div>
+      <CardInputField
+        id="cardNumber"
+        label="Numéro de carte"
+        value={cardNumber}
+        onChange={handleCardNumberChange}
+        placeholder="1234 5678 9012 3456"
+        error={errors.cardNumber}
+        required
+      />
       
       <div className="flex space-x-4">
         <div className="w-1/2">
-          <Label htmlFor="expiryDate">Date d'expiration</Label>
-          <Input
+          <CardInputField
             id="expiryDate"
-            placeholder="MM/YY"
+            label="Date d'expiration"
             value={expiryDate}
             onChange={handleExpiryDateChange}
+            placeholder="MM/YY"
+            error={errors.expiryDate}
             required
-            className={errors.expiryDate ? "border-red-500" : ""}
           />
-          {errors.expiryDate && <p className="text-red-500 text-sm mt-1">{errors.expiryDate}</p>}
         </div>
         <div className="w-1/2">
-          <Label htmlFor="cvv">CVV</Label>
-          <Input
+          <CardInputField
             id="cvv"
-            placeholder="123"
+            label="CVV"
             value={cvv}
             onChange={handleCvvChange}
-            required
+            placeholder="123"
+            error={errors.cvv}
             type="password"
-            className={errors.cvv ? "border-red-500" : ""}
+            required
           />
-          {errors.cvv && <p className="text-red-500 text-sm mt-1">{errors.cvv}</p>}
         </div>
       </div>
       
