@@ -1,3 +1,4 @@
+
 // Ajout du polyfill pour global
 window.global = window;
 
@@ -10,7 +11,6 @@ import { Toaster } from "./components/ui/toaster";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from './components/theme-provider'
 import CookieManager from './components/prompts/CookieManager'
-import { SecurityProvider } from './components/security/SecurityProvider'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,11 +25,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <SecurityProvider>
-            <App />
-            <CookieManager position="fixed" />
-            <Toaster />
-          </SecurityProvider>
+          <App />
+          <CookieManager position="fixed" />
+          <Toaster />
         </ThemeProvider>
       </BrowserRouter>
     </QueryClientProvider>

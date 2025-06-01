@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -9,7 +10,6 @@ import LayoutPrompts from './LayoutPrompts';
 import ClientServiceChatWidget from '@/components/chat/ClientServiceChatWidget';
 import AdminServiceChatWidget from '@/components/chat/AdminServiceChatWidget';
 import ScrollToTop from '@/components/ui/ScrollToTop';
-import SecurityMonitor from '@/components/security/SecurityMonitor';
 import { useQuery } from '@tanstack/react-query';
 import { Product } from '@/contexts/StoreContext';
 import { productsAPI } from '@/services/api';
@@ -90,9 +90,6 @@ const Layout: React.FC<LayoutProps> = ({ children, hidePrompts = false }) => {
       
       {/* Bouton Vers le haut - disponible sur toutes les pages */}
       <ScrollToTop />
-      
-      {/* Monitoring de sécurité - développement uniquement */}
-      <SecurityMonitor />
     </div>
   );
 };
