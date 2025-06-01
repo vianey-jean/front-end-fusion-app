@@ -128,13 +128,12 @@ function AppRoutes() {
         <Route path="/tous-les-produits" element={<Navigate to={secureRoutes.get('/tous-les-produits') || '/'} replace />} />
         
 
-        {/* Route sécurisée pour tous les produits */}
+        {/* Routes sécurisées pour les promotions et nouveautés */}
         <Route path={secureRoutes.get('/promotions')?.substring(1)} element={<Promotions />} />
         <Route path="/promotions" element={<Navigate to={secureRoutes.get('/promotions') || '/'} replace />} />
 
         <Route path={secureRoutes.get('/nouveautes')?.substring(1)} element={<Nouveautes />} />
         <Route path="/nouveautes" element={<Navigate to={secureRoutes.get('/nouveautes') || '/'} replace />} />
-
 
         
         {/* Route sécurisée pour la page vente flash */}
