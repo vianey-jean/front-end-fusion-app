@@ -55,7 +55,7 @@ const TrendingProductsPrompt: React.FC<TrendingProductsPromptProps> = ({
       title: 'Tous les produits',
       icon: Package,
       linkText: 'Voir tous les produits',
-      linkPath: '/produits'
+      linkPath: '/tous-les-produits'
     }
   ];
 
