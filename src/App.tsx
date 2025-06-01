@@ -51,7 +51,7 @@ import AdminRemboursementsPage from '@/pages/admin/AdminRemboursementsPage';
 import AdminFlashSalesPage from '@/pages/admin/AdminFlashSalesPage';
 import AdminCategoriesPage from '@/pages/admin/AdminCategoriesPage';
 import { VideoCallProvider } from '@/contexts/VideoCallContext';
-import { FlashSaleRoutes } from '@/components/routing/FlashSaleRoutes';
+import FlashSaleRoutes from '@/components/routing/FlashSaleRoutes';
 import './App.css';
 
 function App() {
@@ -120,7 +120,7 @@ function App() {
               <Route path="/flash-sale/*" element={<FlashSaleRoutes />} />
               
               <Route path="/admin/*" element={
-                <SecureRoute requiredRole="admin">
+                <SecureRoute>
                   <AdminLayout>
                     <Routes>
                       <Route path="produits" element={<AdminProductsPage />} />
