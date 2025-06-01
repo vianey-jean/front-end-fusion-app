@@ -41,14 +41,14 @@ const TrendingProductsPrompt: React.FC<TrendingProductsPromptProps> = ({
       title: 'Offres promotionnelles',
       icon: Zap,
       linkText: 'Voir toutes les promotions',
-      linkPath: '/produits'
+      linkPath: '/promotions'
     },
     {
       id: 'new-arrivals',
       title: 'Dernières nouveautés',
       icon: Sparkles,
       linkText: 'Voir toutes les nouveautés',
-      linkPath: '/produits'
+      linkPath: '/nouveautes'
     },
     {
       id: 'complete-catalog',
