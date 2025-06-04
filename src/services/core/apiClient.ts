@@ -8,9 +8,29 @@ export const apiClient = axios.create({
   timeout: 30000,
 });
 
+// Variables pour le throttling des requêtes
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 1000; // 1 seconde minimum entre les requêtes
+
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
+    // Throttling simple pour éviter trop de requêtes
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      const delay = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+      return new Promise(resolve => {
+        setTimeout(() => {
+          lastRequestTime = Date.now();
+          resolve(config);
+        }, delay);
+      });
+    }
+    
+    lastRequestTime = now;
+
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -23,10 +43,13 @@ apiClient.interceptors.request.use(
       };
     }
 
-    console.log(`${config.method?.toUpperCase()} Request to ${config.url}`, 
-      config.method === 'post' || config.method === 'put' 
-        ? JSON.stringify(config.data)
-        : config.params || {});
+    // Réduire les logs en production
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`${config.method?.toUpperCase()} Request to ${config.url}`, 
+        config.method === 'post' || config.method === 'put' 
+          ? JSON.stringify(config.data)
+          : config.params || {});
+    }
 
     return config;
   },
@@ -39,7 +62,10 @@ apiClient.interceptors.request.use(
 // Response interceptor
 apiClient.interceptors.response.use(
   response => {
-    console.log(`Response from ${response.config.url}:`, response.data);
+    // Réduire les logs en production
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Response from ${response.config.url}:`, response.data);
+    }
     return response;
   },
   error => {
@@ -48,7 +74,8 @@ apiClient.interceptors.response.use(
     // Gestion spéciale pour les erreurs 429
     if (error.response && error.response.status === 429) {
       console.warn("Rate limit atteint. Ralentissement des requêtes recommandé.");
-      // Ne pas rediriger pour les erreurs 429, juste les signaler
+      // Augmenter l'intervalle minimum entre les requêtes
+      lastRequestTime = Date.now() + 5000; // Ajouter 5 secondes de délai
       return Promise.reject(error);
     }
     

@@ -1,23 +1,40 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { maintenanceAPI } from '@/services/maintenanceAPI';
 import { Wrench, Clock, Mail, Phone, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { getSecureRoute } from '@/services/secureIds';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MaintenancePage = () => {
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
   const [showAdminAccess, setShowAdminAccess] = useState(false);
+
+  // Rediriger les admins connectés vers la page admin
+  useEffect(() => {
+    if (user && isAdmin) {
+      console.log('Admin connecté détecté, redirection vers admin...');
+      navigate(getSecureRoute('/admin') || '/admin');
+    }
+  }, [user, isAdmin, navigate]);
 
   const { data: maintenanceData } = useQuery({
     queryKey: ['maintenance'],
     queryFn: maintenanceAPI.getMaintenanceStatus,
-    staleTime: 5000,
-    refetchInterval: 10000,
-    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes au lieu de 5 secondes
+    refetchInterval: 2 * 60 * 1000, // 2 minutes au lieu de 10 secondes
+    retry: 1, // Une seule tentative au lieu de 3
+    retryDelay: 30000, // 30 secondes entre les tentatives
+    enabled: !user, // Désactiver si l'utilisateur est connecté
   });
+
+  // Si un admin est connecté, ne pas afficher la page
+  if (user && isAdmin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 flex items-center justify-center px-4">

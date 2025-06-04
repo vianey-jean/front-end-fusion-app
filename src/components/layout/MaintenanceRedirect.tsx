@@ -17,29 +17,32 @@ const MaintenanceRedirect: React.FC<MaintenanceRedirectProps> = ({ children }) =
   const { data: maintenanceData, isLoading, error } = useQuery({
     queryKey: ['maintenance'],
     queryFn: maintenanceAPI.getMaintenanceStatus,
-    staleTime: 30000, // Augmenter à 30 secondes
-    refetchInterval: 60000, // Réduire à toutes les minutes
-    retry: 1, // Réduire les tentatives
-    retryDelay: 10000, // Délai de 10 secondes entre les tentatives
+    staleTime: 5 * 60 * 1000, // 5 minutes au lieu de 30 secondes
+    refetchInterval: 3 * 60 * 1000, // 3 minutes au lieu de 1 minute
+    retry: 1, // Une seule tentative
+    retryDelay: 30000, // 30 secondes entre les tentatives
+    refetchOnWindowFocus: false, // Désactiver le refresh au focus
+    refetchOnReconnect: false, // Désactiver le refresh à la reconnexion
   });
 
-  // Afficher les logs pour debugging
+  // Afficher les logs pour debugging seulement en développement
   React.useEffect(() => {
-    console.log('MaintenanceRedirect - Maintenance data:', maintenanceData);
-    console.log('MaintenanceRedirect - Current path:', location.pathname);
-    console.log('MaintenanceRedirect - User:', user);
-    console.log('MaintenanceRedirect - Maintenance mode:', maintenanceData?.maintenance);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('MaintenanceRedirect - Maintenance data:', maintenanceData);
+      console.log('MaintenanceRedirect - Current path:', location.pathname);
+      console.log('MaintenanceRedirect - User:', user);
+      console.log('MaintenanceRedirect - Maintenance mode:', maintenanceData?.maintenance);
+    }
   }, [maintenanceData, location.pathname, user]);
 
   // Si les données sont en cours de chargement, on laisse passer
   if (isLoading) {
-    console.log('MaintenanceRedirect - Loading maintenance data...');
     return <>{children}</>;
   }
 
-  // Si erreur de chargement, on laisse passer
+  // Si erreur de chargement, on laisse passer (éviter les boucles d'erreur)
   if (error) {
-    console.log('MaintenanceRedirect - Error loading maintenance data:', error);
+    console.warn('MaintenanceRedirect - Error loading maintenance data, allowing access');
     return <>{children}</>;
   }
 
@@ -58,27 +61,21 @@ const MaintenanceRedirect: React.FC<MaintenanceRedirectProps> = ({ children }) =
 
   // Si le mode maintenance est activé
   if (maintenanceData?.maintenance) {
-    console.log('MaintenanceRedirect - Maintenance mode is ON');
-    
     // Si l'utilisateur est admin, laisser passer sur toutes les pages admin
     if (user && user.role === 'admin' && isAdminPage) {
-      console.log('MaintenanceRedirect - Admin user accessing admin page, allowing access');
       return <>{children}</>;
     }
 
     // Si c'est une page autorisée, laisser passer
     if (allowedPaths.some(path => path && location.pathname.startsWith(path))) {
-      console.log('MaintenanceRedirect - Allowed path, allowing access');
       return <>{children}</>;
     }
 
     // Sinon, rediriger vers la page de maintenance
-    console.log('MaintenanceRedirect - Redirecting to maintenance page');
     return <Navigate to="/maintenance" replace />;
   }
 
   // Mode maintenance désactivé, laisser passer
-  console.log('MaintenanceRedirect - Maintenance mode is OFF, allowing access');
   return <>{children}</>;
 };
 

@@ -11,8 +11,11 @@ export const useSettings = () => {
   const { data: settings, isLoading, error } = useQuery({
     queryKey: ['settings'],
     queryFn: settingsAPI.getSettings,
-    staleTime: 30000,
+    staleTime: 2 * 60 * 1000, // 2 minutes au lieu de 30 secondes
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1, // Une seule tentative
+    retryDelay: 30000, // 30 secondes entre les tentatives
   });
 
   const updateGeneralMutation = useMutation({
@@ -28,9 +31,15 @@ export const useSettings = () => {
         }, 1000);
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erreur lors de la mise à jour des paramètres généraux:', error);
-      toast.error('Erreur lors de la mise à jour des paramètres généraux');
+      
+      // Gestion spéciale pour les erreurs 429
+      if (error.response?.status === 429) {
+        toast.error('Trop de requêtes. Veuillez patienter avant de réessayer.');
+      } else {
+        toast.error('Erreur lors de la mise à jour des paramètres généraux');
+      }
     },
   });
 
@@ -40,9 +49,15 @@ export const useSettings = () => {
       queryClient.setQueryData(['settings'], data);
       toast.success('Paramètres de notification mis à jour avec succès');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erreur lors de la mise à jour des paramètres de notification:', error);
-      toast.error('Erreur lors de la mise à jour des paramètres de notification');
+      
+      // Gestion spéciale pour les erreurs 429
+      if (error.response?.status === 429) {
+        toast.error('Trop de requêtes. Veuillez patienter avant de réessayer.');
+      } else {
+        toast.error('Erreur lors de la mise à jour des paramètres de notification');
+      }
     },
   });
 
@@ -51,9 +66,15 @@ export const useSettings = () => {
     onSuccess: (data) => {
       toast.success('Sauvegarde créée avec succès');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erreur lors de la création de la sauvegarde:', error);
-      toast.error('Erreur lors de la création de la sauvegarde');
+      
+      // Gestion spéciale pour les erreurs 429
+      if (error.response?.status === 429) {
+        toast.error('Trop de requêtes. Veuillez patienter avant de réessayer.');
+      } else {
+        toast.error('Erreur lors de la création de la sauvegarde');
+      }
     },
   });
 

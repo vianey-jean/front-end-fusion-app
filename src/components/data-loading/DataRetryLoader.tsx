@@ -20,8 +20,8 @@ export function DataRetryLoader<T>({
   fetchFunction,
   onSuccess,
   onMaxRetriesReached,
-  maxRetries = 3, // Réduire de 6 à 3
-  retryInterval = 15000, // Augmenter de 5s à 15s
+  maxRetries = 2, // Réduire de 3 à 2
+  retryInterval = 30000, // Augmenter à 30 secondes
   loadingComponent,
   errorMessage = "Erreur de chargement des données",
   children
@@ -39,8 +39,21 @@ export function DataRetryLoader<T>({
       onSuccess(data);
       setIsLoading(false);
       setRetryCount(0);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Tentative ${retryCount + 1} échouée:`, error);
+      
+      // Gestion spéciale pour les erreurs 429
+      if (error.response?.status === 429) {
+        setIsLoading(false);
+        setHasError(true);
+        toast({
+          variant: "destructive",
+          title: "Trop de requêtes",
+          description: "Veuillez patienter avant de réessayer.",
+        });
+        onMaxRetriesReached?.();
+        return;
+      }
       
       if (retryCount < maxRetries - 1) {
         setRetryCount(prev => prev + 1);
@@ -72,8 +85,8 @@ export function DataRetryLoader<T>({
   };
 
   useEffect(() => {
-    // Ajouter un délai initial pour éviter les requêtes immédiates
-    const timer = setTimeout(attemptDataFetch, 1000);
+    // Ajouter un délai initial plus long pour éviter les requêtes immédiates
+    const timer = setTimeout(attemptDataFetch, 3000);
     return () => clearTimeout(timer);
   }, []);
 
