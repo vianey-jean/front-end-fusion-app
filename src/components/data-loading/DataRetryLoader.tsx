@@ -20,8 +20,8 @@ export function DataRetryLoader<T>({
   fetchFunction,
   onSuccess,
   onMaxRetriesReached,
-  maxRetries = 6,
-  retryInterval = 5000,
+  maxRetries = 3, // Réduire de 6 à 3
+  retryInterval = 15000, // Augmenter de 5s à 15s
   loadingComponent,
   errorMessage = "Erreur de chargement des données",
   children
@@ -72,7 +72,9 @@ export function DataRetryLoader<T>({
   };
 
   useEffect(() => {
-    attemptDataFetch();
+    // Ajouter un délai initial pour éviter les requêtes immédiates
+    const timer = setTimeout(attemptDataFetch, 1000);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleManualRetry = () => {

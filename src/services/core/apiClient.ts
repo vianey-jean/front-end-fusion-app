@@ -45,6 +45,13 @@ apiClient.interceptors.response.use(
   error => {
     console.error("API Error:", error.response || error);
     
+    // Gestion spéciale pour les erreurs 429
+    if (error.response && error.response.status === 429) {
+      console.warn("Rate limit atteint. Ralentissement des requêtes recommandé.");
+      // Ne pas rediriger pour les erreurs 429, juste les signaler
+      return Promise.reject(error);
+    }
+    
     if (error.response && error.response.status === 401 && 
         !error.config.url.includes('/auth/login') && 
         !error.config.url.includes('/auth/verify-token')) {
