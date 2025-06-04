@@ -1,8 +1,8 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { authAPI, User } from '../services/api';
 import { UpdateProfileData } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
+import { maintenanceAPI } from '@/services/maintenanceAPI';
 
 interface AuthContextType {
   user: User | null;
@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error: any) {
       // Gestion silencieuse des erreurs 401 pour éviter les logs inutiles
       if (error.response?.status === 401) {
-        console.log("Token expiré, nettoyage automatique");
+        console.log("Token expiré ou invalide, nettoyage automatique");
         localStorage.removeItem('authToken');
         setUser(null);
       } else {
@@ -74,11 +74,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         variant: 'default',
       });
 
-      // Redirection basée sur le rôle
-      if (response.data.user.role === 'admin') {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = '/';
+      // Vérifier le mode maintenance pour déterminer la redirection
+      try {
+        const maintenanceResponse = await maintenanceAPI.getMaintenanceStatus();
+        const isMaintenanceMode = maintenanceResponse.maintenance;
+        
+        if (isMaintenanceMode && response.data.user.role === 'admin') {
+          // En mode maintenance, rediriger les admins vers /admin
+          window.location.href = '/admin';
+        } else if (!isMaintenanceMode) {
+          // Pas en mode maintenance, redirection normale
+          if (response.data.user.role === 'admin') {
+            window.location.href = '/admin';
+          } else {
+            // Rediriger vers la page d'accueil ou rester sur la page actuelle
+            const currentPath = window.location.pathname;
+            if (currentPath === '/login' || currentPath.includes('/login')) {
+              window.location.href = '/';
+            }
+            // Sinon, rester sur la page actuelle
+          }
+        } else {
+          // En mode maintenance mais pas admin, rester sur la page maintenance
+          window.location.href = '/maintenance';
+        }
+      } catch (maintenanceError) {
+        console.error("Erreur lors de la vérification du mode maintenance:", maintenanceError);
+        // Redirection par défaut en cas d'erreur
+        if (response.data.user.role === 'admin') {
+          window.location.href = '/admin';
+        } else {
+          window.location.href = '/';
+        }
       }
     } catch (error: any) {
       console.error("Erreur de connexion:", error);

@@ -10,7 +10,7 @@ export const apiClient = axios.create({
 
 // Variables pour le throttling des requêtes - intervalles augmentés
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 2000; // 2 secondes minimum entre les requêtes
+const MIN_REQUEST_INTERVAL = 3000; // 3 secondes minimum entre les requêtes
 
 // Request interceptor
 apiClient.interceptors.request.use(
@@ -72,23 +72,21 @@ apiClient.interceptors.response.use(
   error => {
     // Logs plus silencieux pour les erreurs 401 attendues
     if (error.response?.status === 401) {
-      console.log("Erreur d'authentification - token invalide ou expiré");
-    } else {
-      console.error("API Error:", error.response || error);
-    }
-    
-    // Gestion spéciale pour les erreurs 429
-    if (error.response && error.response.status === 429) {
+      console.log("Token invalide ou expiré - nettoyage automatique");
+      localStorage.removeItem('authToken');
+    } else if (error.response?.status === 429) {
       console.warn("Rate limit atteint. Ralentissement des requêtes recommandé.");
       // Augmenter l'intervalle minimum entre les requêtes de façon plus agressive
-      lastRequestTime = Date.now() + 10000; // Ajouter 10 secondes de délai
-      return Promise.reject(error);
+      lastRequestTime = Date.now() + 15000; // Ajouter 15 secondes de délai
+    } else {
+      console.error("API Error:", error.response || error);
     }
     
     // Gestion des erreurs 401 sans redirection automatique pour éviter les boucles
     if (error.response && error.response.status === 401 && 
         !error.config.url.includes('/auth/login') && 
-        !error.config.url.includes('/auth/verify-token')) {
+        !error.config.url.includes('/auth/verify-token') &&
+        !error.config.url.includes('/auth/check-email')) {
       
       // Nettoyage silencieux du token invalide
       localStorage.removeItem('authToken');

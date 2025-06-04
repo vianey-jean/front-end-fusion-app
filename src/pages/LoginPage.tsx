@@ -101,7 +101,7 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
       await login(userEmail, data.password);
-      // La redirection est maintenant gérée dans le contexte Auth
+      // La redirection est maintenant gérée dans le contexte Auth avec la logique du mode maintenance
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       
