@@ -17,10 +17,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/layout/Layout';
 import { authAPI } from '@/services/api';
 import { toast } from '@/components/ui/sonner';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail } from 'lucide-react';
 import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
 
-// ✅ Validation schemas
 const emailSchema = z.object({
   email: z.string().email('Email invalide'),
 });
@@ -37,7 +36,6 @@ const LoginPage = () => {
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirection automatique si l'utilisateur est déjà connecté
   useEffect(() => {
     if (user) {
       if (isAdmin) {
@@ -48,7 +46,6 @@ const LoginPage = () => {
     }
   }, [user, isAdmin, navigate]);
 
-  // ✅ Formulaires
   const emailForm = useForm<{ email: string }>({
     resolver: zodResolver(emailSchema),
     defaultValues: { email: '' },
@@ -59,7 +56,6 @@ const LoginPage = () => {
     defaultValues: { password: '' },
   });
 
-  // ✅ Gestion soumission email avec gestion améliorée des erreurs
   const onEmailSubmit = async (data: { email: string }) => {
     const normalizedEmail = data.email.trim().toLowerCase();
     try {
@@ -81,9 +77,13 @@ const LoginPage = () => {
     } catch (error: any) {
       console.error("Erreur lors de la vérification de l'email:", error);
       
-      // Gestion spécifique des erreurs 429
       if (error.response?.status === 429) {
         toast.error("Trop de tentatives. Veuillez patienter avant de réessayer.", {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
+      } else if (error.response?.status === 401) {
+        // Gestion silencieuse des erreurs 401 pour la vérification d'email
+        toast.error("Erreur d'authentification. Veuillez réessayer.", {
           style: { backgroundColor: 'red', color: 'white' },
         });
       } else {
@@ -96,7 +96,6 @@ const LoginPage = () => {
     }
   };
 
-  // ✅ Gestion soumission mot de passe
   const onPasswordSubmit = async (data: { password: string }) => {
     try {
       setIsLoading(true);
@@ -105,12 +104,17 @@ const LoginPage = () => {
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       
-      // Gestion spécifique des erreurs 429
       if (error.response?.status === 429) {
         toast.error("Trop de tentatives. Veuillez patienter avant de réessayer.", {
           style: { backgroundColor: 'red', color: 'white' },
         });
+      } else if (error.response?.status === 401) {
+        // Gestion des erreurs 401 de connexion (mauvais mot de passe)
+        toast.error("Email ou mot de passe incorrect", {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
       }
+      // Les autres erreurs sont gérées dans le contexte Auth
     } finally {
       setIsLoading(false);
     }
@@ -118,7 +122,6 @@ const LoginPage = () => {
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  // Si l'utilisateur est déjà connecté, ne pas afficher la page
   if (user) {
     return null;
   }
