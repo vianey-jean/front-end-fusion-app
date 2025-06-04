@@ -38,9 +38,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(response.data.user);
         return true;
       }
-    } catch (error) {
-      console.error("Erreur de vérification du token:", error);
-      localStorage.removeItem('authToken');
+    } catch (error: any) {
+      // Gestion silencieuse des erreurs 401 pour éviter les logs inutiles
+      if (error.response?.status === 401) {
+        console.log("Token expiré, nettoyage automatique");
+        localStorage.removeItem('authToken');
+        setUser(null);
+      } else {
+        console.error("Erreur de vérification du token:", error);
+      }
     }
     
     setLoading(false);
@@ -62,13 +68,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await authAPI.login({ email, password });
       localStorage.setItem('authToken', response.data.token);
       setUser(response.data.user);
+      
       toast({
         title: 'Connexion réussie',
         variant: 'default',
       });
 
-      // Navigation via window.location pour éviter les problèmes de hooks
-      window.location.href = '/';
+      // Redirection basée sur le rôle
+      if (response.data.user.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/';
+      }
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       
@@ -90,7 +101,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       variant: 'destructive',
     });
 
-    // Navigation via window.location pour éviter les problèmes de hooks
     window.location.href = '/login';
   };
 
@@ -104,8 +114,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         variant: 'default',
       });
 
-      // Navigation via window.location pour éviter les problèmes de hooks
-      window.location.href = '/';
+      // Redirection basée sur le rôle
+      if (response.data.user.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/';
+      }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Erreur lors de l\'inscription';
       toast({

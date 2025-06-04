@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -29,13 +29,24 @@ const passwordSchema = z.object({
 });
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
   const [userEmail, setUserEmail] = useState('');
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirection automatique si l'utilisateur est déjà connecté
+  useEffect(() => {
+    if (user) {
+      if (isAdmin) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [user, isAdmin, navigate]);
 
   // ✅ Formulaires
   const emailForm = useForm<{ email: string }>({
@@ -48,7 +59,7 @@ const LoginPage = () => {
     defaultValues: { password: '' },
   });
 
-  // ✅ Gestion soumission email
+  // ✅ Gestion soumission email avec gestion améliorée des erreurs
   const onEmailSubmit = async (data: { email: string }) => {
     const normalizedEmail = data.email.trim().toLowerCase();
     try {
@@ -67,11 +78,19 @@ const LoginPage = () => {
           style: { backgroundColor: 'red', color: 'white' },
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors de la vérification de l'email:", error);
-      toast.error("Erreur lors de la vérification de l'email", {
-        style: { backgroundColor: 'red', color: 'white' },
-      });
+      
+      // Gestion spécifique des erreurs 429
+      if (error.response?.status === 429) {
+        toast.error("Trop de tentatives. Veuillez patienter avant de réessayer.", {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
+      } else {
+        toast.error("Erreur lors de la vérification de l'email", {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -82,15 +101,27 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
       await login(userEmail, data.password);
-      // La redirection est gérée dans le contexte Auth
-    } catch (error) {
+      // La redirection est maintenant gérée dans le contexte Auth
+    } catch (error: any) {
       console.error("Erreur de connexion:", error);
+      
+      // Gestion spécifique des erreurs 429
+      if (error.response?.status === 429) {
+        toast.error("Trop de tentatives. Veuillez patienter avant de réessayer.", {
+          style: { backgroundColor: 'red', color: 'white' },
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
+  // Si l'utilisateur est déjà connecté, ne pas afficher la page
+  if (user) {
+    return null;
+  }
 
   return (
     <Layout>
@@ -126,7 +157,7 @@ const LoginPage = () => {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Chargement..." : "Continuer"}
+                    {isLoading ? "Vérification..." : "Continuer"}
                   </Button>
                 </form>
               </Form>
