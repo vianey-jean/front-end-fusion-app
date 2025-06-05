@@ -24,6 +24,14 @@ const setupRoutes = (app) => {
     'categories.json',
     'visitors.json',
     'sales-notifications.json',
+    'general-settings.json',
+    'smtp-settings.json',
+    'payment-settings.json',
+    'shipping-settings.json',
+    'security-settings.json',
+    'backup-settings.json',
+    'notification-settings.json',
+    'backups-info.json'
   ];
 
   const dataDir = path.join(__dirname, '../data');
@@ -56,6 +64,7 @@ const setupRoutes = (app) => {
   app.use('/api/admin-chat', require('../routes/admin-chat'));
   app.use('/api/visitors', require('../routes/visitors'));
   app.use('/api/sales-notifications', require('../routes/sales-notifications'));
+  app.use('/api/settings', require('../routes/settings'));
 };
 
 module.exports = setupRoutes;
