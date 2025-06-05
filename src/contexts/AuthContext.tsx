@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { authAPI, User } from '../services/api';
 import { UpdateProfileData } from '@/types/auth';
@@ -59,26 +58,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<void> => {
     try {
       console.log("Tentative de connexion avec:", { email });
+      
+      // Vérifier d'abord le mode maintenance
+      const maintenanceResponse = await authAPI.checkEmail(email);
+      const isMaintenanceMode = await checkMaintenanceMode();
+      
+      // En mode maintenance, seuls les admins peuvent se connecter
+      if (isMaintenanceMode && maintenanceResponse.data.user?.role !== 'admin') {
+        toast({
+          title: 'Seul un admin peut se connecter en mode maintenance',
+          variant: 'destructive',
+        });
+        throw new Error('Accès refusé en mode maintenance');
+      }
+      
       const response = await authAPI.login({ email, password });
       localStorage.setItem('authToken', response.data.token);
       setUser(response.data.user);
+      
       toast({
         title: 'Connexion réussie',
         variant: 'default',
       });
 
-      // Navigation via window.location pour éviter les problèmes de hooks
-      window.location.href = '/';
+      // Redirection selon le rôle et le mode maintenance
+      if (response.data.user.role === 'admin') {
+        window.location.href = '/admin';
+      } else if (isMaintenanceMode) {
+        // Ne devrait pas arriver car déjà vérifié plus haut
+        throw new Error('Accès refusé en mode maintenance');
+      } else {
+        window.location.href = '/';
+      }
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       
-      const errorMessage = error.response?.data?.message || "Erreur de connexion";
+      const errorMessage = error.response?.data?.message || error.message || "Erreur de connexion";
       toast({
         title: errorMessage,
         variant: 'destructive',
       });
 
       throw error;
+    }
+  };
+
+  // Vérifier le mode maintenance
+  const checkMaintenanceMode = async (): Promise<boolean> => {
+    try {
+      const { settingsAPI } = await import('@/services/settingsAPI');
+      const response = await settingsAPI.getGeneralSettings();
+      return response.data?.maintenanceMode || false;
+    } catch (error) {
+      console.error('Erreur vérification mode maintenance:', error);
+      return false;
     }
   };
 

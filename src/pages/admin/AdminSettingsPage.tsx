@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -217,7 +216,7 @@ const AdminSettingsPage = () => {
                     <Label htmlFor="siteName">Nom du site</Label>
                     <Input
                       id="siteName"
-                      value={generalSettings.siteName}
+                      value={generalSettings.siteName || ''}
                       onChange={(e) => setGeneralSettings({...generalSettings, siteName: e.target.value})}
                     />
                   </div>
@@ -225,7 +224,7 @@ const AdminSettingsPage = () => {
                     <Label htmlFor="siteUrl">URL du site</Label>
                     <Input
                       id="siteUrl"
-                      value={generalSettings.siteUrl}
+                      value={generalSettings.siteUrl || ''}
                       onChange={(e) => setGeneralSettings({...generalSettings, siteUrl: e.target.value})}
                     />
                   </div>
@@ -233,7 +232,7 @@ const AdminSettingsPage = () => {
                     <Label htmlFor="siteDescription">Description du site</Label>
                     <Textarea
                       id="siteDescription"
-                      value={generalSettings.siteDescription}
+                      value={generalSettings.siteDescription || ''}
                       onChange={(e) => setGeneralSettings({...generalSettings, siteDescription: e.target.value})}
                     />
                   </div>
@@ -267,7 +266,7 @@ const AdminSettingsPage = () => {
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="maintenanceMode"
-                    checked={generalSettings.maintenanceMode}
+                    checked={generalSettings.maintenanceMode || false}
                     onCheckedChange={(checked) => setGeneralSettings({...generalSettings, maintenanceMode: checked})}
                   />
                   <Label htmlFor="maintenanceMode">Mode maintenance</Label>
@@ -275,7 +274,7 @@ const AdminSettingsPage = () => {
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="allowRegistration"
-                    checked={generalSettings.allowRegistration}
+                    checked={generalSettings.allowRegistration || false}
                     onCheckedChange={(checked) => setGeneralSettings({...generalSettings, allowRegistration: checked})}
                   />
                   <Label htmlFor="allowRegistration">Autoriser les inscriptions</Label>

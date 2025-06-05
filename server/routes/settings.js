@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
@@ -54,11 +53,30 @@ router.get('/general', (req, res) => {
 });
 
 router.put('/general', (req, res) => {
-  const success = writeSettings('general-settings.json', req.body);
-  if (success) {
-    res.json({ message: 'Paramètres généraux sauvegardés' });
-  } else {
-    res.status(500).json({ error: 'Erreur lors de la sauvegarde' });
+  try {
+    const settings = req.body;
+    
+    // Sauvegarder les paramètres généraux
+    const success = writeSettings('general-settings.json', settings);
+    
+    if (success) {
+      // Mettre à jour le fichier maintenance.json si nécessaire
+      if (typeof settings.maintenanceMode !== 'undefined') {
+        writeSettings('maintenance.json', { maintenance: settings.maintenanceMode });
+      }
+      
+      // Mettre à jour le fichier inscription.json si nécessaire
+      if (typeof settings.allowRegistration !== 'undefined') {
+        writeSettings('inscription.json', { inscription: settings.allowRegistration });
+      }
+      
+      res.json({ message: 'Paramètres généraux sauvegardés' });
+    } else {
+      res.status(500).json({ error: 'Erreur lors de la sauvegarde' });
+    }
+  } catch (error) {
+    console.error('Erreur sauvegarde paramètres généraux:', error);
+    res.status(500).json({ error: 'Erreur lors de la sauvegarde des paramètres' });
   }
 });
 
@@ -204,12 +222,15 @@ router.post('/backup/configure', (req, res) => {
     const backupSettings = req.body;
     const smtpSettings = readSettings('smtp-settings.json');
     
-    backupService.configureAutoBackup(backupSettings, smtpSettings);
+    const result = backupService.configureAutoBackup(backupSettings, smtpSettings);
     
-    res.json({ message: 'Sauvegarde automatique configurée' });
+    res.json({ message: 'Sauvegarde automatique configurée avec succès' });
   } catch (error) {
     console.error('Erreur configuration sauvegarde:', error);
-    res.status(500).json({ error: 'Erreur lors de la configuration de la sauvegarde' });
+    res.status(500).json({ 
+      error: 'Erreur lors de la configuration de la sauvegarde',
+      details: error.message 
+    });
   }
 });
 

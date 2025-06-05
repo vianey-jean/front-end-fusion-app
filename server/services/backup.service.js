@@ -1,4 +1,3 @@
-
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
@@ -10,24 +9,48 @@ class BackupService {
     this.dataDir = path.join(__dirname, '../data');
     this.backupDir = path.join(__dirname, '../backups');
     this.transporter = null;
+    this.cronJob = null;
     
     // Créer le dossier de sauvegarde s'il n'existe pas
     if (!fs.existsSync(this.backupDir)) {
       fs.mkdirSync(this.backupDir, { recursive: true });
     }
+
+    // Initialiser avec les paramètres SMTP existants
+    this.initializeSMTP();
+  }
+
+  // Initialiser SMTP avec les paramètres existants
+  async initializeSMTP() {
+    try {
+      const smtpSettingsPath = path.join(this.dataDir, 'smtp-settings.json');
+      if (fs.existsSync(smtpSettingsPath)) {
+        const smtpSettings = JSON.parse(fs.readFileSync(smtpSettingsPath, 'utf8'));
+        if (smtpSettings.host && smtpSettings.username) {
+          this.configureSMTP(smtpSettings);
+        }
+      }
+    } catch (error) {
+      console.log('Aucune configuration SMTP trouvée, configuration requise');
+    }
   }
 
   // Configurer le transporteur SMTP
   configureSMTP(smtpSettings) {
-    this.transporter = nodemailer.createTransporter({
-      host: smtpSettings.host,
-      port: smtpSettings.port,
-      secure: smtpSettings.port === 465,
-      auth: {
-        user: smtpSettings.username,
-        pass: smtpSettings.password
-      }
-    });
+    try {
+      this.transporter = nodemailer.createTransporter({
+        host: smtpSettings.host,
+        port: smtpSettings.port,
+        secure: smtpSettings.port === 465,
+        auth: {
+          user: smtpSettings.username,
+          pass: smtpSettings.password
+        }
+      });
+      console.log('SMTP configuré avec succès');
+    } catch (error) {
+      console.error('Erreur configuration SMTP:', error);
+    }
   }
 
   // Créer une sauvegarde complète
@@ -197,59 +220,72 @@ class BackupService {
 
   // Configurer la sauvegarde automatique
   configureAutoBackup(backupSettings, smtpSettings) {
-    // Arrêter les tâches cron existantes
-    if (this.cronJob) {
-      this.cronJob.stop();
-    }
-
-    if (!backupSettings.enableAutoBackup) {
-      console.log('Sauvegarde automatique désactivée');
-      return;
-    }
-
-    // Configurer SMTP
-    if (smtpSettings) {
-      this.configureSMTP(smtpSettings);
-    }
-
-    // Parser l'heure (format HH:MM)
-    const [hour, minute] = backupSettings.backupTime.split(':');
-    
-    let cronPattern;
-    switch (backupSettings.backupFrequency) {
-      case 'daily':
-        cronPattern = `${minute} ${hour} * * *`;
-        break;
-      case 'weekly':
-        cronPattern = `${minute} ${hour} * * 0`; // Dimanche
-        break;
-      case 'monthly':
-        cronPattern = `${minute} ${hour} 1 * *`; // Premier jour du mois
-        break;
-      default:
-        cronPattern = `${minute} ${hour} * * *`; // Par défaut quotidien
-    }
-
-    // Programmer la tâche cron
-    this.cronJob = cron.schedule(cronPattern, async () => {
-      try {
-        console.log('Démarrage de la sauvegarde automatique...');
-        const result = await this.createBackup();
-        
-        if (result.success && backupSettings.adminEmail) {
-          await this.sendBackupByEmail(result.backupData, backupSettings.adminEmail);
-        }
-        
-        console.log('Sauvegarde automatique terminée avec succès');
-      } catch (error) {
-        console.error('Erreur lors de la sauvegarde automatique:', error);
+    try {
+      // Arrêter les tâches cron existantes
+      if (this.cronJob) {
+        this.cronJob.stop();
+        this.cronJob = null;
       }
-    }, {
-      scheduled: true,
-      timezone: 'Europe/Paris'
-    });
 
-    console.log(`Sauvegarde automatique configurée: ${cronPattern} (${backupSettings.backupFrequency})`);
+      if (!backupSettings.enableAutoBackup) {
+        console.log('Sauvegarde automatique désactivée');
+        return { success: true, message: 'Sauvegarde automatique désactivée' };
+      }
+
+      // Configurer SMTP si fourni
+      if (smtpSettings && smtpSettings.host) {
+        this.configureSMTP(smtpSettings);
+      }
+
+      // Vérifier que SMTP est configuré
+      if (!this.transporter) {
+        throw new Error('Configuration SMTP requise pour la sauvegarde automatique');
+      }
+
+      // Parser l'heure (format HH:MM)
+      const [hour, minute] = backupSettings.backupTime.split(':');
+      
+      let cronPattern;
+      switch (backupSettings.backupFrequency) {
+        case 'daily':
+          cronPattern = `${minute} ${hour} * * *`;
+          break;
+        case 'weekly':
+          cronPattern = `${minute} ${hour} * * 0`; // Dimanche
+          break;
+        case 'monthly':
+          cronPattern = `${minute} ${hour} 1 * *`; // Premier jour du mois
+          break;
+        default:
+          cronPattern = `${minute} ${hour} * * *`; // Par défaut quotidien
+      }
+
+      // Programmer la tâche cron
+      this.cronJob = cron.schedule(cronPattern, async () => {
+        try {
+          console.log('Démarrage de la sauvegarde automatique...');
+          const result = await this.createBackup();
+          
+          if (result.success && backupSettings.adminEmail) {
+            await this.sendBackupByEmail(result.backupData, backupSettings.adminEmail);
+          }
+          
+          console.log('Sauvegarde automatique terminée avec succès');
+        } catch (error) {
+          console.error('Erreur lors de la sauvegarde automatique:', error);
+        }
+      }, {
+        scheduled: true,
+        timezone: 'Europe/Paris'
+      });
+
+      console.log(`Sauvegarde automatique configurée: ${cronPattern} (${backupSettings.backupFrequency})`);
+      return { success: true, message: 'Sauvegarde automatique configurée avec succès' };
+      
+    } catch (error) {
+      console.error('Erreur lors de la configuration de la sauvegarde:', error);
+      throw error;
+    }
   }
 
   // Restaurer à partir d'une sauvegarde

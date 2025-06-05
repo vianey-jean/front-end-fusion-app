@@ -8,6 +8,10 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SecureRoute from './components/SecureRoute';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { initSecureRoutes, getSecureRoute } from './services/secureIds';
+import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from 'next-themes';
+import CookieManager from '@/components/layout/CookieManager';
+import MaintenanceChecker from '@/components/layout/MaintenanceChecker';
 
 // Composant de chargement
 import { Skeleton } from './components/ui/skeleton';
@@ -336,12 +340,19 @@ function AppRoutes() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <StoreProvider>
-          <AppRoutes />
-          <Toaster closeButton richColors position="top-center" />
-        </StoreProvider>
-      </AuthProvider>
+      <BrowserRouter>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <AuthProvider>
+            <StoreProvider>
+              <MaintenanceChecker>
+                <AppRoutes />
+              </MaintenanceChecker>
+              <CookieManager position="fixed" />
+              <Toaster />
+            </StoreProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
