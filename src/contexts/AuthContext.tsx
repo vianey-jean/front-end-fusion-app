@@ -103,12 +103,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Vérifier le mode maintenance
+  // Vérifier le mode maintenance avec fetch pour éviter les interceptors
   const checkMaintenanceMode = async (): Promise<boolean> => {
     try {
-      const { settingsAPI } = await import('@/services/settingsAPI');
-      const response = await settingsAPI.getGeneralSettings();
-      return response.data?.maintenanceMode || false;
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/settings/general`);
+      if (response.ok) {
+        const data = await response.json();
+        return data?.maintenanceMode || false;
+      }
+      return false;
     } catch (error) {
       console.error('Erreur vérification mode maintenance:', error);
       return false;

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { settingsAPI } from '@/services/settingsAPI';
 import { useNavigate } from 'react-router-dom';
 
 interface MaintenanceCheckerProps {
@@ -21,10 +20,25 @@ const MaintenanceChecker: React.FC<MaintenanceCheckerProps> = ({ children }) => 
 
   const checkMaintenanceMode = async () => {
     try {
-      const response = await settingsAPI.getGeneralSettings();
-      setIsMaintenanceMode(response.data?.maintenanceMode || false);
+      // Use fetch instead of axios to avoid authentication interceptors
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/settings/general`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsMaintenanceMode(data?.maintenanceMode || false);
+      } else {
+        // If API fails, assume no maintenance mode
+        setIsMaintenanceMode(false);
+      }
     } catch (error) {
       console.error('Erreur lors de la vérification du mode maintenance:', error);
+      // If API fails, assume no maintenance mode to allow normal operation
+      setIsMaintenanceMode(false);
     } finally {
       setLoading(false);
     }

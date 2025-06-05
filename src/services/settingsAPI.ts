@@ -62,8 +62,15 @@ export interface NotificationSettings {
 }
 
 export const settingsAPI = {
-  // Paramètres généraux
-  getGeneralSettings: () => API.get<GeneralSettings>('/settings/general'),
+  // Public endpoint for checking maintenance mode (no auth required)
+  getGeneralSettings: () => {
+    // Use fetch instead of axios to avoid auth interceptors for this public endpoint
+    return fetch(`${import.meta.env.VITE_API_BASE_URL}/api/settings/general`)
+      .then(response => response.json())
+      .then(data => ({ data }));
+  },
+  
+  // Authenticated endpoints
   updateGeneralSettings: (settings: GeneralSettings) => API.put('/settings/general', settings),
 
   // Paramètres SMTP
