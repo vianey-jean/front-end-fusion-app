@@ -346,9 +346,9 @@ function App() {
             <StoreProvider>
               <MaintenanceChecker>
                 <AppRoutes />
+                <CookieManager position="fixed" />
+                <Toaster />
               </MaintenanceChecker>
-              <CookieManager position="fixed" />
-              <Toaster />
             </StoreProvider>
           </AuthProvider>
         </ThemeProvider>
