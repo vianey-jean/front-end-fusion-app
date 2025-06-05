@@ -1,4 +1,3 @@
-
 const { initializeDataFiles } = require('./dataFiles');
 
 const setupRoutes = (app) => {
@@ -65,6 +64,9 @@ const setupRoutes = (app) => {
   app.use('/api/visitors', require('../routes/visitors'));
   app.use('/api/sales-notifications', require('../routes/sales-notifications'));
   app.use('/api/settings', require('../routes/settings'));
+
+  // Route publique pour les paramètres (accessible sans authentification)
+  app.use('/api/public-settings', require('../routes/public-settings'));
 };
 
 module.exports = setupRoutes;

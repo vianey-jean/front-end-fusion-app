@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { settingsAPI } from '@/services/settingsAPI';
 
 interface RegistrationCheckerProps {
   children: React.ReactNode;
@@ -18,10 +17,24 @@ const RegistrationChecker: React.FC<RegistrationCheckerProps> = ({ children }) =
 
   const checkRegistrationStatus = async () => {
     try {
-      const response = await settingsAPI.getGeneralSettings();
-      setRegistrationAllowed(response.data?.allowRegistration || false);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/public-settings/general`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Paramètres inscription récupérés:', data);
+        setRegistrationAllowed(data?.allowRegistration || false);
+      } else {
+        console.error('Erreur API paramètres inscription:', response.status);
+        setRegistrationAllowed(true); // Par défaut, autoriser les inscriptions
+      }
     } catch (error) {
       console.error('Erreur lors de la vérification des inscriptions:', error);
+      setRegistrationAllowed(true); // Par défaut, autoriser les inscriptions
     } finally {
       setLoading(false);
     }

@@ -20,8 +20,8 @@ const MaintenanceChecker: React.FC<MaintenanceCheckerProps> = ({ children }) => 
 
   const checkMaintenanceMode = async () => {
     try {
-      // Use fetch instead of axios to avoid authentication interceptors
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/settings/general`, {
+      // Utiliser la nouvelle route publique
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/public-settings/general`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -30,14 +30,14 @@ const MaintenanceChecker: React.FC<MaintenanceCheckerProps> = ({ children }) => 
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Paramètres maintenance récupérés:', data);
         setIsMaintenanceMode(data?.maintenanceMode || false);
       } else {
-        // If API fails, assume no maintenance mode
+        console.error('Erreur API paramètres:', response.status, response.statusText);
         setIsMaintenanceMode(false);
       }
     } catch (error) {
       console.error('Erreur lors de la vérification du mode maintenance:', error);
-      // If API fails, assume no maintenance mode to allow normal operation
       setIsMaintenanceMode(false);
     } finally {
       setLoading(false);

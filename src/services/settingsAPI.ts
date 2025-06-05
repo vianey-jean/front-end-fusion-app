@@ -64,9 +64,14 @@ export interface NotificationSettings {
 export const settingsAPI = {
   // Public endpoint for checking maintenance mode (no auth required)
   getGeneralSettings: () => {
-    // Use fetch instead of axios to avoid auth interceptors for this public endpoint
-    return fetch(`${import.meta.env.VITE_API_BASE_URL}/api/settings/general`)
-      .then(response => response.json())
+    // Use the new public route
+    return fetch(`${import.meta.env.VITE_API_BASE_URL}/api/public-settings/general`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then(data => ({ data }));
   },
   
