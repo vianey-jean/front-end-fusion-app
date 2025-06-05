@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { initSecureRoutes, getSecureRoute } from './services/secureIds';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
-import CookieManager from '@/components/layout/CookieManager';
+import CookieManager from '@/components/prompts/CookieManager';
 import MaintenanceChecker from '@/components/layout/MaintenanceChecker';
 
 // Composant de chargement
