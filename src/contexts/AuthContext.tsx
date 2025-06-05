@@ -1,8 +1,8 @@
+
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { authAPI, User } from '../services/api';
 import { UpdateProfileData } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
-import { maintenanceAPI } from '@/services/maintenanceAPI';
 
 interface AuthContextType {
   user: User | null;
@@ -38,14 +38,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(response.data.user);
         return true;
       }
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        console.log("Token expiré ou invalide, nettoyage automatique");
-        localStorage.removeItem('authToken');
-        setUser(null);
-      } else {
-        console.error("Erreur de vérification du token:", error);
-      }
+    } catch (error) {
+      console.error("Erreur de vérification du token:", error);
+      localStorage.removeItem('authToken');
     }
     
     setLoading(false);
@@ -64,76 +59,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string): Promise<void> => {
     try {
       console.log("Tentative de connexion avec:", { email });
-      
-      // Vérifier d'abord le mode maintenance
-      let maintenanceMode = false;
-      try {
-        const maintenanceResponse = await maintenanceAPI.getMaintenanceStatus();
-        maintenanceMode = maintenanceResponse.maintenance;
-      } catch (maintenanceError) {
-        console.log("Impossible de vérifier le mode maintenance, on continue...");
-      }
-
-      // Si en mode maintenance, vérifier d'abord si l'email est admin avant la connexion
-      if (maintenanceMode) {
-        try {
-          const emailCheckResponse = await authAPI.checkEmail(email);
-          if (!emailCheckResponse.data.exists || emailCheckResponse.data.user.role !== 'admin') {
-            toast({
-              title: 'Accès refusé : Site en maintenance. Seuls les administrateurs peuvent se connecter.',
-              variant: 'destructive',
-            });
-            throw new Error('Accès refusé en mode maintenance pour les non-administrateurs');
-          }
-        } catch (emailError: any) {
-          if (emailError.message.includes('Accès refusé')) {
-            throw emailError;
-          }
-          console.error("Erreur lors de la vérification de l'email:", emailError);
-          toast({
-            title: 'Erreur lors de la vérification. Veuillez réessayer.',
-            variant: 'destructive',
-          });
-          throw emailError;
-        }
-      }
-
-      // Procéder à la connexion
       const response = await authAPI.login({ email, password });
       localStorage.setItem('authToken', response.data.token);
       setUser(response.data.user);
-      
       toast({
         title: 'Connexion réussie',
         variant: 'default',
       });
 
-      // Logique de redirection améliorée
-      if (maintenanceMode) {
-        // En mode maintenance, seuls les admins peuvent se connecter et sont redirigés vers admin
-        if (response.data.user.role === 'admin') {
-          window.location.href = '/admin';
-        } else {
-          // Ne devrait pas arriver grâce à la vérification préalable, mais par sécurité
-          window.location.href = '/maintenance';
-        }
-      } else {
-        // Pas en mode maintenance
-        if (response.data.user.role === 'admin') {
-          window.location.href = '/admin';
-        } else {
-          // Pour les utilisateurs normaux, redirection intelligente
-          const currentPath = window.location.pathname;
-          if (currentPath === '/login' || currentPath.includes('/login')) {
-            window.location.href = '/';
-          }
-          // Sinon, rester sur la page actuelle
-        }
-      }
+      // Navigation via window.location pour éviter les problèmes de hooks
+      window.location.href = '/';
     } catch (error: any) {
       console.error("Erreur de connexion:", error);
       
-      const errorMessage = error.response?.data?.message || error.message || "Erreur de connexion";
+      const errorMessage = error.response?.data?.message || "Erreur de connexion";
       toast({
         title: errorMessage,
         variant: 'destructive',
@@ -151,6 +90,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       variant: 'destructive',
     });
 
+    // Navigation via window.location pour éviter les problèmes de hooks
     window.location.href = '/login';
   };
 
@@ -164,11 +104,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         variant: 'default',
       });
 
-      if (response.data.user.role === 'admin') {
-        window.location.href = '/admin';
-      } else {
-        window.location.href = '/';
-      }
+      // Navigation via window.location pour éviter les problèmes de hooks
+      window.location.href = '/';
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Erreur lors de l\'inscription';
       toast({

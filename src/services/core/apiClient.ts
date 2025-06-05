@@ -8,35 +8,14 @@ export const apiClient = axios.create({
   timeout: 30000,
 });
 
-// Variables pour le throttling des requêtes - intervalles augmentés
-let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 3000; // 3 secondes minimum entre les requêtes
-
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    // Throttling amélioré pour éviter trop de requêtes
-    const now = Date.now();
-    const timeSinceLastRequest = now - lastRequestTime;
-    
-    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-      const delay = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-      return new Promise(resolve => {
-        setTimeout(() => {
-          lastRequestTime = Date.now();
-          resolve(config);
-        }, delay);
-      });
-    }
-    
-    lastRequestTime = now;
-
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // Ajouter timestamp uniquement pour les requêtes GET pour éviter le cache
     if (config.method === 'get') {
       config.params = {
         ...config.params,
@@ -44,13 +23,10 @@ apiClient.interceptors.request.use(
       };
     }
 
-    // Réduire les logs en production
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`${config.method?.toUpperCase()} Request to ${config.url}`, 
-        config.method === 'post' || config.method === 'put' 
-          ? JSON.stringify(config.data)
-          : config.params || {});
-    }
+    console.log(`${config.method?.toUpperCase()} Request to ${config.url}`, 
+      config.method === 'post' || config.method === 'put' 
+        ? JSON.stringify(config.data)
+        : config.params || {});
 
     return config;
   },
@@ -60,44 +36,21 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor amélioré
+// Response interceptor
 apiClient.interceptors.response.use(
   response => {
-    // Réduire les logs en production
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`Response from ${response.config.url}:`, response.data);
-    }
+    console.log(`Response from ${response.config.url}:`, response.data);
     return response;
   },
   error => {
-    // Logs plus silencieux pour les erreurs 401 attendues
-    if (error.response?.status === 401) {
-      console.log("Token invalide ou expiré - nettoyage automatique");
-      localStorage.removeItem('authToken');
-    } else if (error.response?.status === 429) {
-      console.warn("Rate limit atteint. Ralentissement des requêtes recommandé.");
-      // Augmenter l'intervalle minimum entre les requêtes de façon plus agressive
-      lastRequestTime = Date.now() + 15000; // Ajouter 15 secondes de délai
-    } else {
-      console.error("API Error:", error.response || error);
-    }
+    console.error("API Error:", error.response || error);
     
-    // Gestion des erreurs 401 sans redirection automatique pour éviter les boucles
     if (error.response && error.response.status === 401 && 
         !error.config.url.includes('/auth/login') && 
-        !error.config.url.includes('/auth/verify-token') &&
-        !error.config.url.includes('/auth/check-email')) {
-      
-      // Nettoyage silencieux du token invalide
+        !error.config.url.includes('/auth/verify-token')) {
+      console.log("Session expirée, redirection vers la page de connexion...");
       localStorage.removeItem('authToken');
-      
-      // Redirection uniquement si on n'est pas déjà sur une page d'auth
-      if (!window.location.pathname.includes('/login') && 
-          !window.location.pathname.includes('/register') &&
-          !window.location.pathname.includes('/maintenance')) {
-        console.log("Session expirée, redirection vers la page de connexion...");
-        window.location.href = '/login';
-      }
+      window.location.href = '/login';
     }
     
     return Promise.reject(error);

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,9 +17,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/layout/Layout';
 import { authAPI } from '@/services/api';
 import { toast } from '@/components/ui/sonner';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
 
+// ✅ Validation schemas
 const emailSchema = z.object({
   email: z.string().email('Email invalide'),
 });
@@ -28,7 +29,7 @@ const passwordSchema = z.object({
 });
 
 const LoginPage = () => {
-  const { login, user, isAdmin } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<'email' | 'password'>('email');
@@ -36,16 +37,7 @@ const LoginPage = () => {
   const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      if (isAdmin) {
-        navigate('/admin');
-      } else {
-        navigate('/');
-      }
-    }
-  }, [user, isAdmin, navigate]);
-
+  // ✅ Formulaires
   const emailForm = useForm<{ email: string }>({
     resolver: zodResolver(emailSchema),
     defaultValues: { email: '' },
@@ -56,6 +48,7 @@ const LoginPage = () => {
     defaultValues: { password: '' },
   });
 
+  // ✅ Gestion soumission email
   const onEmailSubmit = async (data: { email: string }) => {
     const normalizedEmail = data.email.trim().toLowerCase();
     try {
@@ -74,57 +67,30 @@ const LoginPage = () => {
           style: { backgroundColor: 'red', color: 'white' },
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erreur lors de la vérification de l'email:", error);
-      
-      if (error.response?.status === 429) {
-        toast.error("Trop de tentatives. Veuillez patienter avant de réessayer.", {
-          style: { backgroundColor: 'red', color: 'white' },
-        });
-      } else if (error.response?.status === 401) {
-        // Gestion silencieuse des erreurs 401 pour la vérification d'email
-        toast.error("Erreur d'authentification. Veuillez réessayer.", {
-          style: { backgroundColor: 'red', color: 'white' },
-        });
-      } else {
-        toast.error("Erreur lors de la vérification de l'email", {
-          style: { backgroundColor: 'red', color: 'white' },
-        });
-      }
+      toast.error("Erreur lors de la vérification de l'email", {
+        style: { backgroundColor: 'red', color: 'white' },
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ✅ Gestion soumission mot de passe
   const onPasswordSubmit = async (data: { password: string }) => {
     try {
       setIsLoading(true);
       await login(userEmail, data.password);
-      // La redirection est maintenant gérée dans le contexte Auth avec la logique du mode maintenance
-    } catch (error: any) {
+      // La redirection est gérée dans le contexte Auth
+    } catch (error) {
       console.error("Erreur de connexion:", error);
-      
-      if (error.response?.status === 429) {
-        toast.error("Trop de tentatives. Veuillez patienter avant de réessayer.", {
-          style: { backgroundColor: 'red', color: 'white' },
-        });
-      } else if (error.response?.status === 401) {
-        // Gestion des erreurs 401 de connexion (mauvais mot de passe)
-        toast.error("Email ou mot de passe incorrect", {
-          style: { backgroundColor: 'red', color: 'white' },
-        });
-      }
-      // Les autres erreurs sont gérées dans le contexte Auth
     } finally {
       setIsLoading(false);
     }
   };
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
-
-  if (user) {
-    return null;
-  }
 
   return (
     <Layout>
@@ -160,7 +126,7 @@ const LoginPage = () => {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Vérification..." : "Continuer"}
+                    {isLoading ? "Chargement..." : "Continuer"}
                   </Button>
                 </form>
               </Form>

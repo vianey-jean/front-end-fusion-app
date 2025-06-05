@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminLayout from './AdminLayout';
@@ -6,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Send, Edit, Trash2, Smile, PhoneCall, Video } from 'lucide-react';
+import { Send, Edit, Trash2, Smile, PhoneCall, Video, PhoneOff } from 'lucide-react';
+import { adminChatAPI, Message } from '@/services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/ui/sonner';
 import { 
@@ -22,8 +24,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { VideoCallProvider, useVideoCall } from '@/contexts/VideoCallContext';
 import CallNotification from '@/components/admin/CallNotification';
 import CallInterface from '@/components/admin/CallInterface';
-import { adminChatAPI } from '@/services/chatAPI';
-import { Message } from '@/types/chat';
 
 // Types pour le chat admin
 interface AdminUser {
@@ -81,7 +81,7 @@ const AdminChatContent = () => {
       }
     },
     enabled: !!selectedAdmin && !!currentUser,
-    refetchInterval: 5000
+    refetchInterval: 5000 // Rafraîchir toutes les 5 secondes
   });
 
   // Vérifier le statut en ligne des administrateurs
@@ -90,8 +90,10 @@ const AdminChatContent = () => {
     queryFn: async () => {
       if (!admins.length) return {};
       
+      // Signaler que l'utilisateur courant est en ligne
       await adminChatAPI.setOnline();
       
+      // Vérifier le statut de tous les autres admins
       const statusPromises = admins.map(async (admin: AdminUser) => {
         try {
           const response = await adminChatAPI.getStatus(admin.id);
@@ -107,6 +109,7 @@ const AdminChatContent = () => {
         return acc;
       }, {});
       
+      // Mettre à jour le cache des admins avec leur statut
       queryClient.setQueryData(['admins'], (oldData: any) => 
         (oldData || []).map((admin: AdminUser) => ({
           ...admin,
@@ -118,7 +121,7 @@ const AdminChatContent = () => {
       return statusMap;
     },
     enabled: !!admins.length && !!currentUser,
-    refetchInterval: 15000
+    refetchInterval: 15000 // Vérifier les statuts toutes les 15 secondes
   });
 
   // Mutation pour envoyer un message
