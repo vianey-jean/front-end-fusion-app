@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, MapPin, Clock, Users, Star, TrendingUp, Package, Bell } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { notificationAPI, SaleNotification, NotificationResponse } from '@/services/notificationAPI';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Intervalle de vérification pour les nouvelles notifications (en ms)
 const POLLING_INTERVAL = 10000;
@@ -17,28 +19,58 @@ const RealtimeSalesNotifier: React.FC = () => {
   });
   const [isVisible, setIsVisible] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<string>(new Date().toISOString());
-
-  // Vérifier si l'utilisateur est admin de manière sécurisée
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Utiliser le contexte d'authentification de manière sécurisée
   useEffect(() => {
-    // Vérifier le statut admin de manière sécurisée
     const checkAdminStatus = () => {
       try {
+        // Méthode 1: Essayer d'utiliser le contexte d'authentification
+        const auth = useAuth();
+        if (auth && auth.user && auth.isAdmin) {
+          setIsAdmin(true);
+          console.log('Admin détecté via contexte d\'authentification');
+          return;
+        }
+      } catch (error) {
+        console.log('Contexte d\'authentification non disponible, essai avec localStorage');
+      }
+
+      try {
+        // Méthode 2: Vérifier dans localStorage
         const token = localStorage.getItem('authToken');
+        const userStr = localStorage.getItem('user');
+        
+        if (token && userStr) {
+          const user = JSON.parse(userStr);
+          if (user.role === 'admin' || user.email === 'admin@admin.com') {
+            setIsAdmin(true);
+            console.log('Admin détecté via localStorage');
+            return;
+          }
+        }
+
+        // Méthode 3: Décoder le token JWT
         if (token) {
-          // Décoder le token JWT pour vérifier le rôle (basique)
           const payload = JSON.parse(atob(token.split('.')[1]));
-          const isAdminUser = payload.role === 'admin' || payload.email === 'admin@admin.com';
-          setIsAdmin(isAdminUser);
+          if (payload.role === 'admin' || payload.email === 'admin@admin.com') {
+            setIsAdmin(true);
+            console.log('Admin détecté via token JWT');
+            return;
+          }
         }
       } catch (error) {
         console.log('Impossible de vérifier le statut admin:', error);
-        setIsAdmin(false);
       }
+      
+      setIsAdmin(false);
     };
 
     checkAdminStatus();
+    
+    // Vérifier périodiquement le statut admin
+    const interval = setInterval(checkAdminStatus, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Fonction pour récupérer la dernière notification
@@ -66,6 +98,7 @@ const RealtimeSalesNotifier: React.FC = () => {
   // Vérifier les nouvelles notifications au chargement du composant
   useEffect(() => {
     if (isAdmin) {
+      console.log('Admin connecté - Activation des notifications de vente');
       fetchLatestNotification();
       
       // Mettre en place un intervalle pour vérifier régulièrement les nouvelles notifications
@@ -74,8 +107,10 @@ const RealtimeSalesNotifier: React.FC = () => {
       return () => {
         clearInterval(intervalId);
       };
+    } else {
+      console.log('Utilisateur non-admin - Pas de notifications de vente');
     }
-  }, [isAdmin]);
+  }, [isAdmin, lastCheckTime]);
 
   // Si pas admin ou pas de notification, ne rien afficher
   if (!isAdmin || !currentNotification) return null;

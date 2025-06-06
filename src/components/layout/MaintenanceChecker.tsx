@@ -61,14 +61,9 @@ const MaintenanceChecker: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   }
 
-  // Si mode maintenance activé
-  if (isMaintenanceMode) {
-    // Si utilisateur connecté et admin, permettre l'accès
-    if (user && isAdmin) {
-      return <>{children}</>;
-    }
-
-    // Sinon, afficher la page de maintenance
+  // Si mode maintenance activé ET utilisateur n'est pas admin
+  if (isMaintenanceMode && !(user && isAdmin)) {
+    // Afficher la page de maintenance
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
         <motion.div
@@ -129,7 +124,7 @@ const MaintenanceChecker: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   }
 
-  // Mode normal, afficher le contenu
+  // Mode normal ou admin connecté en mode maintenance - afficher le contenu
   return <>{children}</>;
 };
 
