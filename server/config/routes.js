@@ -1,72 +1,78 @@
-const { initializeDataFiles } = require('./dataFiles');
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
 
-const setupRoutes = (app) => {
-  // Initialiser les fichiers de données
-  const fs = require('fs');
-  const path = require('path');
+// Importation des routes
+const authRoutes = require('../routes/auth');
+const productsRoutes = require('../routes/products');
+const panierRoutes = require('../routes/panier');
+const ordersRoutes = require('../routes/orders');
+const favoritesRoutes = require('../routes/favorites');
+const reviewsRoutes = require('../routes/reviews');
+const usersRoutes = require('../routes/users');
+const pubLayoutRoutes = require('../routes/pub-layout');
+const contactsRoutes = require('../routes/contacts');
+const adminChatRoutes = require('../routes/admin-chat');
+const clientChatRoutes = require('../routes/client-chat');
+const codePromosRoutes = require('../routes/code-promos');
+const remboursementsRoutes = require('../routes/remboursements');
+const categoriesRoutes = require('../routes/categories');
+const flashSalesRoutes = require('../routes/flash-sales');
+const visitorsRoutes = require('../routes/visitors');
+const settingsRoutes = require('../routes/settings');
+const publicSettingsRoutes = require('../routes/public-settings');
+const salesNotificationsRoutes = require('../routes/sales-notifications');
 
-  const dataFiles = [
-    'users.json',
-    'products.json',
-    'panier.json',
-    'favorites.json',
-    'orders.json',
-    'contacts.json',
-    'client-chat.json',
-    'admin-chat.json',
-    'preferences.json',
-    'reviews.json',
-    'reset-codes.json',
-    'publayout.json',
-    'remboursements.json',
-    'banniereflashsale.json',
-    'categories.json',
-    'visitors.json',
-    'sales-notifications.json',
-    'general-settings.json',
-    'smtp-settings.json',
-    'payment-settings.json',
-    'shipping-settings.json',
-    'security-settings.json',
-    'backup-settings.json',
-    'notification-settings.json',
-    'backups-info.json'
-  ];
+// Fonction pour configurer les routes
+function setupRoutes(app) {
+  // Préfixe pour l'API
+  const API_PREFIX = '/api';
+  
+  // Middleware CORS pour toutes les routes
+  app.use(cors());
 
-  const dataDir = path.join(__dirname, '../data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir);
-  }
+  // Middleware pour parser le JSON
+  app.use(express.json());
 
-  dataFiles.forEach(file => {
-    const filePath = path.join(dataDir, file);
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify([]));
-    }
+  // Middleware pour servir les fichiers statiques depuis le dossier "public"
+  app.use(express.static(path.join(__dirname, '../../public')));
+  
+  // Montage des routes avec le préfixe API
+  app.use(`${API_PREFIX}/auth`, authRoutes);
+  app.use(`${API_PREFIX}/products`, productsRoutes);
+  app.use(`${API_PREFIX}/panier`, panierRoutes);
+  app.use(`${API_PREFIX}/orders`, ordersRoutes);
+  app.use(`${API_PREFIX}/favorites`, favoritesRoutes);
+  app.use(`${API_PREFIX}/reviews`, reviewsRoutes);
+  app.use(`${API_PREFIX}/users`, usersRoutes);
+  app.use(`${API_PREFIX}/pub-layout`, pubLayoutRoutes);
+  app.use(`${API_PREFIX}/contacts`, contactsRoutes);
+  app.use(`${API_PREFIX}/admin-chat`, adminChatRoutes);
+  app.use(`${API_PREFIX}/client-chat`, clientChatRoutes);
+  app.use(`${API_PREFIX}/code-promos`, codePromosRoutes);
+  app.use(`${API_PREFIX}/remboursements`, remboursementsRoutes);
+  app.use(`${API_PREFIX}/categories`, categoriesRoutes);
+  app.use(`${API_PREFIX}/flash-sales`, flashSalesRoutes);
+  app.use(`${API_PREFIX}/visitors`, visitorsRoutes);
+  app.use(`${API_PREFIX}/settings`, settingsRoutes);
+  app.use(`${API_PREFIX}/public-settings`, publicSettingsRoutes);
+  app.use(`${API_PREFIX}/sales-notifications`, salesNotificationsRoutes);
+  
+  // Route de base pour vérifier que le serveur fonctionne
+  app.get('/', (req, res) => {
+    res.send('Bienvenue sur le serveur de l\'application !');
   });
 
-  // Routes principales
-  app.use('/api/auth', require('../routes/auth'));
-  app.use('/api/products', require('../routes/products'));
-  app.use('/api/categories', require('../routes/categories'));
-  app.use('/api/panier', require('../routes/panier'));
-  app.use('/api/favorites', require('../routes/favorites'));
-  app.use('/api/orders', require('../routes/orders'));
-  app.use('/api/contacts', require('../routes/contacts'));
-  app.use('/api/users', require('../routes/users'));
-  app.use('/api/reviews', require('../routes/reviews'));
-  app.use('/api/flash-sales', require('../routes/flash-sales'));
-  app.use('/api/pub-layout', require('../routes/pub-layout'));
-  app.use('/api/code-promos', require('../routes/code-promos'));
-  app.use('/api/remboursements', require('../routes/remboursements'));
-  app.use('/api/client-chat', require('../routes/client-chat'));
-  app.use('/api/admin-chat', require('../routes/admin-chat'));
-  app.use('/api/visitors', require('../routes/visitors'));
-  app.use('/api/sales-notifications', require('../routes/sales-notifications'));
-  app.use('/api/settings', require('../routes/settings'));
+  // Route pour la gestion des erreurs 404
+  app.use((req, res, next) => {
+    res.status(404).send('Erreur 404: Ressource non trouvée');
+  });
 
-  // Route publique pour les paramètres (accessible sans authentification)
-  app.use('/api/public-settings', require('../routes/public-settings'));
-};
+  // Route pour la gestion des erreurs 500
+  app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Erreur 500: Erreur serveur');
+  });
+}
 
-module.exports = setupRoutes;
+module.exports = { setupRoutes };

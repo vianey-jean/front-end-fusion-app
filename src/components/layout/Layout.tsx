@@ -9,6 +9,7 @@ import SecurityInfo from './SecurityInfo';
 import LayoutPrompts from './LayoutPrompts';
 import ClientServiceChatWidget from '@/components/chat/ClientServiceChatWidget';
 import AdminServiceChatWidget from '@/components/chat/AdminServiceChatWidget';
+import RealtimeSalesNotifier from '@/components/notifications/RealtimeSalesNotifier';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import { useQuery } from '@tanstack/react-query';
 import { Product } from '@/contexts/StoreContext';
@@ -16,6 +17,7 @@ import { productsAPI } from '@/services/api';
 import pubLayoutAPI, { PubLayout } from '@/services/pubLayoutAPI';
 import { useScrollDetection } from '@/hooks/useScrollDetection';
 import { notificationService } from '@/services/NotificationService';
+import { Toaster } from '@/components/ui/toaster';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -81,6 +83,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hidePrompts = false }) => {
         <PromoBanner pubLayoutItems={pubLayoutItems} isLoading={isLoadingPubLayout} />
       </header>
       
+      {/* Notification en temps réel des ventes */}
+      <RealtimeSalesNotifier />
+      
       <main className="flex-grow" role="main">
         {children}
         <BenefitsSection hidePrompts={hidePrompts} />
@@ -99,6 +104,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hidePrompts = false }) => {
       <ClientServiceChatWidget />
       <AdminServiceChatWidget />
       <ScrollToTop />
+      <Toaster />
     </div>
   );
 };
