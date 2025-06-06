@@ -1,10 +1,8 @@
-
-
 import React, { useEffect, lazy, Suspense } from 'react';
 import './App.css';
 import { Toaster } from './components/ui/sonner';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { StoreProvider } from './contexts/StoreContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import SecureRoute from './components/SecureRoute';
@@ -14,6 +12,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import CookieManager from '@/components/prompts/CookieManager';
 import MaintenanceChecker from '@/components/layout/MaintenanceChecker';
+import RealtimeSalesNotifier from '@/components/notifications/RealtimeSalesNotifier';
 
 // Composant de chargement
 import { Skeleton } from './components/ui/skeleton';
@@ -96,6 +95,26 @@ const queryClient = new QueryClient({
 
 // Initialiser les routes sécurisées
 const secureRoutes = initSecureRoutes();
+
+// Composant wrapper pour MaintenanceChecker avec accès au contexte Auth
+const MaintenanceWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Utiliser useAuth de manière sécurisée
+  let isAdmin = false;
+  try {
+    const auth = useAuth();
+    isAdmin = auth.isAdmin;
+  } catch (error) {
+    // Si useAuth n'est pas disponible, continuer sans authentification
+    console.log('AuthProvider non disponible dans MaintenanceWrapper');
+  }
+
+  return (
+    <MaintenanceChecker isAdmin={isAdmin}>
+      {children}
+      <RealtimeSalesNotifier />
+    </MaintenanceChecker>
+  );
+};
 
 function AppRoutes() {
   const location = useLocation();
@@ -350,11 +369,11 @@ function App() {
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <AuthProvider>
             <StoreProvider>
-              <MaintenanceChecker>
+              <MaintenanceWrapper>
                 <AppRoutes />
                 <CookieManager position="fixed" />
                 <Toaster />
-              </MaintenanceChecker>
+              </MaintenanceWrapper>
             </StoreProvider>
           </AuthProvider>
         </ThemeProvider>
@@ -364,4 +383,3 @@ function App() {
 }
 
 export default App;
-

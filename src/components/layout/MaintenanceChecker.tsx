@@ -1,26 +1,16 @@
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { notificationService } from '@/services/NotificationService';
 import { motion } from 'framer-motion';
 import { Wrench, Clock, Shield } from 'lucide-react';
 
-const MaintenanceChecker: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface MaintenanceCheckerProps {
+  children: React.ReactNode;
+  isAdmin?: boolean;
+}
+
+const MaintenanceChecker: React.FC<MaintenanceCheckerProps> = ({ children, isAdmin = false }) => {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Utiliser useAuth de manière sécurisée
-  let user = null;
-  let isAdmin = false;
-  
-  try {
-    const auth = useAuth();
-    user = auth.user;
-    isAdmin = auth.isAdmin;
-  } catch (error) {
-    // Si useAuth n'est pas disponible, continuer sans authentification
-    console.log('AuthProvider non disponible dans MaintenanceChecker');
-  }
 
   useEffect(() => {
     const checkMaintenanceMode = async () => {
@@ -62,7 +52,7 @@ const MaintenanceChecker: React.FC<{ children: React.ReactNode }> = ({ children 
   }
 
   // Si mode maintenance activé ET utilisateur n'est pas admin
-  if (isMaintenanceMode && !(user && isAdmin)) {
+  if (isMaintenanceMode && !isAdmin) {
     // Afficher la page de maintenance
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
@@ -112,7 +102,7 @@ const MaintenanceChecker: React.FC<{ children: React.ReactNode }> = ({ children 
             className="mt-8"
           >
             <a
-              href="/login-maintenance-admin"
+              href="/maintenance-admin-login"
               className="inline-flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors text-sm"
             >
               <Shield className="h-4 w-4" />
