@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -11,12 +10,15 @@ import PromotionalProductsGrid from '@/components/home/PromotionalProductsGrid';
 import FlashSaleBanner from '@/components/flash-sale/FlashSaleBanner';
 import { useHomePageData } from '@/hooks/useHomePageData';
 import { useCarouselAutoplay } from '@/hooks/useCarouselAutoplay';
+import SalesNotification from '@/components/engagement/SalesNotification';
 import LiveVisitorCounter from '@/components/engagement/LiveVisitorCounter';
 import { motion } from 'framer-motion';
 import { Sparkles, TrendingUp, Award, Star } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const HomePage = () => {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   
   const {
     featuredProductCatalog,
@@ -70,6 +72,9 @@ const HomePage = () => {
       }
     }
   };
+
+  // Check if user is admin for SalesNotification
+  const isAdmin = user?.role === 'admin' || user?.email === 'admin@admin.com';
 
   return (
     <Layout>
@@ -227,7 +232,8 @@ const HomePage = () => {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-yellow-200/10 to-orange-200/10 rounded-full blur-3xl"></div>
         </div>
 
-        {/* Visitor Counter */}
+        {/* Admin Components - Show SalesNotification only for admins */}
+        {isAdmin && <SalesNotification />}
         <LiveVisitorCounter />
       </motion.div>
     </Layout>
