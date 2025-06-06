@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Cookie, X, ExternalLink, Shield } from 'lucide-react';
+import { Cookie, X, ExternalLink, Shield, Lock, Eye, Target, Zap } from 'lucide-react';
 import { toast } from "sonner";
 
 // Interface pour les préférences de cookies
@@ -16,14 +16,13 @@ interface CookiePreferences {
   version: string;
 }
 
-// Version actuelle de la politique de cookies - à incrémenter lors des changements majeurs
 const COOKIE_POLICY_VERSION = "1.0";
 
 const CookieConsent: React.FC = () => {
   const [showConsent, setShowConsent] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [preferences, setPreferences] = useState<CookiePreferences>({
-    essential: true, // Toujours activé car essentiel
+    essential: true,
     performance: false,
     functional: false,
     targeting: false,
@@ -35,7 +34,6 @@ const CookieConsent: React.FC = () => {
   useEffect(() => {
     const consentGiven = localStorage.getItem('cookie-consent');
     if (!consentGiven) {
-      // Afficher la bannière après un petit délai pour éviter de l'afficher immédiatement au chargement
       const timer = setTimeout(() => {
         setShowConsent(true);
       }, 1000);
@@ -43,26 +41,21 @@ const CookieConsent: React.FC = () => {
       return () => clearTimeout(timer);
     } else {
       try {
-        // Charger les préférences sauvegardées
         const savedPreferences = JSON.parse(consentGiven);
         
-        // Vérifier si la version de la politique a changé
         if (typeof savedPreferences === 'object' && savedPreferences.version !== COOKIE_POLICY_VERSION) {
-          // Si la version a changé, demander à nouveau le consentement
           setShowConsent(true);
         } else if (typeof savedPreferences === 'object') {
           setPreferences(savedPreferences);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des préférences de cookies:', error);
-        // En cas d'erreur, demander à nouveau le consentement
         setShowConsent(true);
       }
     }
   }, []);
   
   const savePreferences = (prefs: CookiePreferences) => {
-    // Ajouter la date et la version à l'enregistrement
     const prefsToSave = {
       ...prefs,
       consentDate: new Date().toISOString(),
@@ -73,10 +66,8 @@ const CookieConsent: React.FC = () => {
     setPreferences(prefsToSave);
     setShowConsent(false);
     
-    // Appliquer les préférences (fictif - à implémenter selon les besoins)
     applyConsentPreferences(prefsToSave);
     
-    // Afficher un toast de confirmation
     toast.success("Vos préférences de cookies ont été enregistrées", {
       description: "Vous pouvez les modifier à tout moment via l'icône cookie en bas de page",
       duration: 5000,
@@ -84,25 +75,17 @@ const CookieConsent: React.FC = () => {
   };
   
   const applyConsentPreferences = (prefs: CookiePreferences) => {
-    // Dans cette fonction, on appliquerait les préférences aux différents services
-    // Par exemple, activer/désactiver Google Analytics, etc.
     console.log("Applying consent preferences:", prefs);
     
-    // Google Analytics (exemple)
     if (prefs.performance) {
-      // Activer GA
       console.log("Google Analytics enabled");
     } else {
-      // Désactiver GA
       console.log("Google Analytics disabled");
     }
     
-    // Facebook Pixel (exemple)
     if (prefs.targeting) {
-      // Activer Facebook Pixel
       console.log("Facebook Pixel enabled");
     } else {
-      // Désactiver Facebook Pixel
       console.log("Facebook Pixel disabled");
     }
   };
@@ -134,7 +117,7 @@ const CookieConsent: React.FC = () => {
   const saveCustomPreferences = () => {
     savePreferences({
       ...preferences,
-      essential: true, // Toujours garder les cookies essentiels
+      essential: true,
       consentDate: new Date().toISOString(),
       version: COOKIE_POLICY_VERSION
     });
@@ -150,153 +133,217 @@ const CookieConsent: React.FC = () => {
   const dismiss = () => {
     setShowConsent(false);
   };
+
+  const cookieTypes = [
+    {
+      key: 'essential' as const,
+      title: 'Cookies essentiels',
+      description: 'Nécessaires au fonctionnement du site',
+      icon: Lock,
+      disabled: true,
+      gradient: 'from-gray-100 to-slate-100',
+      iconColor: 'text-gray-600'
+    },
+    {
+      key: 'performance' as const,
+      title: 'Cookies de performance',
+      description: 'Analyse des visites pour améliorer le site',
+      icon: Eye,
+      disabled: false,
+      gradient: 'from-blue-100 to-cyan-100',
+      iconColor: 'text-blue-600'
+    },
+    {
+      key: 'functional' as const,
+      title: 'Cookies fonctionnels',
+      description: 'Se souvenir de vos préférences',
+      icon: Zap,
+      disabled: false,
+      gradient: 'from-green-100 to-emerald-100',
+      iconColor: 'text-green-600'
+    },
+    {
+      key: 'targeting' as const,
+      title: 'Cookies de publicité',
+      description: 'Personnalisation des publicités',
+      icon: Target,
+      disabled: false,
+      gradient: 'from-purple-100 to-violet-100',
+      iconColor: 'text-purple-600'
+    }
+  ];
   
   return (
     <AnimatePresence>
       {showConsent && (
         <motion.div
-          className="fixed inset-x-0 bottom-0 z-50 p-4"
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-end justify-center p-4 bg-black/20 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="max-w-4xl mx-auto bg-white dark:bg-neutral-900 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-6">
-            <div className="flex items-start">
-              <div className="hidden sm:flex h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 items-center justify-center flex-shrink-0 mr-4">
-                <Cookie className="h-6 w-6 text-red-600 dark:text-red-400" />
+          <motion.div
+            className="w-full max-w-4xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border-2 border-gray-200 dark:border-neutral-800 overflow-hidden"
+            initial={{ y: 100, scale: 0.9, opacity: 0 }}
+            animate={{ y: 0, scale: 1, opacity: 1 }}
+            exit={{ y: 100, scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.4, type: "spring", damping: 20 }}
+          >
+            {/* Header avec gradient */}
+            <div className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 p-6 text-white relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10" />
+              <div className="relative flex items-start justify-between">
+                <div className="flex items-center space-x-4">
+                  <motion.div 
+                    className="bg-white/20 rounded-2xl p-4 backdrop-blur-sm"
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  >
+                    <Cookie className="h-8 w-8" />
+                  </motion.div>
+                  <div>
+                    <h3 className="text-2xl font-bold mb-2">🍪 Gestion des cookies</h3>
+                    <motion.div
+                      className="flex items-center gap-2 text-sm bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <Shield className="h-4 w-4" />
+                      <span>Conforme au RGPD et à la directive ePrivacy</span>
+                    </motion.div>
+                  </div>
+                </div>
+                <motion.button 
+                  onClick={dismiss} 
+                  className="text-white/80 hover:text-white bg-white/20 rounded-full p-2 backdrop-blur-sm transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="h-5 w-5" />
+                </motion.button>
               </div>
               
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-lg font-semibold mb-2">Notre site utilise des cookies</h3>
-                  <button onClick={dismiss} className="text-neutral-400 hover:text-neutral-600">
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-                
-                <div className="flex items-center gap-1 mb-4 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 p-2 rounded-md">
-                  <Shield className="h-4 w-4" />
-                  <span>Conforme au RGPD et à la directive ePrivacy</span>
-                </div>
-                
-                <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-                  Nous utilisons des cookies pour améliorer votre expérience de navigation, 
-                  personnaliser le contenu et les publicités, fournir des fonctionnalités de 
-                  médias sociaux et analyser notre trafic. Nous partageons également des informations 
-                  sur votre utilisation de notre site avec nos partenaires. Vous avez le droit de contrôler vos données personnelles.
-                </p>
-                
-                {showDetails ? (
-                  <div className="mb-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Cookies essentiels</p>
-                        <p className="text-sm text-neutral-500">Nécessaires au fonctionnement du site</p>
-                      </div>
-                      <input 
-                        type="checkbox" 
-                        checked={preferences.essential} 
-                        disabled 
-                        className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Cookies de performance</p>
-                        <p className="text-sm text-neutral-500">Analyse des visites pour améliorer le site</p>
-                      </div>
-                      <input 
-                        type="checkbox" 
-                        checked={preferences.performance} 
-                        onChange={() => togglePreference('performance')} 
-                        className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
-                        aria-label="Accepter les cookies de performance"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Cookies fonctionnels</p>
-                        <p className="text-sm text-neutral-500">Se souvenir de vos préférences</p>
-                      </div>
-                      <input 
-                        type="checkbox" 
-                        checked={preferences.functional} 
-                        onChange={() => togglePreference('functional')} 
-                        className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
-                        aria-label="Accepter les cookies fonctionnels"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Cookies de publicité</p>
-                        <p className="text-sm text-neutral-500">Personnalisation des publicités</p>
-                      </div>
-                      <input 
-                        type="checkbox" 
-                        checked={preferences.targeting} 
-                        onChange={() => togglePreference('targeting')} 
-                        className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
-                        aria-label="Accepter les cookies de publicité"
-                      />
-                    </div>
-                  </div>
-                ) : null}
-                
-                <div className="flex flex-col sm:flex-row gap-3 items-center">
-                  <Button 
-                    variant="default" 
-                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700" 
-                    onClick={acceptAll}
-                  >
-                    Accepter tous les cookies
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full sm:w-auto" 
-                    onClick={showDetails ? saveCustomPreferences : acceptEssential}
-                  >
-                    {showDetails ? 'Enregistrer mes préférences' : 'Accepter uniquement les cookies essentiels'}
-                  </Button>
-                  
-                  <Button
-                    variant="link"
-                    onClick={() => setShowDetails(!showDetails)}
-                    className="text-sm text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
-                  >
-                    {showDetails ? 'Masquer les détails' : 'Personnaliser mes choix'}
-                  </Button>
-                </div>
-                
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-neutral-500">
-                  <Link 
-                    to="/politique-cookies" 
-                    className="flex items-center hover:text-neutral-700 dark:hover:text-neutral-200"
-                  >
-                    Politique de cookies <ExternalLink className="h-3 w-3 ml-1" />
-                  </Link>
-                  <span>•</span>
-                  <Link 
-                    to="/politique-confidentialite" 
-                    className="flex items-center hover:text-neutral-700 dark:hover:text-neutral-200"
-                  >
-                    Politique de confidentialité <ExternalLink className="h-3 w-3 ml-1" />
-                  </Link>
-                  <span>•</span>
-                  <Link 
-                    to="/mentions-legales" 
-                    className="flex items-center hover:text-neutral-700 dark:hover:text-neutral-200"
-                  >
-                    Mentions légales <ExternalLink className="h-3 w-3 ml-1" />
-                  </Link>
-                </div>
+              {/* Particules décoratives */}
+              <div className="absolute top-4 right-20 opacity-30">
+                <motion.div
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  ✨
+                </motion.div>
               </div>
             </div>
-          </div>
+            
+            <div className="p-6">
+              <motion.p 
+                className="text-neutral-600 dark:text-neutral-300 mb-6 leading-relaxed"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Nous utilisons des cookies pour améliorer votre expérience de navigation, 
+                personnaliser le contenu et les publicités, fournir des fonctionnalités de 
+                médias sociaux et analyser notre trafic. Vous avez le droit de contrôler vos données personnelles.
+              </motion.p>
+              
+              {showDetails && (
+                <motion.div 
+                  className="mb-6 space-y-4"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  transition={{ duration: 0.4 }}
+                >
+                  {cookieTypes.map((cookieType, index) => (
+                    <motion.div
+                      key={cookieType.key}
+                      className={`flex items-center justify-between p-4 bg-gradient-to-r ${cookieType.gradient} rounded-xl border border-gray-200 dark:border-neutral-700`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className={`p-2 bg-white rounded-lg shadow-sm`}>
+                          <cookieType.icon className={`h-5 w-5 ${cookieType.iconColor}`} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800 dark:text-gray-200">{cookieType.title}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{cookieType.description}</p>
+                        </div>
+                      </div>
+                      <motion.input 
+                        type="checkbox" 
+                        checked={preferences[cookieType.key]} 
+                        disabled={cookieType.disabled}
+                        onChange={() => !cookieType.disabled && togglePreference(cookieType.key)} 
+                        className="h-5 w-5 rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:opacity-50"
+                        whileHover={!cookieType.disabled ? { scale: 1.1 } : {}}
+                        aria-label={`Accepter les ${cookieType.title.toLowerCase()}`}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white shadow-lg" 
+                    onClick={acceptAll}
+                  >
+                    ✅ Accepter tous les cookies
+                  </Button>
+                </motion.div>
+                
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full sm:w-auto border-2 hover:bg-gray-50 dark:hover:bg-neutral-800" 
+                    onClick={showDetails ? saveCustomPreferences : acceptEssential}
+                  >
+                    {showDetails ? '💾 Enregistrer mes préférences' : '🔒 Cookies essentiels uniquement'}
+                  </Button>
+                </motion.div>
+                
+                <Button
+                  variant="link"
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-semibold"
+                >
+                  {showDetails ? '👆 Masquer les détails' : '⚙️ Personnaliser'}
+                </Button>
+              </div>
+              
+              <motion.div 
+                className="flex flex-wrap gap-4 text-xs text-neutral-500 justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Link 
+                  to="/politique-cookies" 
+                  className="flex items-center hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                >
+                  📋 Politique de cookies <ExternalLink className="h-3 w-3 ml-1" />
+                </Link>
+                <span>•</span>
+                <Link 
+                  to="/politique-confidentialite" 
+                  className="flex items-center hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                >
+                  🔐 Politique de confidentialité <ExternalLink className="h-3 w-3 ml-1" />
+                </Link>
+                <span>•</span>
+                <Link 
+                  to="/mentions-legales" 
+                  className="flex items-center hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                >
+                  ⚖️ Mentions légales <ExternalLink className="h-3 w-3 ml-1" />
+                </Link>
+              </motion.div>
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

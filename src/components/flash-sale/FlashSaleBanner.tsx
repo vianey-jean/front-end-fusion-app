@@ -28,7 +28,6 @@ interface FlashSale {
 
 const FlashSaleBanner: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [isExpired, setIsExpired] = useState(false);
   const [activeFlashSale, setActiveFlashSale] = useState<FlashSale | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,12 +45,32 @@ const FlashSaleBanner: React.FC = () => {
           console.log('✅ Vente flash active trouvée:', response.data);
           setActiveFlashSale(response.data);
         } else {
-          console.log('ℹ️ Aucune vente flash active');
+          console.log('ℹ️ Aucune vente flash active trouvée via API');
           setActiveFlashSale(null);
         }
       } catch (error) {
-        console.error('❌ Erreur lors du chargement de la vente flash:', error);
-        setActiveFlashSale(null);
+        console.error('❌ Erreur lors du chargement de la vente flash via API:', error);
+        
+        // Fallback: essayer de récupérer toutes les ventes flash et trouver celle qui est active
+        try {
+          console.log('🔄 Tentative de récupération via toutes les ventes flash...');
+          const allResponse = await flashSaleAPI.getAll();
+          
+          if (allResponse.data && Array.isArray(allResponse.data)) {
+            const activeFlashSales = allResponse.data.filter((sale: FlashSale) => sale.isActive);
+            
+            if (activeFlashSales.length > 0) {
+              console.log('✅ Vente flash active trouvée via fallback:', activeFlashSales[0]);
+              setActiveFlashSale(activeFlashSales[0]);
+            } else {
+              console.log('ℹ️ Aucune vente flash active via fallback');
+              setActiveFlashSale(null);
+            }
+          }
+        } catch (fallbackError) {
+          console.error('❌ Erreur lors du fallback:', fallbackError);
+          setActiveFlashSale(null);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -78,10 +97,8 @@ const FlashSaleBanner: React.FC = () => {
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
         setTimeLeft({ days, hours, minutes, seconds });
-        setIsExpired(false);
       } else {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        setIsExpired(true);
       }
     };
 
@@ -90,7 +107,30 @@ const FlashSaleBanner: React.FC = () => {
     return () => clearInterval(timer);
   }, [activeFlashSale]);
 
-  if (isLoading || !activeFlashSale || isExpired) return null;
+  // Afficher le bannière si une vente flash active est trouvée, même si le temps est écoulé
+  if (isLoading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="my-6"
+      >
+        <Card className="bg-gradient-to-r from-red-600 via-pink-600 to-orange-600 text-white p-6">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent mr-3"></div>
+            <span>Chargement de la vente flash...</span>
+          </div>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  if (!activeFlashSale) {
+    console.log('❌ Aucune vente flash active à afficher');
+    return null;
+  }
+
+  console.log('🎯 Affichage du bannière pour:', activeFlashSale.title);
 
   const timeUnits = [
     { label: 'Jours', value: timeLeft.days },
@@ -119,7 +159,9 @@ const FlashSaleBanner: React.FC = () => {
                 </span>
               </div>
 
-              <p className="text-lg mb-4 opacity-90">{activeFlashSale.description}</p>
+              {activeFlashSale.description && (
+                <p className="text-lg mb-4 opacity-90">{activeFlashSale.description}</p>
+              )}
 
               <Button
                 variant="secondary"

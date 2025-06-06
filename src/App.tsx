@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, lazy, Suspense } from 'react';
 import './App.css';
 import { Toaster } from './components/ui/sonner';
@@ -38,6 +40,7 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const LoginMaintenanceAdminPage = lazy(() => import('./pages/LoginMaintenanceAdminPage'));
 const ProductDetail = lazy(() => import('./pages/ProductDetail'));
 const CategoryPage = lazy(() => import('./pages/CategoryPage'));
 const DeliveryPage = lazy(() => import('./pages/DeliveryPage'));
@@ -117,6 +120,9 @@ function AppRoutes() {
         
         <Route path={secureRoutes.get('/forgot-password')?.substring(1)} element={<ForgotPasswordPage />} />
         <Route path="/forgot-password" element={<Navigate to={secureRoutes.get('/forgot-password') || '/'} replace />} />
+        
+        {/* Route pour la page de connexion maintenance admin */}
+        <Route path="/maintenance-admin-login" element={<LoginMaintenanceAdminPage />} />
         
         {/* Route de détail produit avec l'ID sécurisé directement dans le chemin */}
         <Route path="/:productId" element={<ProductDetail />} />
@@ -358,3 +364,4 @@ function App() {
 }
 
 export default App;
+

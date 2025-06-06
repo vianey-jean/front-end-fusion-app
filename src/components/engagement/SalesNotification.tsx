@@ -1,200 +1,293 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, MapPin, Clock, TrendingUp, Calendar, Award } from 'lucide-react';
+import { ShoppingCart, MapPin, Clock, Users, Star, TrendingUp, Package } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from 'react-router-dom';
 
 interface SaleNotification {
   id: string;
   customerName: string;
-  productId: string;
-  name: string;
-  price: number;
-  originalPrice: number;
-  quantity: number;
-  image: string;
-  subtotal: number;
-  orderId: string;
+  productName: string;
   location: string;
   timeAgo: string;
-  timestamp: string;
-  date: string;
-  time: string;
-}
-
-interface OrderStats {
-  today: number;
-  week: number;
-  month: number;
-  year: number;
+  type: 'purchase' | 'review' | 'signup' | 'trending';
+  amount?: number;
+  rating?: number;
 }
 
 const SalesNotification: React.FC = () => {
-  const { isAdmin } = useAuth();
-  const location = useLocation();
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState<SaleNotification[]>([]);
   const [currentNotification, setCurrentNotification] = useState<SaleNotification | null>(null);
-  const [orderStats, setOrderStats] = useState<OrderStats>({
-    today: 0,
-    week: 0,
-    month: 0,
-    year: 0
-  });
-  const [lastCheckTime, setLastCheckTime] = useState<string>(new Date().toISOString());
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Only show if user is admin
+  const isAdmin = user?.role === 'admin' || user?.email === 'admin@admin.com';
+
+  // Notifications factices améliorées
+  const mockNotifications: SaleNotification[] = [
+    {
+      id: '1',
+      customerName: 'Marie L.',
+      productName: 'iPhone 15 Pro',
+      location: 'Paris',
+      timeAgo: 'il y a 3 minutes',
+      type: 'purchase',
+      amount: 1299
+    },
+    {
+      id: '2',
+      customerName: 'Thomas M.',
+      productName: 'Samsung Galaxy S24',
+      location: 'Lyon',
+      timeAgo: 'il y a 7 minutes',
+      type: 'purchase',
+      amount: 899
+    },
+    {
+      id: '3',
+      customerName: 'Sophie D.',
+      productName: 'Casque Gaming Premium',
+      location: 'Marseille',
+      timeAgo: 'il y a 12 minutes',
+      type: 'review',
+      rating: 5
+    },
+    {
+      id: '4',
+      customerName: 'Lucas B.',
+      productName: '',
+      location: 'Toulouse',
+      timeAgo: 'il y a 15 minutes',
+      type: 'signup'
+    },
+    {
+      id: '5',
+      customerName: 'Emma R.',
+      productName: 'MacBook Pro M3',
+      location: 'Nice',
+      timeAgo: 'il y a 20 minutes',
+      type: 'trending'
+    }
+  ];
 
   useEffect(() => {
-    // Ne pas afficher si pas admin ou pas sur la page d'accueil
-    if (!isAdmin || location.pathname !== '/') {
-      return;
+    if (isAdmin) {
+      setNotifications(mockNotifications);
     }
+  }, [isAdmin]);
 
-    const checkForNewSales = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/sales-notifications/latest?since=${lastCheckTime}`);
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Mettre à jour les statistiques de commandes
-          if (data.orderStats) {
-            setOrderStats(data.orderStats);
-          }
-          
-          if (data.notification) {
-            console.log('Nouvelle notification de vente reçue:', data.notification);
-            setCurrentNotification(data.notification);
-            setLastCheckTime(new Date().toISOString());
-            
-            // Afficher la notification pendant 5 secondes
-            setTimeout(() => {
-              setCurrentNotification(null);
-            }, 5000);
-          }
-        }
-      } catch (error) {
-        console.error('Erreur lors de la vérification des nouvelles ventes:', error);
-      }
+  useEffect(() => {
+    if (!isAdmin || notifications.length === 0) return;
+
+    let currentIndex = 0;
+    
+    const showNextNotification = () => {
+      setCurrentNotification(notifications[currentIndex]);
+      setIsVisible(true);
+      
+      setTimeout(() => setIsVisible(false), 5000);
+      
+      currentIndex = (currentIndex + 1) % notifications.length;
     };
 
-    // Vérifier les nouvelles ventes toutes les secondes pour une réactivité maximale
-    const interval = setInterval(checkForNewSales, 1000);
+    // Afficher la première notification après 5 secondes
+    const initialTimer = setTimeout(showNextNotification, 5000);
+    
+    // Puis afficher une nouvelle notification toutes les 12 secondes
+    const interval = setInterval(showNextNotification, 12000);
 
-    // Vérification initiale
-    checkForNewSales();
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [notifications, isAdmin]);
 
-    return () => clearInterval(interval);
-  }, [isAdmin, location.pathname, lastCheckTime]);
+  if (!isAdmin || !currentNotification) return null;
 
-  // Ne pas afficher si pas admin ou pas sur la page d'accueil
-  if (!isAdmin || location.pathname !== '/') {
-    return null;
-  }
+  const getNotificationContent = (notification: SaleNotification) => {
+    switch (notification.type) {
+      case 'purchase':
+        return {
+          icon: <ShoppingCart className="h-5 w-5 text-emerald-600" />,
+          title: '🎉 Nouvelle commande !',
+          message: `${notification.customerName} a acheté "${notification.productName}"`,
+          bgGradient: 'from-emerald-50 via-green-50 to-teal-50',
+          borderColor: 'border-emerald-200',
+          accentColor: 'text-emerald-600',
+          amount: notification.amount
+        };
+      case 'review':
+        return {
+          icon: <Star className="h-5 w-5 text-yellow-600" />,
+          title: '⭐ Nouvel avis !',
+          message: `${notification.customerName} a laissé un avis ${notification.rating}/5 étoiles`,
+          bgGradient: 'from-yellow-50 via-amber-50 to-orange-50',
+          borderColor: 'border-yellow-200',
+          accentColor: 'text-yellow-600',
+          rating: notification.rating
+        };
+      case 'signup':
+        return {
+          icon: <Users className="h-5 w-5 text-blue-600" />,
+          title: '👋 Nouveau membre !',
+          message: `${notification.customerName} vient de s'inscrire`,
+          bgGradient: 'from-blue-50 via-indigo-50 to-purple-50',
+          borderColor: 'border-blue-200',
+          accentColor: 'text-blue-600'
+        };
+      case 'trending':
+        return {
+          icon: <TrendingUp className="h-5 w-5 text-pink-600" />,
+          title: '🔥 Produit tendance !',
+          message: `"${notification.productName}" est très demandé`,
+          bgGradient: 'from-pink-50 via-rose-50 to-red-50',
+          borderColor: 'border-pink-200',
+          accentColor: 'text-pink-600'
+        };
+      default:
+        return {
+          icon: <Package className="h-5 w-5 text-gray-600" />,
+          title: '📢 Notification',
+          message: notification.customerName,
+          bgGradient: 'from-gray-50 via-slate-50 to-zinc-50',
+          borderColor: 'border-gray-200',
+          accentColor: 'text-gray-600'
+        };
+    }
+  };
+
+  const content = getNotificationContent(currentNotification);
 
   return (
-    <>
-      {/* Statistiques de commandes - repositionnées pour mobile */}
-      <div
-  className="fixed right-4 z-40 bg-white dark:bg-neutral-900 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-3 max-w-xs lg:top-20"
-  style={{ marginTop: '100px' }}
->
-        <div className="space-y-2">
-
-          <div className="flex items-center space-x-2 text-center">
-            <TrendingUp className="h-4 w-4 text-blue-600" />
-            <span className="text-xs font-semibold text-blue-600">Statistiques</span>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="text-center">
-              <Calendar className="h-3 w-3 text-green-600 mx-auto mb-1" />
-              <div className="font-bold text-green-600 text-sm">{orderStats.today}</div>
-              <div className="text-neutral-600 dark:text-neutral-400 text-xs">Aujourd'hui</div>
-            </div>
-            
-            <div className="text-center">
-              <Award className="h-3 w-3 text-purple-600 mx-auto mb-1" />
-              <div className="font-bold text-purple-600 text-sm">{orderStats.week}</div>
-              <div className="text-neutral-600 dark:text-neutral-400 text-xs">Semaine</div>
-            </div>
-            
-            <div className="text-center">
-              <TrendingUp className="h-3 w-3 text-orange-600 mx-auto mb-1" />
-              <div className="font-bold text-orange-600 text-sm">{orderStats.month}</div>
-              <div className="text-neutral-600 dark:text-neutral-400 text-xs">Mois</div>
-            </div>
-            
-            <div className="text-center">
-              <ShoppingBag className="h-3 w-3 text-red-600 mx-auto mb-1" />
-              <div className="font-bold text-red-600 text-sm">{orderStats.year}</div>
-              <div className="text-neutral-600 dark:text-neutral-400 text-xs">Année</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Notification de vente - améliorée pour tous les écrans */}
-      <AnimatePresence>
-        {currentNotification && (
+    <AnimatePresence mode="wait">
+      {isVisible && (
+        <motion.div
+          initial={{ x: -450, opacity: 0, scale: 0.8 }}
+          animate={{ x: 0, opacity: 1, scale: 1 }}
+          exit={{ x: -450, opacity: 0, scale: 0.8 }}
+          transition={{ 
+            type: "spring", 
+            damping: 25, 
+            stiffness: 200,
+            duration: 0.6
+          }}
+          className="fixed bottom-6 left-6 z-50 max-w-sm"
+        >
           <motion.div
-            initial={{ opacity: 0, x: -400 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -400 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 100,
-              damping: 20,
-              duration: 0.6
-            }}
-            className="fixed mt-100px bottom-4  left-4 z-50 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-xl p-4 max-w-xs sm:max-w-sm border-2 border-green-300 mt-16 sm:mt-0"
+            className={`bg-gradient-to-r ${content.bgGradient} border-2 ${content.borderColor} rounded-2xl p-5 shadow-2xl backdrop-blur-sm relative overflow-hidden`}
+            whileHover={{ scale: 1.05, y: -5 }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="flex items-start space-x-3">
-              <div className="bg-white/20 rounded-full p-2 animate-pulse flex-shrink-0">
-                <ShoppingBag className="h-5 w-5" />
-              </div>
+            {/* Effet de brillance animé */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+              animate={{
+                x: ['-100%', '100%']
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 3,
+                ease: "easeInOut"
+              }}
+              style={{ transform: 'skewX(-25deg)' }}
+            />
+            
+            <div className="flex items-start space-x-4 relative z-10">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              >
+                <Avatar className="w-12 h-12 ring-2 ring-white shadow-lg">
+                  <AvatarFallback className="bg-white/90 text-gray-700 text-sm font-semibold">
+                    {currentNotification.customerName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              </motion.div>
+              
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm mb-1">🎉 Nouvelle vente !</p>
-                <p className="text-xs opacity-95 mb-1 truncate">
-                  <span className="font-semibold">{currentNotification.customerName}</span> vient d'acheter
-                </p>
-                <p className="text-xs font-bold bg-white/20 rounded px-2 py-1 mb-2 truncate">
-                  {currentNotification.name}
-                </p>
-                <div className="flex items-center justify-between text-xs opacity-90 mb-2 space-x-1">
-                  <div className="flex items-center space-x-1 flex-1 min-w-0">
-                    <MapPin className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">{currentNotification.location}</span>
+                <motion.div 
+                  className="flex items-center space-x-2 mb-2"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  {content.icon}
+                  <p className="text-sm font-bold text-gray-900">
+                    {content.title}
+                  </p>
+                </motion.div>
+                
+                <motion.p 
+                  className="text-sm text-gray-800 line-clamp-2 font-medium"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  {content.message}
+                </motion.p>
+                
+                {content.amount && (
+                  <motion.div 
+                    className="mt-2 inline-flex items-center px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.5, type: "spring" }}
+                  >
+                    💰 {content.amount}€
+                  </motion.div>
+                )}
+                
+                {content.rating && (
+                  <motion.div 
+                    className="mt-2 flex items-center space-x-1"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.5, type: "spring" }}
+                  >
+                    {[...Array(content.rating)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </motion.div>
+                )}
+                
+                <motion.div 
+                  className="flex items-center space-x-3 mt-3 text-xs text-gray-600"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="h-3 w-3" />
+                    <span className="font-medium">{currentNotification.location}</span>
                   </div>
-                  <div className="flex items-center space-x-1 flex-shrink-0">
+                  <span>•</span>
+                  <div className="flex items-center space-x-1">
                     <Clock className="h-3 w-3" />
-                    <span>{currentNotification.time}</span>
+                    <span>{currentNotification.timeAgo}</span>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-white/20 rounded px-2 py-1 text-center">
-                    <div className="font-bold text-yellow-200 text-xs">Quantité</div>
-                    <div className="font-semibold">{currentNotification.quantity}x</div>
-                  </div>
-                  <div className="bg-white/20 rounded px-2 py-1 text-center">
-                    <div className="font-bold text-yellow-200 text-xs">Total</div>
-                    <div className="font-semibold">{currentNotification.subtotal.toFixed(2)}€</div>
-                  </div>
-                </div>
-                <div className="mt-2 text-xs bg-white/20 rounded px-2 py-1 text-center">
-                  <span className="font-semibold">Prix: {currentNotification.price.toFixed(2)}€</span>
-                </div>
+                </motion.div>
               </div>
             </div>
             
-            {/* Barre de progression animée */}
+            {/* Barre de progression améliorée */}
             <motion.div
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}
               transition={{ duration: 5, ease: "linear" }}
-              className="absolute bottom-0 left-0 h-1 bg-white/30 rounded-b-xl"
+              className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-b-2xl"
             />
+            
+            {/* Petits éléments décoratifs */}
+            <div className="absolute top-2 right-2 w-2 h-2 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full animate-pulse" />
+            <div className="absolute bottom-3 right-3 w-1 h-1 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
           </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

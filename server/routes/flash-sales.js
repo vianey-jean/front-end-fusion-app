@@ -168,26 +168,41 @@ router.get('/banniere-products', apiLimiter, checkFileExists, (req, res) => {
   }
 });
 
-// Obtenir la vente flash active
+// Obtenir la vente flash active - ROUTE CORRIGÉE
 router.get('/active', apiLimiter, checkFileExists, (req, res) => {
   try {
-    cleanExpiredFlashSales(); // Nettoyer avant de récupérer
+    console.log('🔍 Recherche de vente flash active...');
     
-    const flashSales = JSON.parse(fs.readFileSync(flashSalesFilePath));
-    const now = new Date();
-    
-    const activeFlashSale = flashSales.find(sale => 
-      sale.isActive && 
-      new Date(sale.startDate) <= now && 
-      new Date(sale.endDate) > now
-    );
-    
-    if (!activeFlashSale) {
+    if (!fs.existsSync(flashSalesFilePath)) {
+      console.log('❌ Fichier flash-sales.json n\'existe pas');
       return res.status(404).json({ message: 'Aucune vente flash active' });
     }
     
+    const flashSales = JSON.parse(fs.readFileSync(flashSalesFilePath));
+    console.log('📊 Nombre total de ventes flash:', flashSales.length);
+    
+    // Trouver les ventes flash marquées comme actives
+    const activeFlashSales = flashSales.filter(sale => sale.isActive === true);
+    console.log('✅ Ventes flash marquées comme actives:', activeFlashSales.length);
+    
+    if (activeFlashSales.length === 0) {
+      console.log('❌ Aucune vente flash marquée comme active');
+      return res.status(404).json({ message: 'Aucune vente flash active' });
+    }
+    
+    // Prendre la première vente flash active
+    const activeFlashSale = activeFlashSales[0];
+    console.log('🎯 Vente flash active retournée:', {
+      id: activeFlashSale.id,
+      title: activeFlashSale.title,
+      isActive: activeFlashSale.isActive,
+      startDate: activeFlashSale.startDate,
+      endDate: activeFlashSale.endDate
+    });
+    
     res.json(activeFlashSale);
   } catch (error) {
+    console.error('❌ Erreur lors de la récupération de la vente flash active:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération de la vente flash active' });
   }
 });
