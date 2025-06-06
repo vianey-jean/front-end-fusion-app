@@ -1,16 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, MapPin, Clock, Users, Star, TrendingUp, Package, Bell } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { notificationAPI, SaleNotification, NotificationResponse } from '@/services/notificationAPI';
-import { useAuth } from '@/contexts/AuthContext';
 
 // Intervalle de vérification pour les nouvelles notifications (en ms)
 const POLLING_INTERVAL = 10000;
 
 const RealtimeSalesNotifier: React.FC = () => {
-  const { user } = useAuth();
   const [currentNotification, setCurrentNotification] = useState<SaleNotification | null>(null);
   const [orderStats, setOrderStats] = useState<{ today: number; week: number; month: number; year: number }>({
     today: 0,
@@ -21,8 +18,28 @@ const RealtimeSalesNotifier: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [lastCheckTime, setLastCheckTime] = useState<string>(new Date().toISOString());
 
-  // Vérifier si l'utilisateur est admin
-  const isAdmin = user?.role === 'admin' || user?.email === 'admin@admin.com';
+  // Vérifier si l'utilisateur est admin de manière sécurisée
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Vérifier le statut admin de manière sécurisée
+    const checkAdminStatus = () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          // Décoder le token JWT pour vérifier le rôle (basique)
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const isAdminUser = payload.role === 'admin' || payload.email === 'admin@admin.com';
+          setIsAdmin(isAdminUser);
+        }
+      } catch (error) {
+        console.log('Impossible de vérifier le statut admin:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   // Fonction pour récupérer la dernière notification
   const fetchLatestNotification = async () => {
