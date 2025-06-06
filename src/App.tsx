@@ -1,8 +1,10 @@
+
+
 import React, { useEffect, lazy, Suspense } from 'react';
 import './App.css';
 import { Toaster } from './components/ui/sonner';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { StoreProvider } from './contexts/StoreContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import SecureRoute from './components/SecureRoute';
@@ -12,7 +14,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from 'next-themes';
 import CookieManager from '@/components/prompts/CookieManager';
 import MaintenanceChecker from '@/components/layout/MaintenanceChecker';
-import RealtimeSalesNotifier from '@/components/notifications/RealtimeSalesNotifier';
 
 // Composant de chargement
 import { Skeleton } from './components/ui/skeleton';
@@ -96,26 +97,6 @@ const queryClient = new QueryClient({
 // Initialiser les routes sécurisées
 const secureRoutes = initSecureRoutes();
 
-// Composant wrapper pour MaintenanceChecker avec accès au contexte Auth
-const MaintenanceWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Utiliser useAuth de manière sécurisée
-  let isAdmin = false;
-  try {
-    const auth = useAuth();
-    isAdmin = auth.isAdmin;
-  } catch (error) {
-    // Si useAuth n'est pas disponible, continuer sans authentification
-    console.log('AuthProvider non disponible dans MaintenanceWrapper');
-  }
-
-  return (
-    <MaintenanceChecker isAdmin={isAdmin}>
-      {children}
-      <RealtimeSalesNotifier />
-    </MaintenanceChecker>
-  );
-};
-
 function AppRoutes() {
   const location = useLocation();
   
@@ -128,7 +109,6 @@ function AppRoutes() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
-        {/* Route d'accueil - TOUJOURS accessible sans authentification */}
         <Route path="/" element={<HomePage />} />
         
         {/* Routes d'authentification sécurisées */}
@@ -150,7 +130,7 @@ function AppRoutes() {
         
         <Route path="/categorie/:categoryName" element={<CategoryPage />} />
         
-        {/* Pages d'information - TOUJOURS accessibles */}
+        {/* Pages d'information */}
         <Route path="/livraison" element={<DeliveryPage />} />
         <Route path="/mentions-legales" element={<ReturnsPage />} />
         <Route path="/retours" element={<ReturnsPage />} />
@@ -158,21 +138,22 @@ function AppRoutes() {
         <Route path={secureRoutes.get('/tous-les-produits')?.substring(1)} element={<AllProductsPage />} />
         <Route path="/tous-les-produits" element={<Navigate to={secureRoutes.get('/tous-les-produits') || '/'} replace />} />
         
-        {/* Routes sécurisées pour les promotions et nouveautés - ACCESSIBLES SANS AUTHENTIFICATION */}
+
+        {/* Routes sécurisées pour les promotions et nouveautés */}
         <Route path={secureRoutes.get('/promotions')?.substring(1)} element={<Promotions />} />
         <Route path="/promotions" element={<Navigate to={secureRoutes.get('/promotions') || '/'} replace />} />
 
         <Route path={secureRoutes.get('/nouveautes')?.substring(1)} element={<Nouveautes />} />
         <Route path="/nouveautes" element={<Navigate to={secureRoutes.get('/nouveautes') || '/'} replace />} />
 
-        <Route path={secureRoutes.get('/populaires')?.substring(1)} element={<Populaires />} />
+         <Route path={secureRoutes.get('/populaires')?.substring(1)} element={<Populaires />} />
         <Route path="/populaires" element={<Navigate to={secureRoutes.get('/populaires') || '/'} replace />} />
 
-        {/* Route sécurisée pour la page vente flash - ACCESSIBLE SANS AUTHENTIFICATION */}
+        
+        {/* Route sécurisée pour la page vente flash */}
         <Route path={secureRoutes.get('/flash-sale/:id')?.substring(1)} element={<FlashSalePage />} />
         <Route path="/flash-sale/:id" element={<Navigate to={secureRoutes.get('/flash-sale/:id') || '/'} replace />} />
         
-        {/* Pages publiques - TOUJOURS accessibles */}
         <Route path="/service-client" element={<CustomerServicePage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/blog" element={<BlogPage />} />
@@ -183,14 +164,13 @@ function AppRoutes() {
         <Route path="/politique-cookies" element={<CookiesPage />} />
         <Route path="/faq" element={<FAQPage />} />
 
-        {/* Chat - NÉCESSITE une authentification */}
         <Route path="/chat" element={
           <ProtectedRoute>
             <ChatPage />
           </ProtectedRoute>
         } />
         
-        {/* Routes protégées avec URLs sécurisées - NÉCESSITENT une authentification */}
+        {/* Routes protégées avec URLs sécurisées */}
         <Route path={secureRoutes.get('/panier')?.substring(1)} element={
           <SecureRoute>
             <ProtectedRoute>
@@ -242,7 +222,7 @@ function AppRoutes() {
         } />
         <Route path="/profil" element={<Navigate to={secureRoutes.get('/profil') || '/'} replace />} />
         
-        {/* Pages Admin avec URLs sécurisées - NÉCESSITENT admin */}
+        {/* Pages Admin avec URLs sécurisées */}
         <Route path={secureRoutes.get('/admin/produits')?.substring(1)} element={
           <SecureRoute>
             <ProtectedRoute requireAdmin>
@@ -370,11 +350,11 @@ function App() {
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <AuthProvider>
             <StoreProvider>
-              <MaintenanceWrapper>
+              <MaintenanceChecker>
                 <AppRoutes />
                 <CookieManager position="fixed" />
                 <Toaster />
-              </MaintenanceWrapper>
+              </MaintenanceChecker>
             </StoreProvider>
           </AuthProvider>
         </ThemeProvider>
@@ -384,3 +364,4 @@ function App() {
 }
 
 export default App;
+
