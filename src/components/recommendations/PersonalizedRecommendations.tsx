@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, TrendingUp, Heart, ShoppingBag } from 'lucide-react';
@@ -35,7 +36,6 @@ const PersonalizedRecommendations: React.FC = () => {
             name: 'Casque Gaming RGB',
             description: 'Casque haute qualité pour gaming',
             price: 89.99,
-            prix: 89.99, // Propriété française requise
             image: '/placeholder.svg',
             category: 'Gaming',
             isSold: true,
@@ -46,7 +46,6 @@ const PersonalizedRecommendations: React.FC = () => {
             name: 'Clavier Mécanique',
             description: 'Clavier gaming professionnel',
             price: 129.99,
-            prix: 129.99, // Propriété française requise
             image: '/placeholder.svg',
             category: 'Gaming',
             isSold: true
@@ -65,7 +64,6 @@ const PersonalizedRecommendations: React.FC = () => {
             name: 'Smartphone Premium',
             description: 'Dernière génération',
             price: 899.99,
-            prix: 899.99, // Propriété française requise
             image: '/placeholder.svg',
             category: 'Électronique',
             isSold: true,
@@ -85,7 +83,6 @@ const PersonalizedRecommendations: React.FC = () => {
             name: 'Coque de Protection',
             description: 'Protection premium',
             price: 24.99,
-            prix: 24.99, // Propriété française requise
             image: '/placeholder.svg',
             category: 'Accessoires',
             isSold: true

@@ -4,8 +4,6 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  prix: number; // Propriété française pour compatibilité
-  prixPromo?: number; // Prix promotionnel en français
   originalPrice?: number;
   image: string;
   images?: string[];

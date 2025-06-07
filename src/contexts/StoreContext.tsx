@@ -22,7 +22,6 @@ interface StoreContextType {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  clearSelectedCartItems: () => void;
   getCartTotal: () => number;
   toggleFavorite: (product: Product) => void;
   isFavorite: (productId: string) => boolean;
@@ -81,10 +80,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     updateCartQuantity(productId, quantity, products);
   };
 
-  const clearSelectedCartItems = () => {
-    setSelectedCartItems([]);
-  };
-
   const createOrder = async (
     shippingAddress: any,
     paymentMethod: string,
@@ -97,7 +92,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await fetchCart();
       
       // Vider les items sélectionnés
-      clearSelectedCartItems();
+      setSelectedCartItems([]);
       
       // Mettre à jour les produits pour refléter le stock actualisé
       fetchProducts();
@@ -121,7 +116,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       removeFromCart,
       updateQuantity,
       clearCart,
-      clearSelectedCartItems,
       getCartTotal,
       toggleFavorite,
       isFavorite,

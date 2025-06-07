@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -18,7 +19,6 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  prix: number; // Propriété française requise
   originalPrice?: number;
   image: string;
   images?: string[];
@@ -87,8 +87,6 @@ const FlashSalePage: React.FC = () => {
           ...product,
           // Utiliser flashSalePrice comme prix principal si disponible
           price: product.flashSalePrice || product.price,
-          // Ajouter la propriété française requise
-          prix: product.flashSalePrice || product.prix || product.price,
           // Conserver le prix original pour l'affichage de la réduction
           originalPrice: product.originalFlashPrice || product.originalPrice || product.price
         }));
