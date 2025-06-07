@@ -4,8 +4,6 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  prix?: number; // Alias pour price
-  prixPromo?: number; // Prix promotionnel
   originalPrice?: number;
   image: string;
   images?: string[];

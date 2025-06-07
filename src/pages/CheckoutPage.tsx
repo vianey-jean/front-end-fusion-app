@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -11,7 +12,7 @@ import { useStore } from '@/contexts/StoreContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { CreditCard, Truck, Shield, CheckCircle, ArrowLeft, Lock, Package, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/sonner';
 
 const CheckoutPage = () => {
   const { selectedCartItems, clearSelectedCartItems } = useStore();
@@ -44,7 +45,7 @@ const CheckoutPage = () => {
   }
 
   const subtotal = selectedCartItems.reduce((total, item) => {
-    const price = item.product.prixPromo || item.product.prix || item.product.price;
+    const price = item.product.prixPromo || item.product.prix;
     return total + (price * item.quantity);
   }, 0);
 
@@ -72,18 +73,11 @@ const CheckoutPage = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Ici vous intégreriez votre API de paiement
-      toast({
-        title: "Commande validée",
-        description: "Votre commande a été validée avec succès !",
-      });
+      toast.success("Commande validée avec succès !");
       clearSelectedCartItems();
       navigate('/order-confirmation');
     } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Erreur lors du traitement de la commande",
-        variant: "destructive",
-      });
+      toast.error("Erreur lors du traitement de la commande");
     } finally {
       setIsProcessing(false);
     }
@@ -385,7 +379,7 @@ const CheckoutPage = () => {
                             Quantité: {item.quantity}
                           </p>
                           <p className="font-semibold text-sm">
-                            {(((item.product.prixPromo || item.product.prix || item.product.price)) * item.quantity).toFixed(2)} €
+                            {((item.product.prixPromo || item.product.prix) * item.quantity).toFixed(2)} €
                           </p>
                         </div>
                       </div>
