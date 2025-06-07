@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, X } from 'lucide-react';
@@ -24,6 +23,7 @@ const RecentlyViewed: React.FC<RecentlyViewedProps> = ({ onProductClick }) => {
         name: 'iPhone 15 Pro',
         description: 'Dernier smartphone Apple',
         price: 1199,
+        prix: 1199, // Propriété française requise
         image: '/placeholder.svg',
         category: 'Électronique',
         isSold: true,
@@ -34,6 +34,7 @@ const RecentlyViewed: React.FC<RecentlyViewedProps> = ({ onProductClick }) => {
         name: 'Samsung Galaxy S24',
         description: 'Smartphone Samsung premium',
         price: 999,
+        prix: 999, // Propriété française requise
         image: '/placeholder.svg',
         category: 'Électronique',
         isSold: true,
