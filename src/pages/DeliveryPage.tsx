@@ -1,252 +1,272 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import Layout from '@/components/layout/Layout';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
-import { Truck, Clock, MapPin, Shield, Package, Star } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Truck, Clock, MapPin, Package, Shield, Zap, Globe, Phone } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const DeliveryPage = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
+  const deliveryOptions = [
+    {
+      icon: <Truck className="h-8 w-8" />,
+      title: "Livraison standard",
+      subtitle: "4-5 jours ouvrables",
+      price: "3,99 € (Gratuit dès 50 €)",
+      description: "Idéal pour vos achats du quotidien",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20"
+    },
+    {
+      icon: <Zap className="h-8 w-8" />,
+      title: "Livraison express",
+      subtitle: "1-2 jours ouvrables",
+      price: "7,99 €",
+      description: "Pour recevoir rapidement vos commandes",
+      color: "from-orange-500 to-orange-600",
+      bgColor: "from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20"
+    },
+    {
+      icon: <Clock className="h-8 w-8" />,
+      title: "Livraison le jour même",
+      subtitle: "Commande avant 11h00",
+      price: "14,99 €",
+      description: "Disponible dans certaines villes",
+      color: "from-green-500 to-green-600",
+      bgColor: "from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20"
     }
-  };
+  ];
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
+  const zones = [
+    {
+      title: "France métropolitaine",
+      icon: <MapPin className="h-6 w-6" />,
+      details: [
+        { label: "Standard", value: "2-4 jours ouvrables" },
+        { label: "Express", value: "1-2 jours ouvrables" }
+      ]
+    },
+    {
+      title: "DOM-TOM et Corse",
+      icon: <Globe className="h-6 w-6" />,
+      details: [
+        { label: "Standard", value: "5-10 jours ouvrables" },
+        { label: "Express", value: "3-5 jours ouvrables" }
+      ]
     }
-  };
+  ];
+
+  const features = [
+    {
+      icon: <Shield className="h-6 w-6" />,
+      title: "Livraison sécurisée",
+      description: "Tous nos colis sont assurés et trackés"
+    },
+    {
+      icon: <Package className="h-6 w-6" />,
+      title: "Emballage soigné",
+      description: "Vos produits arrivent en parfait état"
+    },
+    {
+      icon: <Phone className="h-6 w-6" />,
+      title: "Support 7j/7",
+      description: "Notre équipe vous accompagne"
+    }
+  ];
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-24">
-          <div className="absolute inset-0 bg-black/20"></div>
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-blue-950/30">
+        <div className="container mx-auto px-4 py-12">
+          {/* Hero Section */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="container mx-auto px-4 relative z-10"
+            className="text-center mb-16"
           >
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <Truck className="w-12 h-12 text-white" />
-                </div>
+            <div className="flex items-center justify-center mb-6">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 rounded-2xl shadow-xl">
+                <Truck className="h-12 w-12 text-white" />
               </div>
-              <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                Informations de livraison
-              </h1>
-              <p className="text-xl text-blue-100 leading-relaxed max-w-2xl mx-auto">
-                Découvrez nos options de livraison flexibles et suivez votre commande en temps réel
-              </p>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-800 to-indigo-600 bg-clip-text text-transparent mb-4">
+              Informations de livraison
+            </h1>
+            <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
+              Découvrez nos options de livraison flexibles et choisissez celle qui vous convient le mieux
+            </p>
+          </motion.div>
+
+          {/* Delivery Options */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-16"
+          >
+            <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
+              Options de livraison
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {deliveryOptions.map((option, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className="group"
+                >
+                  <Card className="h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm overflow-hidden">
+                    <CardHeader className="text-center pb-4">
+                      <div className={`w-16 h-16 bg-gradient-to-r ${option.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                        <div className={`text-transparent bg-gradient-to-r ${option.color} bg-clip-text`}>
+                          {option.icon}
+                        </div>
+                      </div>
+                      <CardTitle className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                        {option.title}
+                      </CardTitle>
+                      <p className="text-neutral-600 dark:text-neutral-400">{option.subtitle}</p>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <div className={`text-2xl font-bold bg-gradient-to-r ${option.color} bg-clip-text text-transparent mb-2`}>
+                        {option.price}
+                      </div>
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400">{option.description}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
-        </div>
 
-        <div className="container mx-auto px-4 py-16">
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="max-w-6xl mx-auto space-y-12"
+          {/* Delivery Times */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-16"
           >
-            {/* Delivery Options */}
-            <motion.div variants={itemVariants}>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Options de livraison</h2>
-                <p className="text-gray-600 text-lg">Choisissez l'option qui vous convient le mieux</p>
-              </div>
-              
-              <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  {
-                    icon: Package,
-                    title: "Livraison standard",
-                    duration: "4-5 jours ouvrables",
-                    price: "3,99 €",
-                    free: "GRATUIT pour les commandes > 50 €",
-                    gradient: "from-green-500 to-emerald-500",
-                    features: ["Suivi inclus", "Assurance colis", "Point relais disponible"]
-                  },
-                  {
-                    icon: Clock,
-                    title: "Livraison express",
-                    duration: "1-2 jours ouvrables",
-                    price: "7,99 €",
-                    gradient: "from-orange-500 to-red-500",
-                    features: ["Livraison prioritaire", "Suivi en temps réel", "SMS de notification"]
-                  },
-                  {
-                    icon: Star,
-                    title: "Livraison le jour même",
-                    duration: "Commande avant 11h00",
-                    price: "14,99 €",
-                    subtitle: "Disponible dans certaines villes",
-                    gradient: "from-purple-500 to-pink-500",
-                    features: ["Livraison ultra-rapide", "Créneaux horaires", "Service premium"]
-                  }
-                ].map((option, index) => (
-                  <motion.div 
-                    key={index}
-                    whileHover={{ y: -5, scale: 1.02 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <EnhancedCard className="h-full border-0 shadow-xl">
-                      <EnhancedCardHeader className="text-center">
-                        <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-r ${option.gradient} flex items-center justify-center shadow-lg`}>
-                          <option.icon className="w-8 h-8 text-white" />
-                        </div>
-                        <EnhancedCardTitle className="text-xl">{option.title}</EnhancedCardTitle>
-                        <EnhancedCardDescription className="text-base">
-                          {option.duration}
-                        </EnhancedCardDescription>
-                      </EnhancedCardHeader>
-                      <EnhancedCardContent className="text-center space-y-4">
-                        <div className="space-y-2">
-                          <div className="text-3xl font-bold text-gray-900">{option.price}</div>
-                          {option.free && <div className="text-sm font-medium text-green-600">{option.free}</div>}
-                          {option.subtitle && <div className="text-sm text-gray-500">{option.subtitle}</div>}
-                        </div>
-                        <div className="space-y-2">
-                          {option.features.map((feature, idx) => (
-                            <div key={idx} className="flex items-center justify-center text-sm text-gray-600">
-                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></div>
-                              {feature}
-                            </div>
-                          ))}
-                        </div>
-                      </EnhancedCardContent>
-                    </EnhancedCard>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Delivery Areas */}
-            <motion.div variants={itemVariants}>
-              <EnhancedCard>
-                <EnhancedCardHeader>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
-                      <MapPin className="w-6 h-6 text-white" />
-                    </div>
-                    <EnhancedCardTitle>Zones de livraison</EnhancedCardTitle>
-                  </div>
-                  <EnhancedCardDescription>
-                    Délais de livraison selon votre localisation
-                  </EnhancedCardDescription>
-                </EnhancedCardHeader>
-                <EnhancedCardContent>
+            <Card className="border-0 shadow-xl bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
+                  Délais de livraison
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                    Les délais de livraison commencent à partir du moment où votre commande est confirmée et préparée
+                    (vous recevrez un email de confirmation). Les délais indiqués sont des estimations et peuvent varier 
+                    selon l'emplacement et les périodes de forte demande.
+                  </p>
+                  
                   <div className="grid md:grid-cols-2 gap-6">
-                    {[
-                      {
-                        title: "France métropolitaine",
-                        areas: [
-                          { name: "Standard", time: "2-4 jours ouvrables" },
-                          { name: "Express", time: "1-2 jours ouvrables" }
-                        ],
-                        gradient: "from-blue-100 to-indigo-100"
-                      },
-                      {
-                        title: "DOM-TOM et Corse",
-                        areas: [
-                          { name: "Standard", time: "5-10 jours ouvrables" },
-                          { name: "Express", time: "3-5 jours ouvrables" }
-                        ],
-                        gradient: "from-purple-100 to-pink-100"
-                      }
-                    ].map((zone, index) => (
-                      <div key={index} className={`p-6 rounded-xl bg-gradient-to-br ${zone.gradient} border border-white/50`}>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">{zone.title}</h3>
-                        <div className="space-y-3">
-                          {zone.areas.map((area, idx) => (
+                    {zones.map((zone, index) => (
+                      <div
+                        key={index}
+                        className="bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-800 dark:to-neutral-700 p-6 rounded-xl border border-neutral-200 dark:border-neutral-600"
+                      >
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="text-blue-600 dark:text-blue-400">
+                            {zone.icon}
+                          </div>
+                          <h3 className="font-semibold text-neutral-900 dark:text-neutral-100">{zone.title}</h3>
+                        </div>
+                        <div className="space-y-2">
+                          {zone.details.map((detail, idx) => (
                             <div key={idx} className="flex justify-between items-center">
-                              <span className="text-gray-700 font-medium">{area.name}</span>
-                              <span className="text-gray-600">{area.time}</span>
+                              <span className="text-neutral-600 dark:text-neutral-400">{detail.label}:</span>
+                              <span className="font-medium text-neutral-900 dark:text-neutral-100">{detail.value}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                     ))}
                   </div>
-                </EnhancedCardContent>
-              </EnhancedCard>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-            {/* Tracking Info */}
-            <motion.div variants={itemVariants}>
-              <EnhancedCard>
-                <EnhancedCardHeader>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-                      <Shield className="w-6 h-6 text-white" />
-                    </div>
-                    <EnhancedCardTitle>Suivi de commande</EnhancedCardTitle>
-                  </div>
-                  <EnhancedCardDescription>
-                    Restez informé à chaque étape de votre livraison
-                  </EnhancedCardDescription>
-                </EnhancedCardHeader>
-                <EnhancedCardContent className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Comment suivre votre commande</h3>
-                      <div className="space-y-3">
-                        {[
-                          "Recevez un email de confirmation avec votre numéro de suivi",
-                          "Consultez l'état de votre commande dans votre espace client",
-                          "Suivez votre colis en temps réel sur notre site",
-                          "Recevez des notifications SMS aux étapes clés"
-                        ].map((step, index) => (
-                          <div key={index} className="flex items-start space-x-3">
-                            <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-bold mt-0.5">
-                              {index + 1}
-                            </div>
-                            <p className="text-gray-600 leading-relaxed">{step}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-xl border border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Besoin d'aide ?</h3>
-                      <div className="space-y-3 text-sm">
-                        <p className="text-gray-600">
-                          Pour toute question concernant votre livraison, contactez notre service client :
-                        </p>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium text-gray-700">Email :</span>
-                            <span className="text-blue-600">livraison@riziky-boutique.com</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium text-gray-700">Téléphone :</span>
-                            <span className="text-blue-600">+262 123 456 789</span>
-                          </div>
-                          <div className="text-gray-500 text-xs">
-                            Du lundi au vendredi de 9h à 18h
-                          </div>
-                        </div>
-                      </div>
+          {/* Features */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="mb-16"
+          >
+            <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
+              Nos garanties
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {features.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className="text-center"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="text-blue-600 dark:text-blue-400">
+                      {feature.icon}
                     </div>
                   </div>
-                </EnhancedCardContent>
-              </EnhancedCard>
-            </motion.div>
+                  <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-neutral-600 dark:text-neutral-400">
+                    {feature.description}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Tracking Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+          >
+            <Card className="border-0 shadow-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-3">
+                  <Package className="h-8 w-8" />
+                  Suivi de commande
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6 text-center">
+                  <p className="text-blue-100 leading-relaxed">
+                    Dès que votre commande est expédiée, vous recevrez un email avec un numéro de suivi
+                    qui vous permettra de suivre votre colis en temps réel. Vous pourrez également consulter 
+                    l'état de votre commande dans votre espace client.
+                  </p>
+                  
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+                    <p className="text-blue-100 mb-4">
+                      Pour toute question concernant votre livraison, n'hésitez pas à contacter notre 
+                      service client :
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Email:</span>
+                        <span className="text-blue-200">livraison@Riziky-Boutic.fr</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span className="font-medium">Tél:</span>
+                        <span className="text-blue-200">01 23 45 67 89</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-blue-200 mt-2">
+                      (du lundi au vendredi de 9h à 18h)
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
       </div>

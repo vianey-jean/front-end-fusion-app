@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/products/ProductCard';
-import { Flame, Clock, Timer } from 'lucide-react';
+import { Flame, Clock, Timer, Zap, Star, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { flashSaleAPI } from '@/services/flashSaleAPI';
 
@@ -135,10 +136,23 @@ const FlashSalePage: React.FC = () => {
   if (isLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-20">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-6"></div>
-            <h2 className="text-xl font-semibold">Chargement de la vente flash...</h2>
+        <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-950 dark:via-orange-950 dark:to-yellow-950">
+          <div className="container mx-auto px-4 py-8">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-20"
+            >
+              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-12 max-w-md mx-auto border border-neutral-200/50 dark:border-neutral-700/50 shadow-xl">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600 mx-auto mb-6"></div>
+                <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+                  Chargement de la vente flash...
+                </h2>
+                <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+                  Préparation des offres exceptionnelles
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </Layout>
@@ -148,11 +162,25 @@ const FlashSalePage: React.FC = () => {
   if (!flashSaleInfo || flashSaleProducts.length === 0) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-20">
-            <Flame className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Aucune vente flash active</h2>
-            <p className="text-gray-600">Il n'y a actuellement aucune vente flash disponible.</p>
+        <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-neutral-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+          <div className="container mx-auto px-4 py-8">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-20"
+            >
+              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-12 max-w-lg mx-auto border border-neutral-200/50 dark:border-neutral-700/50 shadow-xl">
+                <div className="w-20 h-20 bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Flame className="h-10 w-10 text-neutral-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-3">
+                  Aucune vente flash active
+                </h2>
+                <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  Il n'y a actuellement aucune vente flash disponible. Revenez bientôt pour découvrir nos prochaines offres exceptionnelles !
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </Layout>
@@ -162,11 +190,25 @@ const FlashSalePage: React.FC = () => {
   if (isExpired) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-20">
-            <Timer className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Vente flash expirée</h2>
-            <p className="text-gray-600">Cette vente flash est terminée.</p>
+        <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-neutral-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+          <div className="container mx-auto px-4 py-8">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-20"
+            >
+              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-12 max-w-lg mx-auto border border-neutral-200/50 dark:border-neutral-700/50 shadow-xl">
+                <div className="w-20 h-20 bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Timer className="h-10 w-10 text-neutral-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-3">
+                  Vente flash expirée
+                </h2>
+                <p className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  Cette vente flash est terminée. Restez connecté pour ne pas manquer nos prochaines offres exceptionnelles !
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </Layout>
@@ -182,110 +224,139 @@ const FlashSalePage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8">
-        {/* En-tête de la vente flash */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-red-600 via-pink-600 to-orange-600 text-white rounded-lg p-8 mb-8"
-        >
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <Flame className="h-8 w-8 text-yellow-300 animate-pulse" />
-              <h1 className="text-3xl font-bold">{flashSaleInfo.title}</h1>
-              <span className="bg-yellow-400 text-black px-4 py-2 rounded-full text-lg font-bold">
-                -{flashSaleInfo.discount}%
-              </span>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-950 dark:via-orange-950 dark:to-yellow-950">
+        <div className="container mx-auto px-4 py-8">
+          {/* Enhanced Flash Sale Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden bg-gradient-to-r from-red-600 via-orange-600 to-yellow-600 text-white rounded-2xl p-12 mb-12 shadow-2xl"
+          >
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 via-orange-600/20 to-yellow-600/20 animate-pulse"></div>
             
-            <p className="text-xl mb-6 opacity-90">{flashSaleInfo.description}</p>
-            
-            <div className="flex justify-center items-center space-x-2 mb-4">
-              <Clock className="h-5 w-5" />
-              <span className="text-lg font-medium">Se termine dans:</span>
-            </div>
-            
-            <div className="flex justify-center space-x-4">
-              {timeUnits.map((time, index) => (
+            <div className="relative text-center">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center justify-center space-x-4 mb-6"
+              >
+                <div className="relative">
+                  <Flame className="h-12 w-12 text-yellow-300 animate-bounce" />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                    <Sparkles className="h-2 w-2 text-red-600" />
+                  </div>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent">
+                  {flashSaleInfo.title}
+                </h1>
                 <motion.div
-                  key={time.label}
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="text-center"
+                  animate={{ rotate: [0, -5, 5, 0] }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                  className="bg-yellow-400 text-red-800 px-6 py-3 rounded-full text-xl font-bold shadow-lg"
                 >
+                  -{flashSaleInfo.discount}%
+                </motion.div>
+              </motion.div>
+              
+              <p className="text-xl md:text-2xl mb-8 opacity-90 leading-relaxed max-w-3xl mx-auto">
+                {flashSaleInfo.description}
+              </p>
+              
+              <div className="flex justify-center items-center space-x-3 mb-6">
+                <Clock className="h-6 w-6 text-yellow-300" />
+                <span className="text-xl font-medium">Se termine dans :</span>
+              </div>
+              
+              <div className="flex justify-center space-x-6">
+                {timeUnits.map((time, index) => (
                   <motion.div
-                    key={time.value}
-                    initial={{ rotateX: -90 }}
-                    animate={{ rotateX: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-black/30 backdrop-blur rounded-lg px-4 py-3 min-w-[70px] mb-2"
+                    key={time.label}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="text-center"
                   >
-                    <div className="text-2xl font-bold">
-                      {time.value.toString().padStart(2, '0')}
-                    </div>
+                    <motion.div
+                      key={time.value}
+                      initial={{ rotateX: -90 }}
+                      animate={{ rotateX: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="bg-black/40 backdrop-blur-sm rounded-xl px-6 py-4 min-w-[80px] mb-3 border border-white/20"
+                    >
+                      <div className="text-3xl md:text-4xl font-bold text-white">
+                        {time.value.toString().padStart(2, '0')}
+                      </div>
+                    </motion.div>
+                    <div className="text-sm font-medium opacity-80">{time.label}</div>
                   </motion.div>
-                  <div className="text-sm opacity-80">{time.label}</div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Enhanced Products Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-12"
+          >
+            <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-8 mb-8 border border-neutral-200/50 dark:border-neutral-700/50 shadow-xl">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center">
+                  <Zap className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
+                    Produits en vente flash
+                  </h2>
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-bold text-red-600 dark:text-red-400">
+                      {flashSaleProducts.length} produits
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      ))}
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400 ml-2">
+                        Offres exceptionnelles
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {flashSaleProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="group"
+                >
+                  <div className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 group-hover:scale-105">
+                    <div className="absolute top-4 left-4 z-10">
+                      <div className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                        <Flame className="h-3 w-3" />
+                        FLASH -{flashSaleInfo.discount}%
+                      </div>
+                    </div>
+                    <ProductCard 
+                      product={{
+                        ...product,
+                        promotion: product.flashSaleDiscount || product.promotion
+                      }} 
+                    />
+                  </div>
                 </motion.div>
               ))}
             </div>
-          </div>
-        </motion.div>
-
-        {/* Produits en vente flash */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Produits en vente flash : <span className="text-red-800 font-bold">{flashSaleProducts.length}</span>
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {flashSaleProducts.map((product) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ProductCard 
-                  product={{
-                    ...product,
-                    // S'assurer que la promotion est affichée
-                    promotion: product.flashSaleDiscount || product.promotion
-                  }} 
-                />
-              </motion.div>
-            ))}
-          </div>
+          </motion.div>
         </div>
-
-        {/* Informations sur la vente flash */}
-        {/* <div className="bg-blue-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">Informations sur la vente flash</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
-            <div>
-              <span className="font-medium">Début:</span> {flashSaleInfo.startDate ? new Date(flashSaleInfo.startDate).toLocaleString() : 'Non défini'}
-            </div>
-            <div>
-              <span className="font-medium">Fin:</span> {flashSaleInfo.endDate ? new Date(flashSaleInfo.endDate).toLocaleString() : 'Non défini'}
-            </div>
-            <div>
-              <span className="font-medium">Réduction:</span> {flashSaleInfo.discount}%
-            </div>
-            <div>
-              <span className="font-medium">Produits disponibles:</span> {flashSaleProducts.length}
-            </div>
-          </div>
-          
-          <div className="mt-4 p-4 bg-blue-100 rounded">
-            <p className="font-medium text-blue-900 mb-2">Données récupérées:</p>
-            <div className="text-xs text-blue-700 space-y-1">
-              <p>• ID, nom, description, prix, catégorie, images, stock</p>
-              <p>• Prix de vente flash (prix après promotion)</p>
-              <p>• Réduction: {flashSaleInfo.discount}%</p>
-              <p>• Dates de début et fin de la vente flash</p>
-            </div>
-          </div>
-        </div> */}
       </div>
     </Layout>
   );

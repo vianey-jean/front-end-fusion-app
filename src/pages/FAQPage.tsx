@@ -2,223 +2,285 @@
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { HelpCircle, Search, MessageCircle, Phone, Mail, Clock, Star, Shield, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const FAQPage = () => {
+  const [searchTerm, setSearchTerm] = React.useState('');
+
   const faqCategories = [
     {
-      id: 'commandes',
-      name: 'Commandes et livraisons',
-      items: [
+      title: "Commandes & Livraison",
+      icon: Clock,
+      questions: [
         {
           question: "Comment suivre ma commande ?",
-          answer: "Une fois votre commande expédiée, vous recevrez un email contenant un numéro de suivi. Vous pourrez utiliser ce numéro pour suivre votre colis sur le site du transporteur ou dans la section 'Mes commandes' de votre compte client."
+          answer: "Vous pouvez suivre votre commande en vous connectant à votre compte client et en vous rendant dans la section \"Mes commandes\". Un numéro de suivi vous sera également envoyé par email dès que votre colis sera expédié."
         },
         {
           question: "Quels sont les délais de livraison ?",
-          answer: "Pour la France métropolitaine, nos délais de livraison standard sont de 2 à 4 jours ouvrables. Pour les livraisons internationales, les délais varient entre 5 et 10 jours ouvrables selon la destination."
+          answer: "Nos délais de livraison standard sont de 2 à 4 jours ouvrables pour la France métropolitaine. La livraison express (24h) est disponible pour les commandes passées avant 14h."
         },
         {
           question: "Quels sont les frais de livraison ?",
-          answer: "Les frais de livraison dépendent du pays de destination et du montant de votre commande. En France, la livraison est gratuite pour toute commande supérieure à 50€. Pour les commandes inférieures, les frais sont de 5,90€. Vous pouvez consulter les tarifs détaillés sur notre page Livraisons."
-        },
-        {
-          question: "Puis-je modifier ma commande après l'avoir passée ?",
-          answer: "Vous pouvez modifier ou annuler votre commande dans les 2 heures suivant sa passation en contactant notre service client. Au-delà, il est possible que votre commande soit déjà en cours de préparation et ne puisse plus être modifiée."
-        },
-        {
-          question: "Puis-je me faire livrer à une autre adresse que mon domicile ?",
-          answer: "Oui, vous pouvez vous faire livrer à l'adresse de votre choix (domicile, lieu de travail, point relais) en spécifiant l'adresse de livraison lors de la validation de votre commande."
+          answer: "Les frais de livraison sont gratuits pour toute commande supérieure à 50€. En dessous, les frais sont de 4,90€ pour la livraison standard et 9,90€ pour la livraison express."
         }
       ]
     },
     {
-      id: 'retours',
-      name: 'Retours et remboursements',
-      items: [
+      title: "Retours & Échanges",
+      icon: Shield,
+      questions: [
         {
           question: "Comment retourner un article ?",
-          answer: "Pour retourner un article, rendez-vous dans la section 'Mes commandes' de votre compte client et sélectionnez les articles que vous souhaitez retourner. Imprimez l'étiquette de retour et joignez-la à votre colis. Déposez ensuite votre colis au point de collecte le plus proche."
+          answer: "Vous disposez de 30 jours à compter de la réception de votre commande pour retourner un article. Connectez-vous à votre compte, allez dans \"Mes commandes\" et cliquez sur \"Retourner cet article\"."
         },
         {
-          question: "Quel est le délai pour effectuer un retour ?",
-          answer: "Vous disposez de 30 jours à compter de la réception de votre commande pour retourner un article qui ne vous conviendrait pas."
+          question: "Les retours sont-ils gratuits ?",
+          answer: "Oui, les retours sont entièrement gratuits. Nous prenons en charge les frais de retour via notre partenaire transporteur."
         },
         {
-          question: "Quand serai-je remboursé ?",
-          answer: "Une fois votre retour reçu et validé par notre équipe, le remboursement est effectué sous 5 à 7 jours ouvrables. Le délai de réception du remboursement sur votre compte bancaire dépend ensuite de votre banque (généralement 3 à 5 jours ouvrables supplémentaires)."
-        },
-        {
-          question: "Les frais de retour sont-ils gratuits ?",
-          answer: "Les frais de retour sont gratuits pour les échanges ou en cas de défaut du produit. Pour les autres motifs de retour, les frais sont à votre charge, sauf mention contraire lors de promotions spécifiques."
-        },
-        {
-          question: "Puis-je échanger un article plutôt que de le retourner ?",
-          answer: "Oui, vous pouvez échanger un article contre une autre taille ou couleur si celle-ci est disponible. Précisez-le lors de votre demande de retour dans votre espace client."
+          question: "Puis-je échanger un article ?",
+          answer: "Bien sûr ! Vous pouvez échanger un article contre une autre taille ou couleur dans les 30 jours suivant votre achat."
         }
       ]
     },
     {
-      id: 'produits',
-      name: 'Produits',
-      items: [
+      title: "Paiement & Sécurité",
+      icon: Star,
+      questions: [
         {
-          question: "Comment connaître les tailles disponibles ?",
-          answer: "Sur chaque fiche produit, vous trouverez un guide des tailles disponibles. Vous pouvez également consulter notre guide général des tailles dans la section 'Aide' pour vous aider à choisir la taille qui vous convient le mieux."
+          question: "Quels modes de paiement acceptez-vous ?",
+          answer: "Nous acceptons les cartes bancaires (Visa, Mastercard, American Express), PayPal, Apple Pay, Google Pay et le paiement en 3x sans frais avec Klarna."
         },
         {
-          question: "Les couleurs des articles sont-elles fidèles aux photos ?",
-          answer: "Nous faisons notre maximum pour que les photos soient les plus représentatives possible des produits. Cependant, les couleurs peuvent légèrement varier en fonction des paramètres d'affichage de votre écran."
+          question: "Mes données sont-elles sécurisées ?",
+          answer: "Absolument ! Votre site utilise le cryptage SSL et nous ne stockons jamais vos informations de paiement. Toutes les transactions sont sécurisées."
         },
         {
-          question: "Quels sont les matériaux utilisés pour vos vêtements ?",
-          answer: "Les matériaux utilisés sont précisés sur chaque fiche produit. Nous privilégions des matières de qualité et travaillons de plus en plus avec des matériaux durables et éco-responsables."
-        },
-        {
-          question: "Comment entretenir mes vêtements ?",
-          answer: "Les instructions d'entretien spécifiques sont indiquées sur l'étiquette de chaque vêtement. De manière générale, nous recommandons un lavage à basse température et un séchage à l'air libre pour préserver la qualité et la durabilité de vos vêtements."
-        },
-        {
-          question: "Proposez-vous des produits de tailles inclusives ?",
-          answer: "Oui, nous nous efforçons de proposer une gamme de tailles inclusive pour la plupart de nos collections. Notre objectif est que chacun puisse trouver des vêtements qui lui conviennent, quelle que soit sa morphologie."
+          question: "Puis-je modifier ma commande après validation ?",
+          answer: "Vous pouvez modifier ou annuler votre commande dans les 2 heures suivant sa validation. Passé ce délai, contactez notre service client."
         }
       ]
     },
     {
-      id: 'compte',
-      name: 'Compte et paiement',
-      items: [
+      title: "Compte Client",
+      icon: Users,
+      questions: [
         {
           question: "Comment créer un compte ?",
-          answer: "Vous pouvez créer un compte en cliquant sur 'Mon compte' en haut à droite de notre site, puis en sélectionnant 'Créer un compte'. Remplissez ensuite le formulaire avec vos informations personnelles."
+          answer: "Cliquez sur \"S'inscrire\" en haut de la page et remplissez le formulaire. Vous recevrez un email de confirmation pour activer votre compte."
         },
         {
-          question: "J'ai oublié mon mot de passe, que faire ?",
-          answer: "Sur la page de connexion, cliquez sur 'Mot de passe oublié ?'. Vous recevrez un email contenant un lien pour réinitialiser votre mot de passe."
+          question: "J'ai oublié mon mot de passe",
+          answer: "Cliquez sur \"Mot de passe oublié\" sur la page de connexion. Vous recevrez un email avec un lien pour réinitialiser votre mot de passe."
         },
         {
-          question: "Quels moyens de paiement acceptez-vous ?",
-          answer: "Nous acceptons les paiements par carte bancaire (Visa, Mastercard), PayPal, et Apple Pay. Tous les paiements sont sécurisés."
-        },
-        {
-          question: "Ma carte bancaire a-t-elle été débitée immédiatement ?",
-          answer: "Votre carte est débitée au moment de la validation de votre commande. Si nous ne pouvons pas honorer votre commande (article épuisé), vous serez remboursé intégralement."
-        },
-        {
-          question: "Comment mettre à jour mes informations personnelles ?",
-          answer: "Vous pouvez mettre à jour vos informations personnelles en vous connectant à votre compte client et en vous rendant dans la section 'Mon profil'."
-        }
-      ]
-    },
-    {
-      id: 'divers',
-      name: 'Questions diverses',
-      items: [
-        {
-          question: "Comment contacter le service client ?",
-          answer: "Vous pouvez contacter notre service client par email à contact@rizikyboutique.fr, par téléphone au 01 23 45 67 89 (du lundi au vendredi de 9h à 18h) ou via le formulaire de contact disponible sur notre site."
-        },
-        {
-          question: "Proposez-vous des cartes cadeaux ?",
-          answer: "Oui, nous proposons des cartes cadeaux d'une valeur de 25€, 50€, 75€ ou 100€, que vous pouvez offrir à vos proches. Elles sont valables un an à compter de la date d'achat."
-        },
-        {
-          question: "Avez-vous un programme de fidélité ?",
-          answer: "Oui, notre programme de fidélité vous permet de cumuler des points à chaque achat. Ces points peuvent ensuite être convertis en réductions sur vos prochaines commandes."
-        },
-        {
-          question: "Où sont fabriqués vos produits ?",
-          answer: "Nous travaillons avec divers fournisseurs et ateliers en France et en Europe, avec une attention particulière portée aux conditions de travail et au respect de l'environnement."
-        },
-        {
-          question: "Êtes-vous engagés dans une démarche écologique ?",
-          answer: "Absolument ! Nous sommes engagés dans une démarche de développement durable avec l'utilisation croissante de matières éco-responsables, d'emballages recyclables, et un effort constant pour réduire notre empreinte carbone."
+          question: "Comment modifier mes informations personnelles ?",
+          answer: "Connectez-vous à votre compte et allez dans \"Mon profil\" pour modifier vos informations personnelles, adresses et préférences."
         }
       ]
     }
   ];
 
+  const filteredCategories = faqCategories.map(category => ({
+    ...category,
+    questions: category.questions.filter(
+      q => 
+        q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.answer.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  })).filter(category => category.questions.length > 0);
+
+  const contactOptions = [
+    {
+      icon: MessageCircle,
+      title: "Chat en direct",
+      description: "Disponible 24h/7j",
+      action: "Démarrer un chat",
+      color: "from-blue-500 to-blue-600"
+    },
+    {
+      icon: Phone,
+      title: "Téléphone",
+      description: "Lun-Ven 9h-18h",
+      action: "01 23 45 67 89",
+      color: "from-green-500 to-green-600"
+    },
+    {
+      icon: Mail,
+      title: "Email",
+      description: "Réponse sous 2h",
+      action: "contact@riziky.fr",
+      color: "from-purple-500 to-purple-600"
+    }
+  ];
+
   return (
     <Layout>
-      <div className="container mx-auto py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-red-800 mb-4">Foire aux questions</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Trouvez rapidement des réponses à vos questions les plus fréquentes. Si vous ne trouvez pas l'information que vous recherchez, n'hésitez pas à contacter notre service client.
-          </p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-indigo-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-indigo-950/30">
+        {/* Hero Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white py-20"
+        >
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="relative container mx-auto px-4 text-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex items-center justify-center mb-6"
+            >
+              <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl">
+                <HelpCircle className="h-12 w-12 text-white" />
+              </div>
+            </motion.div>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+              Centre d'Aide
+            </h1>
+            <p className="text-xl md:text-2xl text-purple-100 max-w-3xl mx-auto mb-8">
+              Trouvez rapidement les réponses à toutes vos questions
+            </p>
 
-        <Tabs defaultValue="commandes" className="w-full">
-          <TabsList className="w-full flex flex-wrap justify-center mb-8">
-            {faqCategories.map(category => (
-              <TabsTrigger key={category.id} value={category.id} className="text-sm sm:text-base">
-                {category.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          
-          {faqCategories.map(category => (
-            <TabsContent key={category.id} value={category.id} className="mt-0">
-              <Accordion type="single" collapsible className="w-full">
-                {category.items.map((item, index) => (
-                  <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-lg font-medium">
-                      {item.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-gray-600">
-                      {item.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </TabsContent>
-          ))}
-        </Tabs>
-
-        <Separator className="my-12" />
-        
-        <div className="bg-red-50 p-8 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4 text-center">Vous n'avez pas trouvé votre réponse ?</h2>
-          <p className="text-center text-gray-600 mb-6">
-            Notre équipe du service client est là pour vous aider avec toute question supplémentaire.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-red-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
+            {/* Search Bar */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="max-w-2xl mx-auto"
+            >
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                <Input
+                  type="text"
+                  placeholder="Rechercher dans la FAQ..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 h-14 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm border-0 text-lg shadow-xl"
+                />
               </div>
-              <h3 className="font-semibold mb-1">Email</h3>
-              <p className="text-gray-600 text-sm mb-2">Réponse sous 24h</p>
-              <Link to="/contact" className="text-red-800 hover:underline">Formulaire de contact</Link>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-red-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold mb-1">Téléphone</h3>
-              <p className="text-gray-600 text-sm mb-2">Lun-Ven, 9h-18h</p>
-              <p className="text-red-800">01 23 45 67 89</p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-red-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold mb-1">Chat en ligne</h3>
-              <p className="text-gray-600 text-sm mb-2">Assistance immédiate</p>
-              <Button className="bg-red-800 hover:bg-red-700">
-                Démarrer un chat
-              </Button>
-            </div>
+            </motion.div>
           </div>
+        </motion.div>
+
+        <div className="container mx-auto px-4 py-16">
+          {/* Quick Contact Options */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="grid md:grid-cols-3 gap-6 mb-16"
+          >
+            {contactOptions.map((option, index) => {
+              const IconComponent = option.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className="group"
+                >
+                  <Card className="h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm group-hover:scale-105">
+                    <CardHeader className="text-center pb-4">
+                      <div className={`w-16 h-16 bg-gradient-to-r ${option.color} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                        <IconComponent className="h-8 w-8 text-white" />
+                      </div>
+                      <CardTitle className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                        {option.title}
+                      </CardTitle>
+                      <p className="text-neutral-600 dark:text-neutral-400">
+                        {option.description}
+                      </p>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <Button className={`bg-gradient-to-r ${option.color} hover:shadow-lg transition-all duration-300 text-white w-full`}>
+                        {option.action}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
+          {/* FAQ Sections */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="grid gap-8"
+          >
+            {(searchTerm ? filteredCategories : faqCategories).map((category, categoryIndex) => {
+              const IconComponent = category.icon;
+              return (
+                <motion.div
+                  key={categoryIndex}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * categoryIndex }}
+                  className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl shadow-xl border border-neutral-200/50 dark:border-neutral-700/50 overflow-hidden"
+                >
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 p-6 border-b border-neutral-200/50 dark:border-neutral-700/50">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <IconComponent className="h-6 w-6 text-white" />
+                      </div>
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        {category.title}
+                      </h2>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    <Accordion type="single" collapsible className="space-y-4">
+                      {category.questions.map((faq, index) => (
+                        <AccordionItem 
+                          key={index} 
+                          value={`${categoryIndex}-${index}`}
+                          className="border border-neutral-200/50 dark:border-neutral-700/50 rounded-xl overflow-hidden bg-white/50 dark:bg-neutral-800/50"
+                        >
+                          <AccordionTrigger className="px-6 py-4 text-left font-semibold text-neutral-900 dark:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/80 transition-colors">
+                            {faq.question}
+                          </AccordionTrigger>
+                          <AccordionContent className="px-6 pb-4 text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                            {faq.answer}
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+
+          {/* Still Need Help Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="mt-16 text-center"
+          >
+            <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 border-0 shadow-xl">
+              <CardContent className="p-12">
+                <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  Vous ne trouvez pas votre réponse ?
+                </h3>
+                <p className="text-neutral-600 dark:text-neutral-400 mb-8 text-lg">
+                  Notre équipe de support est là pour vous aider personnellement
+                </p>
+                <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                  Contacter le support
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
       </div>
     </Layout>

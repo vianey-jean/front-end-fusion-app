@@ -9,6 +9,7 @@
 // Interface principale pour une catégorie de produit
 export interface Category {
   id: string;                    // Identifiant unique de la catégorie
+  secureId?: string;             // Identifiant sécurisé pour les URLs publiques
   name: string;                  // Nom de la catégorie affiché aux utilisateurs
   description: string;           // Description détaillée de la catégorie
   order: number;                 // Ordre d'affichage dans les menus

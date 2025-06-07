@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Layout from '@/components/layout/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
+import { Card } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import PersonalInfoForm from '@/components/profile/PersonalInfoForm';
@@ -12,7 +12,7 @@ import { toast } from '@/components/ui/sonner';
 import { useStore } from '@/contexts/StoreContext';
 import { authAPI } from '@/services/api';
 import { UpdateProfileData } from '@/types/auth';
-import { User, Shield, Settings } from 'lucide-react';
+import { User, Shield, Settings, Star } from 'lucide-react';
 
 const ProfilePage = () => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -57,7 +57,6 @@ const ProfilePage = () => {
     const { name, value } = e.target;
     
     if (name === 'genre') {
-      // Ensure genre value is one of the allowed types
       const genreValue = value as "homme" | "femme" | "autre";
       setProfileData(prev => ({ ...prev, [name]: genreValue }));
     } else {
@@ -66,7 +65,6 @@ const ProfilePage = () => {
   };
   
   const handleGenreChange = (value: string) => {
-    // Ensure genre value is one of the allowed types
     const genreValue = value as "homme" | "femme" | "autre";
     setProfileData(prev => ({ ...prev, genre: genreValue }));
   };
@@ -77,7 +75,6 @@ const ProfilePage = () => {
     
     setLoading(true);
     try {
-      // Type casting for genre to ensure it matches the expected type
       const updatedProfile: UpdateProfileData = {
         nom: profileData.nom,
         prenom: profileData.prenom,
@@ -116,116 +113,87 @@ const ProfilePage = () => {
       setLoading(false);
     }
   };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
-    }
-  };
   
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white py-24">
-          <div className="absolute inset-0 bg-black/20"></div>
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="container mx-auto px-4 relative z-10"
-          >
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <User className="w-12 h-12 text-white" />
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-blue-950/30">
+        <div className="container mx-auto px-4 py-12">
+          {/* Hero Section */}
+          <div className="text-center mb-12">
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-xl">
+                  <User className="h-12 w-12 text-white" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white dark:border-neutral-900 flex items-center justify-center">
+                  <Star className="h-4 w-4 text-white" />
                 </div>
               </div>
-              <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent">
-                Mon Compte
-              </h1>
-              <p className="text-xl text-purple-100 leading-relaxed max-w-2xl mx-auto">
-                Gérez vos informations personnelles et personnalisez votre expérience
-              </p>
             </div>
-          </motion.div>
-        </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent mb-2">
+              Mon Compte
+            </h1>
+            <p className="text-xl text-neutral-600 dark:text-neutral-400">
+              Gérez vos informations personnelles et préférences
+            </p>
+          </div>
 
-        <div className="container mx-auto px-4 py-16">
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="max-w-4xl mx-auto"
-          >
-            <motion.div variants={itemVariants}>
-              <Tabs defaultValue="informations" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-8 h-14 bg-white/70 backdrop-blur-sm border border-purple-200 rounded-xl">
+          <div className="max-w-6xl mx-auto">
+            <Tabs defaultValue="informations" className="w-full">
+              <div className="flex justify-center mb-8">
+                <TabsList className="grid w-full max-w-md grid-cols-3 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 shadow-lg">
                   <TabsTrigger 
                     value="informations" 
-                    className="flex items-center space-x-2 text-lg font-medium rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
+                    className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
                   >
-                    <User className="w-5 h-5" />
-                    <span>Informations personnelles</span>
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">Informations</span>
                   </TabsTrigger>
                   <TabsTrigger 
-                    value="security" 
-                    className="flex items-center space-x-2 text-lg font-medium rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
+                    value="security"
+                    className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
                   >
-                    <Shield className="w-5 h-5" />
-                    <span>Sécurité</span>
+                    <Shield className="h-4 w-4" />
+                    <span className="hidden sm:inline">Sécurité</span>
                   </TabsTrigger>
                   <TabsTrigger 
-                    value="preferences" 
-                    className="flex items-center space-x-2 text-lg font-medium rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
+                    value="preferences"
+                    className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
                   >
-                    <Settings className="w-5 h-5" />
-                    <span>Préférences</span>
+                    <Settings className="h-4 w-4" />
+                    <span className="hidden sm:inline">Préférences</span>
                   </TabsTrigger>
                 </TabsList>
+              </div>
 
-                <TabsContent value="informations" className="mt-6">
-                  <EnhancedCard className="border-0 shadow-xl">
-                    <PersonalInfoForm
-                      profileData={profileData}
-                      loading={loading}
-                      handleProfileChange={handleChange}
-                      handleGenreChange={handleGenreChange}
-                      handleProfileSubmit={handleProfileSubmit}
-                    />
-                  </EnhancedCard>
-                </TabsContent>
+              <TabsContent value="informations" className="mt-6">
+                <Card className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm border-0 shadow-xl">
+                  <PersonalInfoForm
+                    profileData={profileData}
+                    loading={loading}
+                    handleProfileChange={handleChange}
+                    handleGenreChange={handleGenreChange}
+                    handleProfileSubmit={handleProfileSubmit}
+                  />
+                </Card>
+              </TabsContent>
 
-                <TabsContent value="security" className="mt-6">
+              <TabsContent value="security" className="mt-6">
+                <Card className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm border-0 shadow-xl">
                   <PasswordForm 
                     loading={loading}
                     onPasswordChange={handlePasswordUpdate}
                   />
-                </TabsContent>
+                </Card>
+              </TabsContent>
 
-                <TabsContent value="preferences" className="mt-6">
+              <TabsContent value="preferences" className="mt-6">
+                <Card className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm border-0 shadow-xl">
                   <PreferencesForm />
-                </TabsContent>
-              </Tabs>
-            </motion.div>
-          </motion.div>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </div>
     </Layout>

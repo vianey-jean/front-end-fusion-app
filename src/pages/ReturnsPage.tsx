@@ -1,211 +1,157 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import Layout from '@/components/layout/Layout';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
-import { RotateCcw, Package, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { RotateCcw, Package, Truck, CreditCard, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const ReturnsPage = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
+  const steps = [
+    {
+      number: 1,
+      title: "Contactez-nous",
+      description: "Contactez notre service client par email à retours@Riziky-Boutic.fr ou par téléphone au 01 23 45 67 89 pour nous informer de votre souhait de retourner un article. Nous vous fournirons un numéro de retour.",
+      icon: <Package className="h-6 w-6" />,
+      color: "from-blue-500 to-blue-600"
+    },
+    {
+      number: 2,
+      title: "Préparez votre colis",
+      description: "Emballez soigneusement l'article à retourner dans son emballage d'origine si possible. Joignez le numéro de retour et votre justificatif d'achat.",
+      icon: <Package className="h-6 w-6" />,
+      color: "from-green-500 to-green-600"
+    },
+    {
+      number: 3,
+      title: "Expédiez le colis",
+      description: "Envoyez le colis à l'adresse que nous vous communiquerons. Nous vous recommandons d'utiliser un service d'expédition avec suivi.",
+      icon: <Truck className="h-6 w-6" />,
+      color: "from-purple-500 to-purple-600"
+    },
+    {
+      number: 4,
+      title: "Remboursement",
+      description: "Une fois votre retour reçu et inspecté, nous vous informerons de l'approbation ou du rejet de votre remboursement. Si approuvé, votre remboursement sera traité dans les 5 jours ouvrables.",
+      icon: <CreditCard className="h-6 w-6" />,
+      color: "from-orange-500 to-orange-600"
     }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
-    }
-  };
+  ];
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 text-white py-24">
-          <div className="absolute inset-0 bg-black/20"></div>
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="container mx-auto px-4 relative z-10"
-          >
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <RotateCcw className="w-12 h-12 text-white" />
-                </div>
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-blue-950/30">
+        <div className="container mx-auto py-12 px-4">
+          <div className="text-center mb-12">
+            <div className="flex justify-center mb-6">
+              <div className="bg-gradient-to-br from-red-500 to-red-600 p-4 rounded-2xl shadow-lg">
+                <RotateCcw className="h-12 w-12 text-white" />
               </div>
-              <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-orange-100 bg-clip-text text-transparent">
-                Politique de retour
-              </h1>
-              <p className="text-xl text-orange-100 leading-relaxed max-w-2xl mx-auto">
-                Votre satisfaction est notre priorité. Découvrez nos conditions de retour simples et transparentes
-              </p>
             </div>
-          </motion.div>
-        </div>
-
-        <div className="container mx-auto px-4 py-16">
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="max-w-6xl mx-auto space-y-12"
-          >
-            {/* Conditions de retour */}
-            <motion.div variants={itemVariants}>
-              <EnhancedCard className="border-0 shadow-xl">
-                <EnhancedCardHeader>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-                      <CheckCircle className="w-6 h-6 text-white" />
-                    </div>
-                    <EnhancedCardTitle className="text-2xl">Conditions de retour</EnhancedCardTitle>
-                  </div>
-                </EnhancedCardHeader>
-                <EnhancedCardContent className="space-y-6">
-                  <p className="text-gray-700 leading-relaxed text-lg">
-                    Chez Riziky-Boutic, nous voulons que vous soyez entièrement satisfait de votre achat. 
-                    Si vous n'êtes pas satisfait pour quelque raison que ce soit, vous pouvez retourner votre article 
-                    dans les 30 jours suivant la réception.
-                  </p>
-                  
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
-                    <h3 className="font-semibold mb-4 text-green-800 text-lg">Pour être éligible à un retour, votre article doit :</h3>
-                    <ul className="space-y-3">
-                      {[
-                        "Être dans son état d'origine",
-                        "Ne pas avoir été utilisé ou porté",
-                        "Avoir toutes les étiquettes attachées",
-                        "Être dans son emballage d'origine",
-                        "Être accompagné du justificatif d'achat"
-                      ].map((condition, index) => (
-                        <li key={index} className="flex items-center space-x-3">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-gray-700">{condition}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </EnhancedCardContent>
-              </EnhancedCard>
-            </motion.div>
-            
-            {/* Procédure de retour */}
-            <motion.div variants={itemVariants}>
-              <EnhancedCard className="border-0 shadow-xl">
-                <EnhancedCardHeader>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl">
-                      <Package className="w-6 h-6 text-white" />
-                    </div>
-                    <EnhancedCardTitle className="text-2xl">Procédure de retour</EnhancedCardTitle>
-                  </div>
-                  <EnhancedCardDescription>
-                    Suivez ces étapes simples pour retourner votre article
-                  </EnhancedCardDescription>
-                </EnhancedCardHeader>
-                <EnhancedCardContent>
-                  <div className="grid md:grid-cols-2 gap-6">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-800 to-red-600 bg-clip-text text-transparent mb-4">
+              Politique de retour
+            </h1>
+            <p className="text-xl text-neutral-600 dark:text-neutral-400">
+              Votre satisfaction est notre priorité
+            </p>
+          </div>
+          
+          <div className="max-w-6xl mx-auto space-y-8">
+            {/* Section des conditions */}
+            <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border-0">
+              <div className="flex items-center gap-3 mb-6">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+                <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">Conditions de retour</h2>
+              </div>
+              
+              <div className="space-y-6">
+                <p className="text-lg text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                  Chez Riziky-Boutic, nous voulons que vous soyez entièrement satisfait de votre achat. 
+                  Si vous n'êtes pas satisfait pour quelque raison que ce soit, vous pouvez retourner votre article 
+                  dans les <span className="font-bold text-red-600">30 jours</span> suivant la réception.
+                </p>
+                
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-6 rounded-xl border border-green-200 dark:border-green-800">
+                  <h3 className="font-bold mb-4 text-green-800 dark:text-green-300 flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Pour être éligible à un retour, votre article doit :
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4">
                     {[
-                      {
-                        step: "1",
-                        title: "Contactez-nous",
-                        description: "Contactez notre service client par email à retours@Riziky-Boutic.fr ou par téléphone au 01 23 45 67 89 pour nous informer de votre souhait de retourner un article. Nous vous fournirons un numéro de retour.",
-                        gradient: "from-blue-500 to-cyan-500"
-                      },
-                      {
-                        step: "2",
-                        title: "Préparez votre colis",
-                        description: "Emballez soigneusement l'article à retourner dans son emballage d'origine si possible. Joignez le numéro de retour et votre justificatif d'achat.",
-                        gradient: "from-purple-500 to-pink-500"
-                      },
-                      {
-                        step: "3",
-                        title: "Expédiez le colis",
-                        description: "Envoyez le colis à l'adresse que nous vous communiquerons. Nous vous recommandons d'utiliser un service d'expédition avec suivi.",
-                        gradient: "from-orange-500 to-red-500"
-                      },
-                      {
-                        step: "4",
-                        title: "Remboursement",
-                        description: "Une fois votre retour reçu et inspecté, nous vous informerons de l'approbation ou du rejet de votre remboursement. Si approuvé, votre remboursement sera traité dans les 5 jours ouvrables.",
-                        gradient: "from-green-500 to-emerald-500"
-                      }
-                    ].map((step, index) => (
-                      <motion.div 
-                        key={index}
-                        whileHover={{ y: -2 }}
-                        className="relative"
-                      >
-                        <div className="bg-white border border-gray-200 rounded-xl p-6 h-full shadow-sm hover:shadow-lg transition-shadow duration-200">
-                          <div className="flex items-center mb-4">
-                            <div className={`w-12 h-12 bg-gradient-to-r ${step.gradient} text-white rounded-full flex items-center justify-center font-bold text-lg mr-4 shadow-lg`}>
-                              {step.step}
-                            </div>
-                            <h3 className="font-semibold text-lg">{step.title}</h3>
-                          </div>
-                          <p className="text-gray-600 text-sm leading-relaxed">{step.description}</p>
-                        </div>
-                      </motion.div>
+                      "Être dans son état d'origine",
+                      "Ne pas avoir été utilisé ou porté",
+                      "Avoir toutes les étiquettes attachées",
+                      "Être dans son emballage d'origine",
+                      "Être accompagné du justificatif d'achat"
+                    ].map((condition, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-neutral-700 dark:text-neutral-300">{condition}</span>
+                      </div>
                     ))}
                   </div>
-                </EnhancedCardContent>
-              </EnhancedCard>
-            </motion.div>
+                </div>
+              </div>
+            </div>
             
-            {/* Remboursements */}
-            <motion.div variants={itemVariants}>
-              <EnhancedCard className="border-0 shadow-xl">
-                <EnhancedCardHeader>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl">
-                      <Clock className="w-6 h-6 text-white" />
-                    </div>
-                    <EnhancedCardTitle className="text-2xl">Remboursements</EnhancedCardTitle>
-                  </div>
-                </EnhancedCardHeader>
-                <EnhancedCardContent className="space-y-6">
-                  <p className="text-gray-700 leading-relaxed">
-                    Une fois votre retour reçu et inspecté, nous procéderons au remboursement sur votre moyen de paiement initial. 
-                    En fonction de la politique de votre banque, le remboursement peut prendre de 5 à 10 jours ouvrables pour apparaître sur votre compte.
-                  </p>
-                  
-                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-6 rounded-r-xl">
-                    <div className="flex items-start space-x-3">
-                      <AlertTriangle className="w-6 h-6 text-yellow-600 mt-1 flex-shrink-0" />
-                      <div>
-                        <h3 className="font-bold mb-2 text-yellow-800">Remboursement partiel</h3>
-                        <p className="text-sm text-yellow-700 leading-relaxed">
-                          Dans certains cas, un remboursement partiel peut être accordé (par exemple, si l'article présente des signes d'utilisation
-                          ou si certains articles d'un lot retourné manquent).
-                        </p>
+            {/* Section procédure */}
+            <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border-0">
+              <h2 className="text-2xl font-bold mb-8 text-neutral-800 dark:text-neutral-200 text-center">
+                Procédure de retour en 4 étapes simples
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                {steps.map((step, index) => (
+                  <div key={index} className="relative group">
+                    <div className="bg-gradient-to-br from-white to-neutral-50 dark:from-neutral-800 dark:to-neutral-900 p-6 rounded-xl border border-neutral-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-300 h-full">
+                      <div className="flex items-center mb-4">
+                        <div className={`w-12 h-12 bg-gradient-to-br ${step.color} text-white rounded-xl flex items-center justify-center font-bold text-lg mr-4 shadow-lg`}>
+                          {step.number}
+                        </div>
+                        <div className={`p-2 bg-gradient-to-br ${step.color} text-white rounded-lg shadow-md`}>
+                          {step.icon}
+                        </div>
                       </div>
+                      <h3 className="font-bold text-lg mb-3 text-neutral-800 dark:text-neutral-200">{step.title}</h3>
+                      <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed">
+                        {step.description}
+                      </p>
                     </div>
                   </div>
-                  
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
-                    <p className="text-gray-700 leading-relaxed">
-                      Les frais de livraison pour le retour sont à la charge du client, sauf si l'article reçu est défectueux ou ne correspond
-                      pas à la description.
-                    </p>
+                ))}
+              </div>
+            </div>
+            
+            {/* Section remboursements */}
+            <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border-0">
+              <div className="flex items-center gap-3 mb-6">
+                <CreditCard className="h-8 w-8 text-blue-600" />
+                <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">Remboursements</h2>
+              </div>
+              
+              <div className="space-y-6">
+                <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                  Une fois votre retour reçu et inspecté, nous procéderons au remboursement sur votre moyen de paiement initial. 
+                  En fonction de la politique de votre banque, le remboursement peut prendre de 5 à 10 jours ouvrables pour apparaître sur votre compte.
+                </p>
+                
+                <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border-l-4 border-yellow-400 p-6 rounded-r-xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    <h3 className="font-bold text-yellow-800 dark:text-yellow-300">Remboursement partiel</h3>
                   </div>
-                </EnhancedCardContent>
-              </EnhancedCard>
-            </motion.div>
-          </motion.div>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                    Dans certains cas, un remboursement partiel peut être accordé (par exemple, si l'article présente des signes d'utilisation
+                    ou si certains articles d'un lot retourné manquent).
+                  </p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 p-6 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                    <strong>Note importante :</strong> Les frais de livraison pour le retour sont à la charge du client, sauf si l'article reçu est défectueux ou ne correspond
+                    pas à la description.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </Layout>

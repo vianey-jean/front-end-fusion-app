@@ -1,208 +1,251 @@
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import Layout from '@/components/layout/Layout';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { EnhancedCard, EnhancedCardContent, EnhancedCardDescription, EnhancedCardHeader, EnhancedCardTitle } from '@/components/ui/enhanced-card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MessageCircle, Clock, HelpCircle, Users } from 'lucide-react';
+import { Mail, Phone, MessageCircle, Headphones, Clock, Star, Shield } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const CustomerServicePage = () => {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
+  const contactMethods = [
+    {
+      icon: <Mail className="h-8 w-8" />,
+      title: "Email",
+      subtitle: "Nous répondons sous 24h",
+      contact: "contact@Riziky-Boutic.fr",
+      color: "from-blue-500 to-blue-600",
+      bgColor: "from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20"
+    },
+    {
+      icon: <Phone className="h-8 w-8" />,
+      title: "Téléphone",
+      subtitle: "Lun-Ven 9h-18h",
+      contact: "01 23 45 67 89",
+      color: "from-green-500 to-green-600",
+      bgColor: "from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20"
+    },
+    {
+      icon: <MessageCircle className="h-8 w-8" />,
+      title: "Chat en ligne",
+      subtitle: "Assistance immédiate",
+      contact: "Démarrer un chat",
+      color: "from-purple-500 to-purple-600",
+      bgColor: "from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20",
+      isButton: true
     }
-  };
+  ];
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
+  const features = [
+    {
+      icon: <Clock className="h-6 w-6" />,
+      title: "Réponse rapide",
+      description: "Support disponible 7j/7"
+    },
+    {
+      icon: <Star className="h-6 w-6" />,
+      title: "Satisfaction garantie",
+      description: "98% de clients satisfaits"
+    },
+    {
+      icon: <Shield className="h-6 w-6" />,
+      title: "Service sécurisé",
+      description: "Données protégées"
     }
-  };
+  ];
+
+  const faqItems = [
+    {
+      question: "Comment suivre ma commande ?",
+      answer: "Vous pouvez suivre votre commande en vous connectant à votre compte client et en vous rendant dans la section \"Mes commandes\". Un numéro de suivi vous sera également envoyé par email dès que votre colis sera expédié."
+    },
+    {
+      question: "Quels sont les délais de livraison ?",
+      answer: "Nos délais de livraison standard sont de 2 à 4 jours ouvrables pour la France métropolitaine. Pour plus d'informations, veuillez consulter notre page de livraison."
+    },
+    {
+      question: "Comment puis-je retourner un article ?",
+      answer: "Vous disposez de 30 jours à compter de la réception de votre commande pour retourner un article. Pour plus d'informations sur la procédure à suivre, consultez notre politique de retours."
+    },
+    {
+      question: "Comment modifier ou annuler ma commande ?",
+      answer: "Vous pouvez modifier ou annuler votre commande dans les 2 heures suivant sa passation en contactant notre service client. Au-delà de ce délai, il est possible que votre commande soit déjà en cours de préparation et ne puisse plus être modifiée."
+    },
+    {
+      question: "Quels modes de paiement acceptez-vous ?",
+      answer: "Nous acceptons les paiements par carte bancaire (Visa, Mastercard), PayPal, et Apple Pay. Les paiements sont sécurisés et vos données ne sont jamais stockées sur nos serveurs."
+    }
+  ];
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-white py-24">
-          <div className="absolute inset-0 bg-black/20"></div>
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-indigo-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-indigo-950/30">
+        <div className="container mx-auto px-4 py-12">
+          {/* Hero Section */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="container mx-auto px-4 relative z-10"
+            className="text-center mb-16"
           >
-            <div className="max-w-4xl mx-auto text-center">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                  <Users className="w-12 h-12 text-white" />
-                </div>
+            <div className="flex items-center justify-center mb-6">
+              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 rounded-2xl shadow-xl">
+                <Headphones className="h-12 w-12 text-white" />
               </div>
-              <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                Service Client
-              </h1>
-              <p className="text-xl text-blue-100 leading-relaxed max-w-2xl mx-auto">
-                Notre équipe dédiée est là pour vous accompagner et répondre à toutes vos questions
-              </p>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-800 to-purple-600 bg-clip-text text-transparent mb-4">
+              Service Client
+            </h1>
+            <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
+              Notre équipe dédiée est là pour vous accompagner et répondre à toutes vos questions
+            </p>
+          </motion.div>
+
+          {/* Contact Methods */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid md:grid-cols-3 gap-8 mb-16"
+          >
+            {contactMethods.map((method, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * index }}
+                className="group"
+              >
+                <Card className="h-full border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm overflow-hidden">
+                  <CardHeader className="text-center pb-4">
+                    <div className={`w-16 h-16 bg-gradient-to-r ${method.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <div className={`text-transparent bg-gradient-to-r ${method.color} bg-clip-text`}>
+                        {method.icon}
+                      </div>
+                    </div>
+                    <CardTitle className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                      {method.title}
+                    </CardTitle>
+                    <p className="text-neutral-600 dark:text-neutral-400">{method.subtitle}</p>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    {method.isButton ? (
+                      <Button className={`bg-gradient-to-r ${method.color} hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-300`} asChild>
+                        <Link to="/chat">{method.contact}</Link>
+                      </Button>
+                    ) : (
+                      <div className={`text-lg font-semibold bg-gradient-to-r ${method.color} bg-clip-text text-transparent`}>
+                        {method.contact}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Features */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-16"
+          >
+            <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
+              Pourquoi choisir notre service client ?
+            </h2>
+            <div className="grid md:grid-cols-3 gap-8">
+              {features.map((feature, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className="text-center"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="text-indigo-600 dark:text-indigo-400">
+                      {feature.icon}
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-neutral-600 dark:text-neutral-400">
+                    {feature.description}
+                  </p>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
-        </div>
 
-        <div className="container mx-auto px-4 py-16">
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="max-w-6xl mx-auto space-y-12"
+          {/* FAQ Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="mb-16"
           >
-            {/* Contact Methods */}
-            <motion.div variants={itemVariants}>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">Comment nous contacter</h2>
-                <p className="text-gray-600 text-lg">Choisissez le moyen qui vous convient le mieux</p>
-              </div>
-              
-              <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  {
-                    icon: Mail,
-                    title: "Email",
-                    subtitle: "Nous répondons sous 24h",
-                    content: "contact@Riziky-Boutic.fr",
-                    gradient: "from-blue-500 to-cyan-500"
-                  },
-                  {
-                    icon: Phone,
-                    title: "Téléphone",
-                    subtitle: "Lun-Ven 9h-18h",
-                    content: "01 23 45 67 89",
-                    gradient: "from-green-500 to-emerald-500"
-                  },
-                  {
-                    icon: MessageCircle,
-                    title: "Chat en ligne",
-                    subtitle: "Assistance immédiate",
-                    content: "Démarrer un chat",
-                    gradient: "from-purple-500 to-pink-500",
-                    action: true
-                  }
-                ].map((contact, index) => (
-                  <motion.div
-                    key={index}
-                    whileHover={{ y: -5, scale: 1.02 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <EnhancedCard className="h-full text-center border-0 shadow-xl">
-                      <EnhancedCardContent className="p-8">
-                        <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-r ${contact.gradient} flex items-center justify-center shadow-lg`}>
-                          <contact.icon className="w-8 h-8 text-white" />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2">{contact.title}</h3>
-                        <p className="text-gray-500 mb-4">{contact.subtitle}</p>
-                        {contact.action ? (
-                          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700" asChild>
-                            <Link to="/chat">{contact.content}</Link>
-                          </Button>
+            <Card className="border-0 shadow-xl bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-neutral-800 to-neutral-600 bg-clip-text text-transparent">
+                  Questions fréquemment posées
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  {faqItems.map((item, index) => (
+                    <AccordionItem key={index} value={`item-${index}`}>
+                      <AccordionTrigger className="text-left font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                        {item.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                        {item.answer.includes('page de livraison') ? (
+                          <>
+                            {item.answer.split('page de livraison')[0]}
+                            <Link to="/livraison" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                              page de livraison
+                            </Link>
+                            {item.answer.split('page de livraison')[1]}
+                          </>
+                        ) : item.answer.includes('politique de retours') ? (
+                          <>
+                            {item.answer.split('politique de retours')[0]}
+                            <Link to="/retours" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+                              politique de retours
+                            </Link>
+                            {item.answer.split('politique de retours')[1]}
+                          </>
                         ) : (
-                          <p className="font-medium text-gray-900">{contact.content}</p>
+                          item.answer
                         )}
-                      </EnhancedCardContent>
-                    </EnhancedCard>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-            
-            {/* FAQ Section */}
-            <motion.div variants={itemVariants}>
-              <EnhancedCard className="border-0 shadow-xl">
-                <EnhancedCardHeader>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
-                      <HelpCircle className="w-6 h-6 text-white" />
-                    </div>
-                    <EnhancedCardTitle className="text-2xl">Questions fréquemment posées</EnhancedCardTitle>
-                  </div>
-                  <EnhancedCardDescription>
-                    Trouvez rapidement les réponses aux questions les plus courantes
-                  </EnhancedCardDescription>
-                </EnhancedCardHeader>
-                <EnhancedCardContent>
-                  <Accordion type="single" collapsible className="w-full space-y-4">
-                    <AccordionItem value="item-1" className="border border-gray-200 rounded-lg px-4">
-                      <AccordionTrigger className="text-left hover:no-underline">Comment suivre ma commande ?</AccordionTrigger>
-                      <AccordionContent className="text-gray-600 pb-4">
-                        Vous pouvez suivre votre commande en vous connectant à votre compte client et en vous rendant dans la section "Mes commandes". 
-                        Un numéro de suivi vous sera également envoyé par email dès que votre colis sera expédié.
                       </AccordionContent>
                     </AccordionItem>
-                    
-                    <AccordionItem value="item-2" className="border border-gray-200 rounded-lg px-4">
-                      <AccordionTrigger className="text-left hover:no-underline">Quels sont les délais de livraison ?</AccordionTrigger>
-                      <AccordionContent className="text-gray-600 pb-4">
-                        Nos délais de livraison standard sont de 2 à 4 jours ouvrables pour la France métropolitaine. 
-                        Pour plus d'informations, veuillez consulter notre <Link to="/livraison" className="text-blue-600 hover:underline">page de livraison</Link>.
-                      </AccordionContent>
-                    </AccordionItem>
-                    
-                    <AccordionItem value="item-3" className="border border-gray-200 rounded-lg px-4">
-                      <AccordionTrigger className="text-left hover:no-underline">Comment puis-je retourner un article ?</AccordionTrigger>
-                      <AccordionContent className="text-gray-600 pb-4">
-                        Vous disposez de 30 jours à compter de la réception de votre commande pour retourner un article. 
-                        Pour plus d'informations sur la procédure à suivre, consultez notre <Link to="/retours" className="text-blue-600 hover:underline">politique de retours</Link>.
-                      </AccordionContent>
-                    </AccordionItem>
-                    
-                    <AccordionItem value="item-4" className="border border-gray-200 rounded-lg px-4">
-                      <AccordionTrigger className="text-left hover:no-underline">Comment modifier ou annuler ma commande ?</AccordionTrigger>
-                      <AccordionContent className="text-gray-600 pb-4">
-                        Vous pouvez modifier ou annuler votre commande dans les 2 heures suivant sa passation en contactant notre service client. 
-                        Au-delà de ce délai, il est possible que votre commande soit déjà en cours de préparation et ne puisse plus être modifiée.
-                      </AccordionContent>
-                    </AccordionItem>
-                    
-                    <AccordionItem value="item-5" className="border border-gray-200 rounded-lg px-4">
-                      <AccordionTrigger className="text-left hover:no-underline">Quels modes de paiement acceptez-vous ?</AccordionTrigger>
-                      <AccordionContent className="text-gray-600 pb-4">
-                        Nous acceptons les paiements par carte bancaire (Visa, Mastercard), PayPal, et Apple Pay. Les paiements sont sécurisés et vos données ne sont jamais stockées sur nos serveurs.
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </EnhancedCardContent>
-              </EnhancedCard>
-            </motion.div>
-            
-            {/* Contact Form CTA */}
-            <motion.div variants={itemVariants}>
-              <EnhancedCard className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200 shadow-xl">
-                <EnhancedCardContent className="p-8 text-center">
-                  <div className="flex justify-center mb-6">
-                    <div className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl">
-                      <Mail className="w-8 h-8 text-white" />
-                    </div>
-                  </div>
+                  ))}
+                </Accordion>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Contact CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+          >
+            <Card className="border-0 shadow-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+              <CardContent className="p-8">
+                <div className="text-center">
                   <h2 className="text-2xl font-bold mb-4">Nous contacter</h2>
-                  <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                  <p className="mb-6 text-indigo-100">
                     Vous n'avez pas trouvé la réponse à votre question ? N'hésitez pas à nous contacter directement via notre formulaire de contact.
                   </p>
-                  <Button asChild className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white px-8 py-6 text-lg font-semibold rounded-xl">
+                  <Button asChild className="bg-white text-indigo-600 hover:bg-neutral-100 shadow-lg hover:shadow-xl transition-all duration-300">
                     <Link to="/contact">Formulaire de contact</Link>
                   </Button>
-                </EnhancedCardContent>
-              </EnhancedCard>
-            </motion.div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
       </div>

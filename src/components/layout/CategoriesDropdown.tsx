@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu } from 'lucide-react';
+import { Menu, ChevronDown } from 'lucide-react';
 import { Category } from '@/types/category';
 
 interface CategoriesDropdownProps {
@@ -20,14 +20,15 @@ const CategoriesDropdown: React.FC<CategoriesDropdownProps> = ({ categories }) =
 
   if (categories.length < 8) {
     return (
-      <div className="flex items-center justify-center space-x-4 flex-wrap">
+      <div className="flex items-center justify-center space-x-6 flex-wrap">
         {categories.map(cat => (
           <Link 
-            key={cat.id}
-            to={`/categorie/${cat.name}`}
-            className="text-red-900 font-bold hover:text-red-600 capitalize transition-colors px-2 py-1"
+            key={cat.secureId || cat.id}
+            to={`/categorie/${cat.secureId || cat.name}`}
+            className="relative group text-red-900 font-semibold hover:text-red-600 capitalize transition-all duration-300 px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/10"
           >
-            {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
+            <span className="relative z-10">{cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-red-600/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </Link>
         ))}
       </div>
@@ -39,25 +40,29 @@ const CategoriesDropdown: React.FC<CategoriesDropdownProps> = ({ categories }) =
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
-          className="text-red-900 text-lg font-bold hover:text-red-600 dark:text-neutral-200 dark:hover:text-red-400"
+          className="text-red-900 text-lg font-semibold hover:text-red-600 dark:text-neutral-200 dark:hover:text-red-400 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-800 hover:shadow-md transition-all duration-300"
         >
-          <Menu className="h-4 w-4 mr-2" />
+          <Menu className="h-5 w-5 mr-2" />
           Toutes les catégories
+          <ChevronDown className="h-4 w-4 ml-2 transition-transform duration-200" />
         </Button>
       </DropdownMenuTrigger>
       
       <DropdownMenuContent 
-        className="w-56 max-h-80 text-red-900 font-bold overflow-y-auto bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg"
+        className="w-64 max-h-80 text-red-900 font-semibold overflow-y-auto bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm border border-red-200 dark:border-red-800 shadow-xl rounded-xl"
         align="start"
       >
         {categories.map(cat => (
-          <DropdownMenuItem key={cat.id} asChild>
+          <DropdownMenuItem key={cat.secureId || cat.id} asChild>
             <Link 
-              to={`/categorie/${cat.name}`}
-              className="w-full capitalize hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors text-red-900 font-bold"
+              to={`/categorie/${cat.secureId || cat.name}`}
+              className="w-full capitalize hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 transition-all duration-200 text-red-900 font-semibold px-4 py-3 rounded-lg mx-1"
               onClick={() => setIsOpen(false)}
             >
-              {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
+              <div className="flex items-center space-x-3">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <span>{cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}</span>
+              </div>
             </Link>
           </DropdownMenuItem>
         ))}

@@ -4,7 +4,7 @@ import Layout from '@/components/layout/Layout';
 import ProductGrid from '@/components/products/ProductGrid';
 import { useStore } from '@/contexts/StoreContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Heart, ShoppingBag, Sparkles } from 'lucide-react';
+import { Heart, Sparkles, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -13,196 +13,130 @@ const FavoritesPage = () => {
   const { favorites, loadingFavorites } = useStore();
   const { isAuthenticated } = useAuth();
   
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
-
   return (
     <Layout>
-      <motion.div 
-        className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-red-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-red-950/20"
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-      >
-        <div className="container mx-auto px-4 py-8">
-          {/* Enhanced Header */}
-          <motion.div 
-            className="text-center mb-12"
-            variants={itemVariants}
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-rose-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-rose-950/30">
+        <div className="container mx-auto px-4 py-12">
+          {/* Header Section */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-16"
           >
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <motion.div
-                className="p-4 bg-gradient-to-br from-pink-500 to-red-500 rounded-full shadow-lg"
-                whileHover={{ scale: 1.1, rotate: 360 }}
-                transition={{ duration: 0.5 }}
-              >
-                <Heart className="h-8 w-8 text-white" />
-              </motion.div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-600 via-red-600 to-purple-600 bg-clip-text text-transparent">
-                Mes Favoris
-              </h1>
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Sparkles className="h-8 w-8 text-pink-500" />
-              </motion.div>
-            </div>
-            
-            <motion.p 
-              className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
-              variants={itemVariants}
-            >
-              {favorites.length > 0 
-                ? `Vous avez ${favorites.length} produit${favorites.length > 1 ? 's' : ''} dans vos favoris`
-                : "Votre liste de favoris vous attend"
-              }
-            </motion.p>
-          </motion.div>
-
-          {/* Loading State */}
-          {loadingFavorites ? (
-            <motion.div 
-              className="text-center py-20"
-              variants={itemVariants}
-            >
+            <div className="flex items-center justify-center mb-6">
               <div className="relative">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-pink-200 border-t-pink-600 mx-auto mb-6"></div>
-                <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-r-red-500 mx-auto animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+                <div className="bg-gradient-to-r from-rose-500 to-pink-600 p-4 rounded-2xl shadow-xl">
+                  <Heart className="h-12 w-12 text-white fill-white" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <Sparkles className="h-3 w-3 text-white" />
+                </div>
               </div>
-              <h2 className="text-xl font-semibold mb-2 text-gradient">Chargement de vos favoris...</h2>
-              <p className="text-gray-600 dark:text-gray-400">Nous récupérons vos produits préférés</p>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent mb-4">
+              Mes Favoris
+            </h1>
+            <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
+              Retrouvez tous vos produits préférés en un seul endroit
+            </p>
+          </motion.div>
+          
+          {!isAuthenticated ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-md mx-auto"
+            >
+              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-8 text-center border border-neutral-200/50 dark:border-neutral-700/50 shadow-xl">
+                <div className="mb-6">
+                  <div className="w-20 h-20 bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/30 dark:to-pink-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="h-10 w-10 text-rose-500" />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-3">
+                  Connectez-vous pour voir vos favoris
+                </h2>
+                <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
+                  Vous devez être connecté pour accéder à votre liste de favoris et sauvegarder vos produits préférés
+                </p>
+                <Button asChild className="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Link to="/login" className="flex items-center gap-2">
+                    Se connecter
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </motion.div>
+          ) : loadingFavorites ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20"
+            >
+              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-12 max-w-md mx-auto border border-neutral-200/50 dark:border-neutral-700/50">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-rose-600 mx-auto mb-6"></div>
+                <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+                  Chargement de vos favoris...
+                </h2>
+                <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+                  Nous récupérons vos produits préférés
+                </p>
+              </div>
             </motion.div>
           ) : favorites.length > 0 ? (
-            /* Products Grid */
-            <motion.div variants={itemVariants}>
-              <div className="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl p-8 border border-pink-100 dark:border-pink-900/20">
-                <ProductGrid products={favorites} />
-              </div>
-            </motion.div>
-          ) : (
-            /* Empty State */
-            <motion.div 
-              className="text-center py-20"
-              variants={itemVariants}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
             >
-              <div className="relative max-w-md mx-auto">
-                {/* Enhanced Empty State Card */}
-                <motion.div 
-                  className="bg-gradient-to-br from-white to-pink-50 dark:from-neutral-900 dark:to-pink-950/20 rounded-3xl p-12 shadow-2xl border border-pink-100 dark:border-pink-900/20 relative overflow-hidden"
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {/* Background decoration */}
-                  <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-                    <div className="absolute top-6 left-6 w-16 h-16 bg-pink-200/30 rounded-full blur-xl"></div>
-                    <div className="absolute bottom-6 right-6 w-20 h-20 bg-red-200/30 rounded-full blur-xl"></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-purple-200/20 rounded-full blur-2xl"></div>
-                  </div>
-
-                  <div className="relative z-10">
-                    <motion.div 
-                      className="mb-8"
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                    >
-                      <div className="relative">
-                        <Heart className="h-20 w-20 mx-auto text-pink-300 dark:text-pink-700" />
-                        <motion.div
-                          className="absolute inset-0 flex items-center justify-center"
-                          animate={{ scale: [0.8, 1.2, 0.8] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Heart className="h-12 w-12 text-pink-500 fill-pink-200" />
-                        </motion.div>
-                      </div>
-                    </motion.div>
-
-                    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-                      Votre liste de favoris est vide
-                    </h2>
-                    
-                    <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                      Commencez à ajouter des produits à vos favoris pour les retrouver facilement ici. 
-                      Cliquez sur le cœur ❤️ sur vos produits préférés !
-                    </p>
-
-                    <div className="space-y-4">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button 
-                          asChild 
-                          size="lg"
-                          className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-semibold px-8 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-                        >
-                          <Link to="/">
-                            <ShoppingBag className="mr-2 h-5 w-5" />
-                            Découvrir nos produits
-                          </Link>
-                        </Button>
-                      </motion.div>
-
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button 
-                          asChild 
-                          variant="outline"
-                          size="lg"
-                          className="border-2 border-pink-200 hover:border-pink-300 text-pink-600 hover:text-pink-700 hover:bg-pink-50 dark:border-pink-800 dark:hover:border-pink-700 dark:text-pink-400 dark:hover:text-pink-300 px-8 py-3 rounded-full transition-all duration-300"
-                        >
-                          <Link to="/tous-les-produits">
-                            <Sparkles className="mr-2 h-5 w-5" />
-                            Voir tous les produits
-                          </Link>
-                        </Button>
-                      </motion.div>
+              <div className="mb-8">
+                <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-xl p-6 border border-neutral-200/50 dark:border-neutral-700/50 shadow-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-rose-500 to-pink-600 rounded-full flex items-center justify-center">
+                      <ShoppingBag className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                        {favorites.length} produit{favorites.length > 1 ? 's' : ''} dans vos favoris
+                      </h3>
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                        Continuez à découvrir nos nouveautés et ajoutez plus de produits à votre wishlist
+                      </p>
                     </div>
                   </div>
-                </motion.div>
-
-                {/* Floating elements */}
-                <motion.div
-                  className="absolute -top-4 -left-4 w-8 h-8 bg-pink-400 rounded-full opacity-20"
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                />
-                <motion.div
-                  className="absolute -bottom-4 -right-4 w-6 h-6 bg-red-400 rounded-full opacity-30"
-                  animate={{ y: [0, 10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-                />
-                <motion.div
-                  className="absolute top-1/2 -right-8 w-4 h-4 bg-purple-400 rounded-full opacity-25"
-                  animate={{ x: [0, 10, 0] }}
-                  transition={{ duration: 5, repeat: Infinity, delay: 2 }}
-                />
+                </div>
+              </div>
+              <ProductGrid products={favorites} />
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="max-w-lg mx-auto"
+            >
+              <div className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-12 text-center border border-neutral-200/50 dark:border-neutral-700/50 shadow-xl">
+                <div className="mb-8">
+                  <div className="w-24 h-24 bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Heart className="h-12 w-12 text-neutral-400" />
+                  </div>
+                </div>
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
+                  Votre liste de favoris est vide
+                </h2>
+                <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
+                  Découvrez notre collection et ajoutez des produits à vos favoris pour les retrouver facilement
+                </p>
+                <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
+                  <Link to="/" className="flex items-center gap-2">
+                    Explorer nos produits
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
               </div>
             </motion.div>
           )}
         </div>
-
-        {/* Background Elements */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-pink-200/20 to-red-200/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-200/20 to-pink-200/20 rounded-full blur-3xl"></div>
-        </div>
-      </motion.div>
+      </div>
     </Layout>
   );
 };
