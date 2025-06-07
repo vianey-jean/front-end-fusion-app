@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -45,7 +44,7 @@ const CheckoutPage = () => {
   }
 
   const subtotal = selectedCartItems.reduce((total, item) => {
-    const price = item.product.prixPromo || item.product.prix;
+    const price = item.product.prixPromo || item.product.prix || item.product.price;
     return total + (price * item.quantity);
   }, 0);
 
@@ -379,7 +378,7 @@ const CheckoutPage = () => {
                             Quantité: {item.quantity}
                           </p>
                           <p className="font-semibold text-sm">
-                            {((item.product.prixPromo || item.product.prix) * item.quantity).toFixed(2)} €
+                            {((item.product.prixPromo || item.product.prix || item.product.price) * item.quantity).toFixed(2)} €
                           </p>
                         </div>
                       </div>
