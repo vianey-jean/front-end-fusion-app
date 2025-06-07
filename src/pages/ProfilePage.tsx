@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,7 +11,6 @@ import { toast } from '@/components/ui/sonner';
 import { useStore } from '@/contexts/StoreContext';
 import { authAPI } from '@/services/api';
 import { UpdateProfileData } from '@/types/auth';
-import { User, Shield, Settings, Star } from 'lucide-react';
 
 const ProfilePage = () => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -57,6 +55,7 @@ const ProfilePage = () => {
     const { name, value } = e.target;
     
     if (name === 'genre') {
+      // Ensure genre value is one of the allowed types
       const genreValue = value as "homme" | "femme" | "autre";
       setProfileData(prev => ({ ...prev, [name]: genreValue }));
     } else {
@@ -65,6 +64,7 @@ const ProfilePage = () => {
   };
   
   const handleGenreChange = (value: string) => {
+    // Ensure genre value is one of the allowed types
     const genreValue = value as "homme" | "femme" | "autre";
     setProfileData(prev => ({ ...prev, genre: genreValue }));
   };
@@ -75,6 +75,7 @@ const ProfilePage = () => {
     
     setLoading(true);
     try {
+      // Type casting for genre to ensure it matches the expected type
       const updatedProfile: UpdateProfileData = {
         nom: profileData.nom,
         prenom: profileData.prenom,
@@ -116,85 +117,46 @@ const ProfilePage = () => {
   
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-blue-950/30">
-        <div className="container mx-auto px-4 py-12">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-xl">
-                  <User className="h-12 w-12 text-white" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white dark:border-neutral-900 flex items-center justify-center">
-                  <Star className="h-4 w-4 text-white" />
-                </div>
-              </div>
-            </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent mb-2">
-              Mon Compte
-            </h1>
-            <p className="text-xl text-neutral-600 dark:text-neutral-400">
-              Gérez vos informations personnelles et préférences
-            </p>
-          </div>
+      <div className="container px-4 py-8">
+<div className="max-w-[900px] mx-auto px-4">
+  <h1 className="text-3xl font-bold mb-8">Mon Compte</h1>
 
-          <div className="max-w-6xl mx-auto">
-            <Tabs defaultValue="informations" className="w-full">
-              <div className="flex justify-center mb-8">
-                <TabsList className="grid w-full max-w-md grid-cols-3 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm border border-neutral-200 dark:border-neutral-700 shadow-lg">
-                  <TabsTrigger 
-                    value="informations" 
-                    className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-                  >
-                    <User className="h-4 w-4" />
-                    <span className="hidden sm:inline">Informations</span>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="security"
-                    className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-                  >
-                    <Shield className="h-4 w-4" />
-                    <span className="hidden sm:inline">Sécurité</span>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="preferences"
-                    className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-                  >
-                    <Settings className="h-4 w-4" />
-                    <span className="hidden sm:inline">Préférences</span>
-                  </TabsTrigger>
-                </TabsList>
-              </div>
+  <div className="grid gap-6 md:grid-cols-[250px_1fr]">
+    <div className="md:col-span-2">
+      <Tabs defaultValue="informations">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="informations">Informations personnelles</TabsTrigger>
+          <TabsTrigger value="security">Sécurité</TabsTrigger>
+          <TabsTrigger value="preferences">Préférences</TabsTrigger>
+        </TabsList>
 
-              <TabsContent value="informations" className="mt-6">
-                <Card className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm border-0 shadow-xl">
-                  <PersonalInfoForm
-                    profileData={profileData}
-                    loading={loading}
-                    handleProfileChange={handleChange}
-                    handleGenreChange={handleGenreChange}
-                    handleProfileSubmit={handleProfileSubmit}
-                  />
-                </Card>
-              </TabsContent>
+        <TabsContent value="informations" className="mt-6">
+          <Card>
+            <PersonalInfoForm
+              profileData={profileData}
+              loading={loading}
+              handleProfileChange={handleChange}
+              handleGenreChange={handleGenreChange}
+              handleProfileSubmit={handleProfileSubmit}
+            />
+          </Card>
+        </TabsContent>
 
-              <TabsContent value="security" className="mt-6">
-                <Card className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm border-0 shadow-xl">
-                  <PasswordForm 
-                    loading={loading}
-                    onPasswordChange={handlePasswordUpdate}
-                  />
-                </Card>
-              </TabsContent>
+        <TabsContent value="security" className="mt-6">
+          <PasswordForm 
+            loading={loading}
+            onPasswordChange={handlePasswordUpdate}
+          />
+        </TabsContent>
 
-              <TabsContent value="preferences" className="mt-6">
-                <Card className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm border-0 shadow-xl">
-                  <PreferencesForm />
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+        <TabsContent value="preferences" className="mt-6">
+          <PreferencesForm />
+        </TabsContent>
+      </Tabs>
+    </div>
+  </div>
+</div>
+
       </div>
     </Layout>
   );

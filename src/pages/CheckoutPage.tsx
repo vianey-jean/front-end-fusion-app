@@ -2,440 +2,619 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
 import { useStore } from '@/contexts/StoreContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { CreditCard, Truck, Shield, CheckCircle, ArrowLeft, Lock, Package, MapPin } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from '@/components/ui/sonner';
+import CreditCardForm from '@/components/checkout/CreditCardForm';
+import { ShippingAddress, codePromosAPI } from '@/services/api';
+import { Link } from 'react-router-dom';
+import { Percent, ShoppingCart } from 'lucide-react';
+import PaymentMethods from '@/components/checkout/PaymentMethods';
+import CartSummary from '@/components/cart/CartSummary';
+import LoadingSpinner from '@/components/ui/loading-spinner';
+import { formatPrice } from '@/lib/utils';
+
+// Définition des prix de livraison par ville
+const DELIVERY_PRICES = {
+  "Saint-Benoît": 20,
+  "Saint-Denis": 0,
+  "Saint-Pierre": 20,
+  "Bras-Panon": 25,
+  "Entre-Deux": 20,
+  "Etang-Salé": 25,
+  "Petite-Île": 20,
+  "Le Port": 0,
+  "La Possession": 0,
+  "Saint-André": 10,
+  "Saint Joseph": 25,
+  "Saint-Leu": 15,
+  "Saint-Louis": 15,
+  "Saint-Paul": 0,
+  "Saint-Philippe": 25,
+  "Sainte-Marie": 0,
+  "Sainte-Rose": 25,
+  "Sainte-Suzanne": 0,
+  "Salazie": 25,
+  "Tampon": 20,
+  "Trois-Bassins": 20
+};
 
 const CheckoutPage = () => {
-  const { selectedCartItems, clearSelectedCartItems } = useStore();
-  const { user, isAuthenticated } = useAuth();
+  const { selectedCartItems, getCartTotal, createOrder } = useStore();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  
-  const [shippingMethod, setShippingMethod] = useState('standard');
+  const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('card');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [deliveryCity, setDeliveryCity] = useState<string>("");
+  const [deliveryPrice, setDeliveryPrice] = useState<number>(0);
+  const [step, setStep] = useState<'shipping' | 'payment'>('shipping');
   
-  const [billingInfo, setBillingInfo] = useState({
-    firstName: user?.prenom || '',
-    lastName: user?.nom || '',
-    email: user?.email || '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: 'France'
+  // État pour le code promo
+  const [codePromo, setCodePromo] = useState<string>('');
+  const [verifyingCode, setVerifyingCode] = useState<boolean>(false);
+  const [verifiedPromo, setVerifiedPromo] = useState<{
+    valid: boolean;
+    pourcentage: number;
+    productId: string;
+    code: string;
+  } | null>(null);
+  
+  // Formulaire d'adresse
+  const [shippingData, setShippingData] = useState<ShippingAddress>({
+    nom: user?.nom || '',
+    prenom: user?.prenom || '',
+    adresse: user?.adresse || '',
+    ville: user?.ville || '',
+    codePostal: user?.codePostal || '',
+    pays: user?.pays || 'La Réunion',
+    telephone: user?.telephone || '',
   });
+  
+  // Vérifier si tous les produits sont en promotion
+  const allProductsOnPromotion = selectedCartItems.every(item => 
+    item.product.promotion && item.product.promotion > 0
+  );
+  
+  // Vérifier s'il y a au moins un produit sans promotion
+  const hasNonPromotionProduct = selectedCartItems.some(item => 
+    !item.product.promotion || item.product.promotion <= 0
+  );
 
   useEffect(() => {
-    if (!isAuthenticated || !selectedCartItems || selectedCartItems.length === 0) {
-      navigate('/cart');
+    // Rediriger si le panier est vide
+    if (selectedCartItems.length === 0) {
+      toast.error("Votre panier est vide. Veuillez ajouter des produits avant de procéder au paiement.");
+      navigate('/panier');
     }
-  }, [isAuthenticated, selectedCartItems, navigate]);
-
-  if (!selectedCartItems || selectedCartItems.length === 0) {
-    return null;
-  }
-
-  const subtotal = selectedCartItems.reduce((total, item) => {
-    const price = item.product.prixPromo || item.product.prix;
-    return total + (price * item.quantity);
-  }, 0);
-
-  const shippingCosts = {
-    standard: subtotal >= 50 ? 0 : 4.90,
-    express: 9.90,
-    premium: 14.90
+  }, [selectedCartItems, navigate]);
+  
+  // Si les items du panier changent, mettre à jour les informations de livraison
+  useEffect(() => {
+    if (user) {
+      setShippingData({
+        nom: user.nom || '',
+        prenom: user.prenom || '',
+        adresse: user.adresse || '',
+        ville: user.ville || '',
+        codePostal: user.codePostal || '',
+        pays: user.pays || 'La Réunion',
+        telephone: user.telephone || '',
+      });
+    }
+  }, [user]);
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setShippingData(prev => ({ ...prev, [name]: value }));
   };
 
-  const shippingCost = shippingCosts[shippingMethod as keyof typeof shippingCosts];
-  const total = subtotal + shippingCost;
-
-  const handleInputChange = (field: string, value: string) => {
-    setBillingInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSubmitOrder = async () => {
-    setIsProcessing(true);
+  // Mettre à jour la ville et le prix de livraison
+  const handleCityChange = (city: string) => {
+    setDeliveryCity(city);
+    setShippingData(prev => ({ ...prev, ville: city }));
     
+    const price = DELIVERY_PRICES[city as keyof typeof DELIVERY_PRICES] || 0;
+    setDeliveryPrice(price);
+  };
+  
+  // Vérifier le code promo
+  const handleVerifyCodePromo = async () => {
+    if (!codePromo.trim()) {
+      toast.error("Veuillez saisir un code promo");
+      return;
+    }
+    
+    // Rechercher le premier produit sans promotion pour appliquer le code promo
+    const nonPromoProduct = selectedCartItems.find(item => 
+      !item.product.promotion || item.product.promotion <= 0
+    );
+    
+    if (!nonPromoProduct) {
+      toast.error("Aucun produit éligible pour un code promo");
+      return;
+    }
+    
+    setVerifyingCode(true);
     try {
-      // Simulation d'un processus de paiement
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await codePromosAPI.verify(codePromo, nonPromoProduct.product.id);
+      const data = response.data;
       
-      // Ici vous intégreriez votre API de paiement
-      toast.success("Commande validée avec succès !");
-      clearSelectedCartItems();
-      navigate('/order-confirmation');
+      if (data.valid && data.pourcentage) {
+        setVerifiedPromo({
+          valid: true,
+          pourcentage: data.pourcentage,
+          productId: nonPromoProduct.product.id,
+          code: codePromo
+        });
+        toast.success(`Code promo valide ! ${data.pourcentage}% de réduction appliquée`);
+      } else {
+        setVerifiedPromo(null);
+        toast.error(data.message || "Code promo invalide");
+      }
     } catch (error) {
-      toast.error("Erreur lors du traitement de la commande");
+      console.error("Erreur lors de la vérification du code promo:", error);
+      setVerifiedPromo(null);
+      toast.error("Erreur lors de la vérification du code promo");
     } finally {
-      setIsProcessing(false);
+      setVerifyingCode(false);
+    }
+  };
+  
+  const handleShippingSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!validateShippingForm()) {
+      toast.error("Veuillez remplir tous les champs obligatoires");
+      return;
+    }
+    
+    if (!deliveryCity) {
+      toast.error("Veuillez sélectionner une ville de livraison");
+      return;
+    }
+
+    // Passer à l'étape suivante
+    setStep('payment');
+    window.scrollTo(0, 0);
+  };
+  
+  const handlePaymentSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (paymentMethod === 'card') {
+      setShowCardForm(true);
+    } else {
+      // Traiter les autres méthodes de paiement
+      processOrder();
+    }
+  };
+  
+  const processOrder = async () => {
+    setLoading(true);
+    try {
+      console.log('Traitement de commande avec données:', {
+        shippingAddress: shippingData,
+        paymentMethod: paymentMethod,
+        cartItems: selectedCartItems.map(item => ({ 
+          productId: item.product.id, 
+          quantity: item.quantity 
+        })),
+        promoDetails: verifiedPromo ? {
+          code: verifiedPromo.code,
+          productId: verifiedPromo.productId,
+          pourcentage: verifiedPromo.pourcentage
+        } : undefined
+      });
+      
+      // Ensure we're actually sending items to the server
+      if (selectedCartItems.length === 0) {
+        toast.error("Votre panier est vide. Impossible de créer la commande.");
+        setLoading(false);
+        return;
+      }
+      
+      const order = await createOrder(
+        shippingData, 
+        paymentMethod, 
+        verifiedPromo ? {
+          code: verifiedPromo.code,
+          productId: verifiedPromo.productId,
+          pourcentage: verifiedPromo.pourcentage
+        } : undefined
+      );
+      
+      if (order) {
+        toast.success("Commande effectuée avec succès !");
+        navigate(`/commandes`);  // Redirect to orders page
+      } else {
+        toast.error("Erreur lors de la création de la commande");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast.error("Une erreur est survenue lors de la validation de la commande");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const shippingOptions = [
-    {
-      id: 'standard',
-      name: 'Livraison Standard',
-      description: '3-5 jours ouvrables',
-      price: shippingCosts.standard,
-      icon: Package
-    },
-    {
-      id: 'express',
-      name: 'Livraison Express',
-      description: '1-2 jours ouvrables',
-      price: shippingCosts.express,
-      icon: Truck
-    },
-    {
-      id: 'premium',
-      name: 'Livraison Premium',
-      description: 'Livraison le lendemain',
-      price: shippingCosts.premium,
-      icon: CheckCircle
+  const handlePaymentSuccess = () => {
+    console.log("Payment success, processing order...");
+    processOrder();
+  };
+  
+  const validateShippingForm = () => {
+    return (
+      shippingData.nom.trim() !== '' &&
+      shippingData.prenom.trim() !== '' &&
+      shippingData.adresse.trim() !== '' &&
+      deliveryCity !== '' &&
+      shippingData.codePostal.trim() !== '' &&
+      shippingData.pays.trim() !== '' &&
+      shippingData.telephone.trim() !== ''
+    );
+  };
+  
+  // Calculer le total en tenant compte du code promo
+  const calculateItemPrice = (item: typeof selectedCartItems[0]) => {
+    if (verifiedPromo && verifiedPromo.valid && item.product.id === verifiedPromo.productId) {
+      return item.product.price * (1 - verifiedPromo.pourcentage / 100) * item.quantity;
     }
-  ];
-
-  const paymentOptions = [
-    {
-      id: 'card',
-      name: 'Carte bancaire',
-      description: 'Visa, Mastercard, American Express',
-      icon: CreditCard
-    },
-    {
-      id: 'paypal',
-      name: 'PayPal',
-      description: 'Paiement sécurisé via PayPal',
-      icon: Shield
-    }
-  ];
-
+    return item.product.price * item.quantity;
+  };
+  
+  const subtotal = getCartTotal();
+  
+  // Calculer le total avec remise code promo
+  const discountedSubtotal = selectedCartItems.reduce((total, item) => {
+    return total + calculateItemPrice(item);
+  }, 0);
+  
+  const hasPromoDiscount = subtotal !== discountedSubtotal;
+  const orderTotal = discountedSubtotal + deliveryPrice;
+  
+  // URL de base pour les images
+  const AUTH_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  
+  // Si aucun élément n'est sélectionné, retourner au panier
+  if (selectedCartItems.length === 0) {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <div className="text-center">
+            <ShoppingCart className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h1 className="text-2xl font-bold mb-4">Votre panier est vide</h1>
+            <p className="text-gray-500 mb-6">Ajoutez des produits à votre panier pour commander</p>
+            <Button asChild>
+              <Link to="/panier">Retour au panier</Link>
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+  
+  if (loading) {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <LoadingSpinner size="lg" text="Traitement de votre commande..." />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+  
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-blue-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-blue-950/30">
-        <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <Button
-              variant="outline"
-              onClick={() => navigate('/cart')}
-              className="mb-6 hover:bg-blue-50 transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour au panier
-            </Button>
-            
-            <div className="text-center">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4">
-                Finaliser ma commande
-              </h1>
-              <p className="text-lg text-neutral-600 dark:text-neutral-400">
-                Dernière étape avant de recevoir vos produits préférés
-              </p>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8 text-center">Finaliser la commande</h1>
+        
+        {/* Étapes du processus d'achat */}
+        <div className="mb-12">
+          <div className="flex justify-between items-center">
+            <div className={`flex-1 text-center ${step === 'shipping' ? 'font-semibold' : ''}`}>
+              <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${step === 'shipping' ? 'bg-primary text-white' : 'bg-gray-200'}`}>
+                1
+              </div>
+              <span className="text-sm">Livraison</span>
             </div>
-          </motion.div>
-
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column - Forms */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Billing Information */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Card className="border-0 shadow-lg bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-xl">
-                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                        <MapPin className="h-4 w-4 text-white" />
-                      </div>
-                      Informations de livraison
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+            <div className="w-1/4 h-1 bg-gray-200">
+              <div className={`h-full bg-primary ${step === 'payment' ? 'w-full' : 'w-0'} transition-all duration-500`}></div>
+            </div>
+            <div className={`flex-1 text-center ${step === 'payment' ? 'font-semibold' : ''}`}>
+              <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${step === 'payment' ? 'bg-primary text-white' : 'bg-gray-200'}`}>
+                2
+              </div>
+              <span className="text-sm">Paiement</span>
+            </div>
+          </div>
+        </div>
+        
+        {showCardForm ? (
+          <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Paiement par carte bancaire</h2>
+            <CreditCardForm onSuccess={handlePaymentSuccess} />
+            <Button 
+              variant="outline" 
+              className="mt-4 w-full"
+              onClick={() => setShowCardForm(false)}
+            >
+              Retour
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 space-y-6">
+              {step === 'shipping' && (
+                <form onSubmit={handleShippingSubmit}>
+                  <div className="bg-white p-6 rounded-lg shadow">
+                    <h2 className="text-xl font-semibold mb-4">Informations de livraison</h2>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <Label htmlFor="firstName">Prénom</Label>
+                        <Label htmlFor="nom">Nom*</Label>
                         <Input
-                          id="firstName"
-                          value={billingInfo.firstName}
-                          onChange={(e) => handleInputChange('firstName', e.target.value)}
-                          className="mt-1 h-12 bg-white/50 dark:bg-neutral-800/50"
+                          id="nom"
+                          name="nom"
+                          value={shippingData.nom}
+                          onChange={handleChange}
+                          required
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName">Nom</Label>
+                        <Label htmlFor="prenom">Prénom*</Label>
                         <Input
-                          id="lastName"
-                          value={billingInfo.lastName}
-                          onChange={(e) => handleInputChange('lastName', e.target.value)}
-                          className="mt-1 h-12 bg-white/50 dark:bg-neutral-800/50"
+                          id="prenom"
+                          name="prenom"
+                          value={shippingData.prenom}
+                          onChange={handleChange}
+                          required
                         />
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={billingInfo.email}
-                          onChange={(e) => handleInputChange('email', e.target.value)}
-                          className="mt-1 h-12 bg-white/50 dark:bg-neutral-800/50"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone">Téléphone</Label>
-                        <Input
-                          id="phone"
-                          value={billingInfo.phone}
-                          onChange={(e) => handleInputChange('phone', e.target.value)}
-                          className="mt-1 h-12 bg-white/50 dark:bg-neutral-800/50"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="address">Adresse</Label>
+                    <div className="mb-4">
+                      <Label htmlFor="adresse">Adresse*</Label>
                       <Input
-                        id="address"
-                        value={billingInfo.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        className="mt-1 h-12 bg-white/50 dark:bg-neutral-800/50"
+                        id="adresse"
+                        name="adresse"
+                        value={shippingData.adresse}
+                        onChange={handleChange}
+                        required
                       />
                     </div>
-
-                    <div className="grid grid-cols-3 gap-4">
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div>
-                        <Label htmlFor="city">Ville</Label>
-                        <Input
-                          id="city"
-                          value={billingInfo.city}
-                          onChange={(e) => handleInputChange('city', e.target.value)}
-                          className="mt-1 h-12 bg-white/50 dark:bg-neutral-800/50"
-                        />
+                        <Label htmlFor="ville">Ville de livraison*</Label>
+                        <Select 
+                          value={deliveryCity}
+                          onValueChange={handleCityChange}
+                        >
+                          <SelectTrigger id="ville">
+                            <SelectValue placeholder="Sélectionnez une ville" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.keys(DELIVERY_PRICES).sort().map(city => (
+                              <SelectItem key={city} value={city}>
+                                {city} {DELIVERY_PRICES[city as keyof typeof DELIVERY_PRICES] === 0 
+                                  ? "(Gratuit)" 
+                                  : `(+${DELIVERY_PRICES[city as keyof typeof DELIVERY_PRICES]}€)`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
-                        <Label htmlFor="postalCode">Code postal</Label>
+                        <Label htmlFor="codePostal">Code postal*</Label>
                         <Input
-                          id="postalCode"
-                          value={billingInfo.postalCode}
-                          onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                          className="mt-1 h-12 bg-white/50 dark:bg-neutral-800/50"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="country">Pays</Label>
-                        <Input
-                          id="country"
-                          value={billingInfo.country}
-                          disabled
-                          className="mt-1 h-12 bg-neutral-100 dark:bg-neutral-700"
+                          id="codePostal"
+                          name="codePostal"
+                          value={shippingData.codePostal}
+                          onChange={handleChange}
+                          required
                         />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Shipping Method */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card className="border-0 shadow-lg bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-xl">
-                      <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                        <Truck className="h-4 w-4 text-white" />
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <Label htmlFor="pays">Pays*</Label>
+                        <Select 
+                          value={shippingData.pays}
+                          onValueChange={(value) => setShippingData({...shippingData, pays: value})}
+                        >
+                          <SelectTrigger id="pays">
+                            <SelectValue placeholder="Sélectionnez un pays" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="La Réunion">La Réunion</SelectItem>
+                            <SelectItem value="France">France</SelectItem>
+                            <SelectItem value="Madagascar">Madagascar</SelectItem>
+                            <SelectItem value="Mayotte">Mayotte</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      Mode de livraison
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <RadioGroup value={shippingMethod} onValueChange={setShippingMethod}>
-                      <div className="space-y-4">
-                        {shippingOptions.map((option) => {
-                          const IconComponent = option.icon;
-                          return (
-                            <div key={option.id} className="flex items-center space-x-3 p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                              <RadioGroupItem value={option.id} id={option.id} />
-                              <div className="flex items-center gap-3 flex-1">
-                                <div className="w-10 h-10 bg-gradient-to-r from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-600 rounded-lg flex items-center justify-center">
-                                  <IconComponent className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
-                                </div>
-                                <div className="flex-1">
-                                  <Label htmlFor={option.id} className="font-medium cursor-pointer">
-                                    {option.name}
-                                  </Label>
-                                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                    {option.description}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <span className="font-semibold">
-                                    {option.price === 0 ? 'Gratuit' : `${option.price.toFixed(2)} €`}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div>
+                        <Label htmlFor="telephone">Téléphone*</Label>
+                        <Input
+                          id="telephone"
+                          name="telephone"
+                          type="tel"
+                          value={shippingData.telephone}
+                          onChange={handleChange}
+                          required
+                        />
                       </div>
-                    </RadioGroup>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Payment Method */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <Card className="border-0 shadow-lg bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-xl">
-                      <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                        <Lock className="h-4 w-4 text-white" />
-                      </div>
-                      Mode de paiement
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                      <div className="space-y-4">
-                        {paymentOptions.map((option) => {
-                          const IconComponent = option.icon;
-                          return (
-                            <div key={option.id} className="flex items-center space-x-3 p-4 border border-neutral-200 dark:border-neutral-700 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors">
-                              <RadioGroupItem value={option.id} id={option.id} />
-                              <div className="flex items-center gap-3 flex-1">
-                                <div className="w-10 h-10 bg-gradient-to-r from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-600 rounded-lg flex items-center justify-center">
-                                  <IconComponent className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
-                                </div>
-                                <div>
-                                  <Label htmlFor={option.id} className="font-medium cursor-pointer">
-                                    {option.name}
-                                  </Label>
-                                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                                    {option.description}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </RadioGroup>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between mt-6">
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => navigate('/panier')}
+                    >
+                      Retour au panier
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-red-800 hover:bg-red-700"
+                    >
+                      Continuer au paiement
+                    </Button>
+                  </div>
+                </form>
+              )}
+              
+              {step === 'payment' && (
+                <form onSubmit={handlePaymentSubmit}>
+                  <PaymentMethods 
+                    selectedMethod={paymentMethod}
+                    onMethodChange={setPaymentMethod}
+                  />
+                  
+                  <div className="flex justify-between mt-6">
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => setStep('shipping')}
+                    >
+                      Retour
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-red-800 hover:bg-red-700"
+                      disabled={loading}
+                    >
+                      {loading ? 'Traitement en cours...' : 'Confirmer la commande'}
+                    </Button>
+                  </div>
+                </form>
+              )}
             </div>
-
-            {/* Right Column - Order Summary */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="lg:col-span-1"
-            >
-              <Card className="border-0 shadow-xl bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm sticky top-8">
-                <CardHeader>
-                  <CardTitle className="text-xl">Résumé de commande</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Order Items */}
-                  <div className="space-y-4">
-                    {selectedCartItems.map((item) => (
-                      <div key={item.product.id} className="flex gap-3 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                        <img
-                          src={item.product.image}
-                          alt={item.product.name}
-                          className="w-16 h-16 object-cover rounded-lg"
+            
+            <div className="lg:col-span-4">
+              <div className="bg-white p-6 rounded-lg shadow mb-6">
+                <h2 className="text-lg font-semibold mb-4">Récapitulatif de commande</h2>
+                
+                <div className="space-y-4 mb-6">
+                  {selectedCartItems.map(item => (
+                    <div key={item.product.id} className="flex items-center space-x-3">
+                      <img 
+                        src={`${AUTH_BASE_URL}${
+                          item.product.images && item.product.images.length > 0 
+                            ? item.product.images[0] 
+                            : item.product.image
+                        }`} 
+                        alt={item.product.name} 
+                        className="w-16 h-16 object-cover rounded" 
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = `${AUTH_BASE_URL}/uploads/placeholder.jpg`;
+                        }}
+                      />
+                      <div className="flex-grow">
+                        <p className="font-medium line-clamp-2 text-sm">{item.product.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.quantity} x {formatPrice(item.product.price)}
+                          {verifiedPromo && verifiedPromo.valid && item.product.id === verifiedPromo.productId && (
+                            <span className="ml-2 text-red-600">
+                              (-{verifiedPromo.pourcentage}%)
+                            </span>
+                          )}
+                          {item.product.promotion && item.product.promotion > 0 && (
+                            <span className="ml-2 text-green-600">
+                              (Déjà en promo: -{item.product.promotion}%)
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <p className="font-semibold text-sm whitespace-nowrap">
+                        {formatPrice(calculateItemPrice(item))}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="border-t pt-4 space-y-3">
+                  <div className="flex justify-between">
+                    <p>Sous-total</p>
+                    <p>{formatPrice(subtotal)}</p>
+                  </div>
+                  
+                  {hasPromoDiscount && (
+                    <div className="flex justify-between text-red-600">
+                      <p>Remise code promo</p>
+                      <p>-{formatPrice(subtotal - discountedSubtotal)}</p>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between">
+                    <p>Frais de livraison ({deliveryCity || 'Non sélectionné'})</p>
+                    <p>{deliveryPrice === 0 && !deliveryCity ? 'Non calculé' : deliveryPrice === 0 ? 'Gratuit' : formatPrice(deliveryPrice)}</p>
+                  </div>
+                  
+                  {/* Section Code Promo */}
+                  {step === 'shipping' && !allProductsOnPromotion && hasNonPromotionProduct && (
+                    <div className="py-3 border-t border-b">
+                      <p className="font-medium mb-2">Code Promotion</p>
+                      <div className="flex space-x-2">
+                        <Input
+                          placeholder="Saisir votre code promo"
+                          value={codePromo}
+                          onChange={(e) => setCodePromo(e.target.value)}
+                          disabled={verifiedPromo !== null || verifyingCode}
                         />
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-sm truncate">{item.product.name}</h4>
-                          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                            Quantité: {item.quantity}
-                          </p>
-                          <p className="font-semibold text-sm">
-                            {((item.product.prixPromo || item.product.prix) * item.quantity).toFixed(2)} €
-                          </p>
+                        <Button 
+                          onClick={handleVerifyCodePromo}
+                          disabled={!codePromo || verifiedPromo !== null || verifyingCode}
+                          variant="outline"
+                        >
+                          {verifyingCode ? 'Vérification...' : 'Appliquer'}
+                        </Button>
+                      </div>
+                      {verifiedPromo && verifiedPromo.valid && (
+                        <div className="mt-2 flex items-center text-sm text-green-600">
+                          <Percent className="h-4 w-4 mr-1" />
+                          Code promo appliqué : {verifiedPromo.pourcentage}% de réduction
                         </div>
-                      </div>
-                    ))}
+                      )}
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between font-bold text-lg pt-2">
+                    <p>Total</p>
+                    <p>{formatPrice(orderTotal)}</p>
                   </div>
-
-                  <Separator />
-
-                  {/* Price Summary */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span>Sous-total</span>
-                      <span>{subtotal.toFixed(2)} €</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Livraison</span>
-                      <span>{shippingCost === 0 ? 'Gratuit' : `${shippingCost.toFixed(2)} €`}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
-                      <span>{total.toFixed(2)} €</span>
-                    </div>
-                  </div>
-
-                  {/* Security Badge */}
-                  <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
-                      <Shield className="h-5 w-5" />
-                      <span className="text-sm font-medium">Paiement 100% sécurisé</span>
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <Button
-                    onClick={handleSubmitOrder}
-                    disabled={isProcessing}
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 text-lg font-medium"
-                  >
-                    {isProcessing ? (
-                      <div className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Traitement en cours...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Lock className="h-5 w-5" />
-                        Finaliser la commande
-                      </div>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg border">
+                <h3 className="font-medium mb-2">Informations sur la livraison</h3>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>• Livraison gratuite à partir de 50€ d'achat</li>
+                  <li>• Les frais de livraison varient selon la ville</li>
+                  <li>• Livraison en 3-5 jours ouvrés</li>
+                  <li>• Retours gratuits sous 30 jours</li>
+                  <li>• Paiements sécurisés</li>
+                </ul>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </Layout>
   );
