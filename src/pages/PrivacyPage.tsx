@@ -1,157 +1,260 @@
 
 import React from 'react';
 import Layout from '@/components/layout/Layout';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Shield, Lock, Eye, Database, UserCheck, Settings, AlertTriangle, Mail } from 'lucide-react';
 
 const PrivacyPage = () => {
   return (
     <Layout>
-      <div className="container mx-auto py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-red-800">Politique de Confidentialité</h1>
-          <p className="text-gray-600 mt-2">Dernière mise à jour : Mai 2025</p>
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-neutral-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+        {/* Hero Section */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-teal-500/10 dark:from-blue-500/5 dark:via-cyan-500/5 dark:to-teal-500/5">
+          <div className="absolute inset-0 bg-grid-neutral-100/50 dark:bg-grid-neutral-800/50" />
+          <div className="container mx-auto px-4 py-16 relative">
+            <div className="text-center max-w-4xl mx-auto">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-2xl shadow-lg">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              
+              <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent mb-6">
+                Politique de Confidentialité
+              </h1>
+              
+              <p className="text-lg md:text-xl text-neutral-600 dark:text-neutral-300 mb-8 leading-relaxed">
+                Votre vie privée est notre priorité. Découvrez comment nous protégeons et utilisons vos données personnelles.
+              </p>
+              
+              <div className="flex items-center justify-center space-x-8 text-sm text-neutral-500 dark:text-neutral-400">
+                <div className="flex items-center space-x-2">
+                  <Lock className="h-5 w-5 text-blue-500" />
+                  <span>Sécurité renforcée</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="h-5 w-5 text-cyan-500" />
+                  <span>RGPD conforme</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Eye className="h-5 w-5 text-teal-500" />
+                  <span>Transparence totale</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <Card className="p-6 md:p-8">
-          <div className="prose max-w-none">
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4">1. Introduction</h2>
-              <p className="text-gray-700 mb-4">
-                Chez Riziky Boutique, nous accordons une grande importance à la protection de votre vie privée et de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous utilisez notre site web ou nos services.
-              </p>
-              <p className="text-gray-700">
-                En utilisant notre site, vous consentez à la collecte et à l'utilisation de vos informations conformément à cette politique. Si vous n'acceptez pas les termes de cette politique, veuillez ne pas utiliser notre site.
-              </p>
-            </section>
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto space-y-8">
+            {/* Collecte des données */}
+            <Card className="shadow-xl border-0 bg-white dark:bg-neutral-900 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 p-6 border-b border-blue-200 dark:border-blue-800">
+                <CardHeader className="p-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-2 rounded-lg">
+                      <Database className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                      Collecte des données
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+              </div>
+              <CardContent className="p-8">
+                <div className="prose prose-neutral dark:prose-invert max-w-none">
+                  <h4 className="text-lg font-semibold mb-4 text-neutral-900 dark:text-neutral-100">
+                    Données que nous collectons :
+                  </h4>
+                  <ul className="space-y-3 text-neutral-600 dark:text-neutral-300">
+                    <li className="flex items-start space-x-2">
+                      <UserCheck className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Informations personnelles :</strong> nom, prénom, adresse email, numéro de téléphone</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <UserCheck className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Données de commande :</strong> historique d'achats, préférences produits</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <UserCheck className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Données techniques :</strong> adresse IP, cookies, données de navigation</span>
+                    </li>
+                    <li className="flex items-start space-x-2">
+                      <UserCheck className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <span><strong>Communications :</strong> messages, avis, commentaires</span>
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
 
-            <Separator className="my-6" />
+            {/* Utilisation des données */}
+            <Card className="shadow-xl border-0 bg-white dark:bg-neutral-900 overflow-hidden">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-6 border-b border-green-200 dark:border-green-800">
+                <CardHeader className="p-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-lg">
+                      <Settings className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                      Utilisation des données
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+              </div>
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">
+                      🎯 Finalités principales
+                    </h4>
+                    <ul className="space-y-2 text-neutral-600 dark:text-neutral-300">
+                      <li>• Traitement et suivi des commandes</li>
+                      <li>• Service client et support</li>
+                      <li>• Personnalisation de l'expérience</li>
+                      <li>• Recommandations produits</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4 text-green-600 dark:text-green-400">
+                      📧 Communication marketing
+                    </h4>
+                    <ul className="space-y-2 text-neutral-600 dark:text-neutral-300">
+                      <li>• Newsletters (avec consentement)</li>
+                      <li>• Offres promotionnelles</li>
+                      <li>• Nouveautés et actualités</li>
+                      <li>• Programmes de fidélité</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4">2. Informations que nous collectons</h2>
-              <p className="text-gray-700 mb-4">
-                Nous pouvons collecter les types d'informations suivants :
-              </p>
-              <h3 className="text-lg font-semibold mb-2">2.1. Informations personnelles identifiables</h3>
-              <p className="text-gray-700 mb-4">
-                Il s'agit d'informations qui peuvent être utilisées pour vous identifier personnellement, telles que :
-              </p>
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 mb-4">
-                <li>Nom et prénom</li>
-                <li>Adresse e-mail</li>
-                <li>Adresse postale</li>
-                <li>Numéro de téléphone</li>
-                <li>Informations de paiement (nous ne stockons pas les détails complets de votre carte de crédit)</li>
-              </ul>
-              <h3 className="text-lg font-semibold mb-2">2.2. Informations non-identifiables</h3>
-              <p className="text-gray-700 mb-4">
-                Il s'agit de données qui ne permettent pas de vous identifier personnellement, telles que :
-              </p>
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 mb-4">
-                <li>Données démographiques</li>
-                <li>Comportement de navigation sur notre site</li>
-                <li>Préférences d'achat</li>
-                <li>Adresse IP</li>
-                <li>Type de navigateur et d'appareil</li>
-              </ul>
-            </section>
+            {/* Protection des données */}
+            <Card className="shadow-xl border-0 bg-white dark:bg-neutral-900 overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 p-6 border-b border-purple-200 dark:border-purple-800">
+                <CardHeader className="p-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-gradient-to-r from-purple-500 to-violet-500 p-2 rounded-lg">
+                      <Lock className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent">
+                      Protection et sécurité
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+              </div>
+              <CardContent className="p-8">
+                <div className="prose prose-neutral dark:prose-invert max-w-none">
+                  <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">
+                    Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos données personnelles contre tout accès non autorisé, toute divulgation, altération ou destruction.
+                  </p>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800">
+                      <h5 className="font-semibold text-purple-700 dark:text-purple-400 mb-2">🔒 Chiffrement SSL</h5>
+                      <p className="text-sm text-purple-600 dark:text-purple-300">Toutes les données sont cryptées</p>
+                    </div>
+                    <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800">
+                      <h5 className="font-semibold text-purple-700 dark:text-purple-400 mb-2">🛡️ Serveurs sécurisés</h5>
+                      <p className="text-sm text-purple-600 dark:text-purple-300">Infrastructure protégée 24/7</p>
+                    </div>
+                    <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 p-4 rounded-xl border border-purple-200 dark:border-purple-800">
+                      <h5 className="font-semibold text-purple-700 dark:text-purple-400 mb-2">👥 Accès limité</h5>
+                      <p className="text-sm text-purple-600 dark:text-purple-300">Personnel autorisé uniquement</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <Separator className="my-6" />
+            {/* Vos droits */}
+            <Card className="shadow-xl border-0 bg-white dark:bg-neutral-900 overflow-hidden">
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 p-6 border-b border-orange-200 dark:border-orange-800">
+                <CardHeader className="p-0">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-2 rounded-lg">
+                      <UserCheck className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                      Vos droits RGPD
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+              </div>
+              <CardContent className="p-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4 text-orange-600 dark:text-orange-400">
+                      ✅ Droits d'accès et de contrôle
+                    </h4>
+                    <ul className="space-y-3 text-neutral-600 dark:text-neutral-300">
+                      <li className="flex items-start space-x-2">
+                        <Eye className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                        <span>Droit d'accès à vos données</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <Settings className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                        <span>Droit de rectification</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                        <span>Droit à l'effacement</span>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <Lock className="h-5 w-5 text-orange-500 mt-0.5 flex-shrink-0" />
+                        <span>Droit à la portabilité</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4 text-orange-600 dark:text-orange-400">
+                      📝 Comment exercer vos droits
+                    </h4>
+                    <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 p-4 rounded-xl border border-orange-200 dark:border-orange-800">
+                      <p className="text-neutral-600 dark:text-neutral-300 mb-4">
+                        Pour exercer vos droits, contactez-nous :
+                      </p>
+                      <div className="space-y-2 text-sm">
+                        <p className="text-orange-700 dark:text-orange-400">
+                          📧 privacy@riziky-boutic.fr
+                        </p>
+                        <p className="text-orange-700 dark:text-orange-400">
+                          📞 +33 (0)1 23 45 67 89
+                        </p>
+                        <p className="text-orange-700 dark:text-orange-400">
+                          ⏰ Réponse sous 48h maximum
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4">3. Comment nous utilisons vos informations</h2>
-              <p className="text-gray-700 mb-4">
-                Nous utilisons les informations que nous collectons pour :
-              </p>
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 mb-4">
-                <li>Traiter vos commandes et paiements</li>
-                <li>Vous envoyer des confirmations de commande et des mises à jour</li>
-                <li>Vous fournir un service client</li>
-                <li>Personnaliser votre expérience sur notre site</li>
-                <li>Vous envoyer des informations marketing et promotionnelles (si vous y avez consenti)</li>
-                <li>Améliorer notre site et nos services</li>
-                <li>Détecter et prévenir la fraude</li>
-                <li>Se conformer à nos obligations légales</li>
-              </ul>
-            </section>
-
-            <Separator className="my-6" />
-
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4">4. Partage de vos informations</h2>
-              <p className="text-gray-700 mb-4">
-                Nous ne vendons, n'échangeons ni ne louons vos informations personnelles identifiables à des tiers. Nous pouvons partager vos informations dans les situations suivantes :
-              </p>
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 mb-4">
-                <li>Avec des prestataires de services tiers qui nous aident à exploiter notre site et à vous fournir nos services (traitement des paiements, livraison, service client)</li>
-                <li>Pour se conformer à la loi, à une procédure judiciaire ou à une demande gouvernementale</li>
-                <li>Pour protéger nos droits, notre propriété ou notre sécurité, ainsi que ceux de nos utilisateurs ou du public</li>
-                <li>En cas de fusion, acquisition ou vente d'actifs, vos informations peuvent faire partie des actifs transférés</li>
-              </ul>
-            </section>
-
-            <Separator className="my-6" />
-
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4">5. Cookies et technologies similaires</h2>
-              <p className="text-gray-700 mb-4">
-                Nous utilisons des cookies et des technologies de suivi similaires pour suivre l'activité sur notre site et conserver certaines informations. Les cookies sont des fichiers contenant une petite quantité de données qui peuvent inclure un identifiant unique anonyme.
-              </p>
-              <p className="text-gray-700 mb-4">
-                Vous pouvez configurer votre navigateur pour qu'il refuse tous les cookies ou pour qu'il vous avertisse lorsqu'un cookie est envoyé. Cependant, si vous n'acceptez pas les cookies, vous ne pourrez peut-être pas utiliser certaines parties de notre site.
-              </p>
-              <p className="text-gray-700">
-                Pour plus d'informations sur notre utilisation des cookies, veuillez consulter notre <a href="/cookies-policy" className="text-red-800 hover:underline">Politique de Cookies</a>.
-              </p>
-            </section>
-
-            <Separator className="my-6" />
-
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4">6. Sécurité des données</h2>
-              <p className="text-gray-700 mb-4">
-                La sécurité de vos données est importante pour nous, mais n'oubliez pas qu'aucune méthode de transmission sur Internet ou de stockage électronique n'est sûre à 100%. Bien que nous nous efforcions d'utiliser des moyens commercialement acceptables pour protéger vos informations personnelles, nous ne pouvons garantir leur sécurité absolue.
-              </p>
-              <p className="text-gray-700">
-                Nous mettons en œuvre diverses mesures de sécurité pour maintenir la sécurité de vos informations personnelles, y compris le cryptage, les pare-feu et l'accès restreint aux données.
-              </p>
-            </section>
-
-            <Separator className="my-6" />
-
-            <section className="mb-8">
-              <h2 className="text-xl font-bold mb-4">7. Vos droits</h2>
-              <p className="text-gray-700 mb-4">
-                Conformément au Règlement Général sur la Protection des Données (RGPD) et à d'autres lois applicables sur la protection des données, vous disposez des droits suivants :
-              </p>
-              <ul className="list-disc pl-5 space-y-2 text-gray-700 mb-4">
-                <li>Droit d'accès à vos données personnelles</li>
-                <li>Droit de rectification des données inexactes</li>
-                <li>Droit à l'effacement de vos données (« droit à l'oubli »)</li>
-                <li>Droit à la limitation du traitement de vos données</li>
-                <li>Droit à la portabilité des données</li>
-                <li>Droit d'opposition au traitement de vos données</li>
-                <li>Droit de ne pas faire l'objet d'une décision automatisée</li>
-              </ul>
-              <p className="text-gray-700">
-                Pour exercer ces droits, veuillez nous contacter via les coordonnées fournies à la fin de cette politique.
-              </p>
-            </section>
-
-            <Separator className="my-6" />
-
-            <section>
-              <h2 className="text-xl font-bold mb-4">8. Contact</h2>
-              <p className="text-gray-700 mb-4">
-                Si vous avez des questions concernant cette politique de confidentialité, veuillez nous contacter à :
-              </p>
-              <p className="text-gray-700">
-                Email : <a href="mailto:privacy@rizikyboutique.fr" className="text-red-800 hover:underline">privacy@rizikyboutique.fr</a><br />
-                Adresse : 123 Avenue de la Mode, 75001 Paris, France
-              </p>
-            </section>
+            {/* Contact */}
+            <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200 dark:border-blue-800">
+              <CardContent className="p-8 text-center">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-2xl">
+                    <Mail className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                  Questions sur la confidentialité ?
+                </h3>
+                <p className="text-blue-700 dark:text-blue-400 mb-4">
+                  Notre délégué à la protection des données est à votre disposition.
+                </p>
+                <div className="text-sm text-blue-600 dark:text-blue-400">
+                  <p>Email : dpo@riziky-boutic.fr</p>
+                  <p>Réponse garantie sous 72h</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </Card>
+        </div>
       </div>
     </Layout>
   );
