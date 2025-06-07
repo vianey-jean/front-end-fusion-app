@@ -35,6 +35,7 @@ interface StoreContextType {
     codePromo?: {code: string, productId: string, pourcentage: number}
   ) => Promise<Order | null>;
   setSelectedCartItems: (items: StoreCartItem[]) => void;
+  clearSelectedCartItems: () => void;
   fetchCart: () => Promise<void>;
 }
 
@@ -78,6 +79,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateQuantity = (productId: string, quantity: number) => {
     updateCartQuantity(productId, quantity, products);
+  };
+
+  const clearSelectedCartItems = () => {
+    setSelectedCartItems([]);
   };
 
   const createOrder = async (
@@ -125,6 +130,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       favoriteCount,
       createOrder,
       setSelectedCartItems,
+      clearSelectedCartItems,
       fetchCart
     }}>
       {children}
