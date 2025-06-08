@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useAuth } from '@/contexts/AuthContext';
-import { ThemeToggle } from '@/components/theme-provider';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import AdvancedSearchBar from '@/components/search/AdvancedSearchBar';
 import CategoriesDropdown from './CategoriesDropdown';
 import { useCategories } from '@/hooks/useCategories';
@@ -27,10 +27,14 @@ import logo from '@/assets/logo.png';
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { cartCount } = useCart();
-  const { favoritesCount } = useFavorites();
+  const { cart } = useCart();
+  const { favoriteCount } = useFavorites();
   const { user, logout } = useAuth();
-  const { data: categories = [] } = useCategories();
+  const { categories } = useCategories();
+  const navigate = useNavigate();
+
+  // Calculate cart count from cart items
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,6 +44,12 @@ const Navbar: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      navigate(`/produits?search=${encodeURIComponent(query.trim())}`);
+    }
+  };
 
   const navVariants = {
     hidden: { y: -100 },
@@ -103,7 +113,7 @@ const Navbar: React.FC = () => {
 
             {/* Search Bar - Desktop */}
             <div className="hidden md:block flex-1 max-w-lg mx-8">
-              <AdvancedSearchBar />
+              <AdvancedSearchBar onSearch={handleSearch} />
             </div>
 
             {/* Navigation Icons */}
@@ -120,9 +130,9 @@ const Navbar: React.FC = () => {
               <Button variant="ghost" size="sm" asChild className="relative group">
                 <Link to="/favoris">
                   <Heart className="h-5 w-5 group-hover:text-rose-500 transition-colors" />
-                  {favoritesCount > 0 && (
+                  {favoriteCount > 0 && (
                     <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 bg-gradient-to-r from-rose-500 to-purple-500 text-white text-xs">
-                      {favoritesCount}
+                      {favoriteCount}
                     </Badge>
                   )}
                 </Link>
@@ -184,7 +194,7 @@ const Navbar: React.FC = () => {
 
           {/* Search Bar - Mobile */}
           <div className="md:hidden pb-4">
-            <AdvancedSearchBar />
+            <AdvancedSearchBar onSearch={handleSearch} />
           </div>
         </div>
       </motion.nav>
