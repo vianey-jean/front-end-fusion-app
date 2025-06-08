@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,7 +47,7 @@ const RegisterPage = () => {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      await register(data.email, data.password, data.nom, data.prenom);
+      await register(`${data.prenom} ${data.nom}`, data.email, data.password);
       toast.success("Compte créé avec succès !");
       navigate('/');
     } catch (error: any) {
