@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { codePromosAPI } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminLayout from './AdminLayout';
+import AdminPageTitle from '@/components/admin/AdminPageTitle';
+import DataStatsCard from '@/components/admin/DataStatsCard';
 import {
   Table,
   TableBody,
@@ -31,11 +32,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/sonner';
-import { PercentIcon, Edit, Trash2, PlusCircle, Search } from 'lucide-react';
+import { PercentIcon, Edit, Trash2, PlusCircle, Search, Tag, TrendingUp, Clock, Gift } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { CodePromo } from '@/types/codePromo';
-const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || "https://ton-backend.com";
 
+const AUTH_BASE_URL = import.meta.env.VITE_AUTH_BASE_URL || "https://ton-backend.com";
 
 const AdminCodePromosPage = () => {
   const { user } = useAuth();
@@ -169,71 +170,162 @@ const AdminCodePromosPage = () => {
     setIsDeleteModalOpen(true);
   };
   
+  // Statistics calculations
+  const totalCodes = codePromos.length;
+  const activeCodes = codePromos.filter(code => code.quantite > 0).length;
+  const totalReduction = codePromos.reduce((sum, code) => sum + (code.pourcentage || 0), 0);
+  const averageDiscount = totalCodes > 0 ? totalReduction / totalCodes : 0;
+
   return (
     <AdminLayout>
-      <div className="container mx-auto py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Gestion des Codes Promo</h1>
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
+      <div className="space-y-8 p-6 bg-gradient-to-br from-gray-50 via-white to-gray-50 min-h-screen">
+        {/* Enhanced Header */}
+        <AdminPageTitle 
+          title="Gestion des Codes Promo"
+          icon={Tag}
+          description="Créez et gérez vos promotions facilement"
+        />
+
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <DataStatsCard
+            title="Total Codes"
+            value={totalCodes}
+            icon={Tag}
+            description="Codes promo créés"
+            status="info"
+          />
+          <DataStatsCard
+            title="Codes Actifs"
+            value={activeCodes}
+            icon={Gift}
+            description="Codes disponibles"
+            status="success"
+          />
+          <DataStatsCard
+            title="Codes Épuisés"
+            value={totalCodes - activeCodes}
+            icon={Clock}
+            description="Codes sans stock"
+            status="warning"
+          />
+          <DataStatsCard
+            title="Remise Moyenne"
+            value={`${averageDiscount.toFixed(1)}%`}
+            icon={TrendingUp}
+            description="Réduction moyenne"
+            status="info"
+          />
+        </div>
+
+        {/* Action Button */}
+        <div className="flex justify-end">
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
+            <PlusCircle className="mr-2 h-5 w-5" />
             Créer un code promo
           </Button>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Codes Promo</CardTitle>
-            <CardDescription>Liste des codes promo disponibles</CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Enhanced Codes Table */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-200/60 overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-50 to-white px-8 py-6 border-b border-gray-200/60">
+            <h2 className="text-2xl font-bold text-gray-900">Codes Promo</h2>
+            <p className="text-gray-600 mt-1">Liste des codes promo disponibles</p>
+          </div>
+          
+          <div className="p-6">
             {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-red-800"></div>
+              <div className="flex justify-center py-16">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200"></div>
+                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-500 border-t-transparent absolute top-0"></div>
+                </div>
               </div>
             ) : codePromos.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Aucun code promo disponible</p>
+              <div className="text-center py-16">
+                <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-8 rounded-3xl w-fit mx-auto mb-6">
+                  <Tag className="h-16 w-16 text-gray-400 mx-auto" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-700 mb-2">Aucun code promo</h3>
+                <p className="text-gray-500 mb-6">Créez votre premier code promo pour commencer</p>
+                <Button 
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Créer un code promo
+                </Button>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-<TableRow>
-  <TableHead className="text-center text-red-600 font-bold">Code</TableHead>
-  <TableHead className="text-center text-red-600 font-bold">Pourcentage</TableHead>
-  <TableHead className="text-center text-red-600 font-bold">Quantité</TableHead>
-  <TableHead className="text-center text-red-600 font-bold">Produit</TableHead>
-  <TableHead className="text-center text-red-600 font-bold">Actions</TableHead>
-</TableRow>
-
-                </TableHeader>
-                <TableBody>
-                  {codePromos.map((codePromo) => (
-                    <TableRow key={codePromo.id}>
-                      <TableCell className="font-medium">{codePromo.code}</TableCell>
-                      <TableCell>{codePromo.pourcentage}%</TableCell>
-                      <TableCell>
-                        <Badge variant={codePromo.quantite > 0 ? "outline" : "destructive"}>
-                          {codePromo.quantite}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{codePromo.productName || codePromo.productId}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline" onClick={() => openEditModal(codePromo)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => openDeleteModal(codePromo)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                      <TableHead className="text-center font-bold text-gray-700 py-4">Code</TableHead>
+                      <TableHead className="text-center font-bold text-gray-700">Pourcentage</TableHead>
+                      <TableHead className="text-center font-bold text-gray-700">Quantité</TableHead>
+                      <TableHead className="text-center font-bold text-gray-700">Produit</TableHead>
+                      <TableHead className="text-center font-bold text-gray-700">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {codePromos.map((codePromo) => (
+                      <TableRow key={codePromo.id} className="hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-all duration-200">
+                        <TableCell className="text-center">
+                          <code className="bg-gradient-to-r from-gray-100 to-gray-200 px-3 py-2 rounded-lg font-mono font-bold text-gray-800 border border-gray-300">
+                            {codePromo.code}
+                          </code>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 px-3 py-1 rounded-full font-bold border border-emerald-200">
+                            {codePromo.pourcentage}%
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={codePromo.quantite > 0 ? "default" : "destructive"} className={`font-bold ${
+                            codePromo.quantite > 0 
+                              ? 'bg-green-100 text-green-800 border-green-200' 
+                              : 'bg-red-100 text-red-800 border-red-200'
+                          }`}>
+                            {codePromo.quantite}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 rounded-full text-sm font-medium border border-blue-200">
+                            {codePromo.productName || codePromo.productId}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => openEditModal(codePromo)}
+                              className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => openDeleteModal(codePromo)}
+                              className="border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
         
         {/* Modal de création */}
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>

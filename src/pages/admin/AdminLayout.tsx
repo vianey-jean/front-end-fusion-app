@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -17,8 +16,7 @@ import {
   FolderOpen,
   Menu,
   X,
-  BarChart3,
-  Star
+  Database
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSecureRoute } from '@/services/secureIds';
@@ -55,102 +53,25 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   };
   
   const navItems = [
-    { 
-      name: 'Dashboard', 
-      path: secureRoutes.chat, 
-      realPath: '/admin', 
-      icon: BarChart3, 
-      color: 'from-blue-500 to-blue-600',
-      description: 'Vue d\'ensemble'
-    },
-    { 
-      name: 'Produits', 
-      path: secureRoutes.produits, 
-      realPath: '/admin/produits', 
-      icon: Package, 
-      color: 'from-emerald-500 to-emerald-600',
-      description: 'Gestion du catalogue'
-    },
-    { 
-      name: 'Catégories', 
-      path: secureRoutes.categories, 
-      realPath: '/admin/categories', 
-      icon: FolderOpen, 
-      color: 'from-purple-500 to-purple-600',
-      description: 'Organisation produits'
-    },
-    { 
-      name: 'Commandes', 
-      path: secureRoutes.commandes, 
-      realPath: '/admin/commandes', 
-      icon: Truck, 
-      color: 'from-indigo-500 to-indigo-600',
-      description: 'Suivi des ventes'
-    },
-    { 
-      name: 'Utilisateurs', 
-      path: secureRoutes.utilisateurs, 
-      realPath: '/admin/utilisateurs', 
-      icon: Users, 
-      color: 'from-green-500 to-green-600',
-      description: 'Gestion clients'
-    },
-    { 
-      name: 'Messages', 
-      path: secureRoutes.messages, 
-      realPath: '/admin/messages', 
-      icon: MessageCircle, 
-      color: 'from-yellow-500 to-orange-500',
-      description: 'Communication'
-    },
-    { 
-      name: 'Promotions', 
-      path: secureRoutes.codePromo, 
-      realPath: '/admin/code-promos', 
-      icon: Percent, 
-      color: 'from-pink-500 to-rose-500',
-      description: 'Codes promo'
-    },
-    { 
-      name: 'Ventes Flash', 
-      path: secureRoutes.flashSales, 
-      realPath: '/admin/flash-sales', 
-      icon: Zap, 
-      color: 'from-amber-500 to-yellow-500',
-      description: 'Offres limitées'
-    },
-    { 
-      name: 'Publicités', 
-      path: secureRoutes.pubLayout, 
-      realPath: '/admin/pub-layout', 
-      icon: Megaphone, 
-      color: 'from-cyan-500 to-cyan-600',
-      description: 'Bannières & annonces'
-    },
-    { 
-      name: 'Remboursements', 
-      path: secureRoutes.remboursements, 
-      realPath: '/admin/remboursements', 
-      icon: RefreshCw, 
-      color: 'from-red-500 to-red-600',
-      description: 'Gestion retours'
-    },
+    { name: 'Produits', path: secureRoutes.produits, realPath: '/admin/produits', icon: Package, color: 'from-blue-500 to-blue-600' },
+    { name: 'Catégories', path: secureRoutes.categories, realPath: '/admin/categories', icon: FolderOpen, color: 'from-purple-500 to-purple-600' },
+    { name: 'Utilisateurs', path: secureRoutes.utilisateurs, realPath: '/admin/utilisateurs', icon: Users, color: 'from-green-500 to-green-600' },
+    { name: 'Messages', path: secureRoutes.messages, realPath: '/admin/messages', icon: MessageCircle, color: 'from-yellow-500 to-orange-500' },
+    { name: 'Commandes', path: secureRoutes.commandes, realPath: '/admin/commandes', icon: Truck, color: 'from-indigo-500 to-indigo-600' },
+    { name: 'CodePromo', path: secureRoutes.codePromo, realPath: '/admin/code-promos', icon: Percent, color: 'from-pink-500 to-rose-500' },
+    { name: 'Publicités', path: secureRoutes.pubLayout, realPath: '/admin/pub-layout', icon: Megaphone, color: 'from-cyan-500 to-cyan-600' },
+    { name: 'Remboursements', path: secureRoutes.remboursements, realPath: '/admin/remboursements', icon: RefreshCw, color: 'from-red-500 to-red-600' },
+    { name: 'Ventes Flash', path: secureRoutes.flashSales, realPath: '/admin/flash-sales', icon: Zap, color: 'from-amber-500 to-yellow-500' },
+    { name: 'Migration', path: '/admin/migration', realPath: '/admin/migration', icon: Database, color: 'from-violet-500 to-violet-600' },
+    { name: 'Chat Admin', path: secureRoutes.chat, realPath: '/admin', icon: ShoppingBag, color: 'from-emerald-500 to-emerald-600' },
     ...(isServiceAdmin ? [{ 
       name: 'Service Client', 
       path: secureRoutes.serviceClient, 
       realPath: '/admin/service-client',
       icon: MessageSquare,
-      color: 'from-teal-500 to-teal-600',
-      description: 'Support client'
+      color: 'from-teal-500 to-teal-600'
     }] : []),
-    { 
-      name: 'Paramètres', 
-      path: secureRoutes.parametres, 
-      realPath: '/admin/parametres', 
-      icon: Settings, 
-      color: 'from-gray-500 to-gray-600',
-      description: 'Configuration'
-    },
+    { name: 'Paramètres', path: secureRoutes.parametres, realPath: '/admin/parametres', icon: Settings, color: 'from-gray-500 to-gray-600' },
   ];
 
   const isActivePath = (realPath: string) => {
@@ -160,25 +81,25 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Mobile Header */}
-      <div className="md:hidden bg-gradient-to-r from-red-800 via-red-700 to-red-800 shadow-2xl border-b border-red-600/20">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-3">
-            <div className="bg-white/20 backdrop-blur-sm p-2.5 rounded-2xl shadow-lg">
-              <ShoppingBag className="h-7 w-7 text-white" />
+      <div className="md:hidden bg-gradient-to-r from-gray-900 to-gray-800 shadow-xl border-b border-gray-700">
+        <div className="flex items-center justify-between p-3">
+          <div className="flex items-center space-x-2">
+            <div className="bg-gradient-to-r from-red-500 to-red-600 p-1.5 rounded-xl shadow-lg">
+              <ShoppingBag className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Riziky Boutique</h1>
-              <p className="text-xs text-red-100">Panneau d'administration</p>
+              <h1 className="text-base font-bold text-white">Riziky-Boutic</h1>
+              <p className="text-xs text-gray-300">Administration</p>
             </div>
           </div>
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 transition-all duration-300 backdrop-blur-sm"
+            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
           >
             {sidebarOpen ? (
-              <X className="h-6 w-6 text-white" />
+              <X className="h-5 w-5 text-white" />
             ) : (
-              <Menu className="h-6 w-6 text-white" />
+              <Menu className="h-5 w-5 text-white" />
             )}
           </button>
         </div>
@@ -187,74 +108,61 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {/* Sidebar */}
       <div className={`${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:translate-x-0 fixed md:relative z-30 w-full md:w-80 bg-gradient-to-b from-red-900 via-red-800 to-red-900 text-white md:min-h-screen transition-all duration-300 ease-in-out shadow-2xl`}>
+      } md:translate-x-0 fixed md:relative z-30 w-full md:w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white h-screen transition-transform duration-300 ease-in-out shadow-2xl flex flex-col`}>
         
         {/* Desktop Header */}
-        <div className="hidden md:block p-8 border-b border-red-700/30 bg-gradient-to-r from-red-800/50 to-red-700/50 backdrop-blur-sm">
-          <div className="flex items-center space-x-4 mb-3">
-            <div className="bg-white/20 backdrop-blur-sm p-4 rounded-3xl shadow-lg">
-              <ShoppingBag className="h-10 w-10 text-white" />
+        <div className="hidden md:block p-4 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 flex-shrink-0">
+          <div className="flex items-center space-x-2 mb-1">
+            <div className="bg-gradient-to-r from-red-500 to-red-600 p-2 rounded-xl shadow-lg">
+              <ShoppingBag className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-red-100 bg-clip-text text-transparent">
-                Riziky Boutique
+              <h1 className="text-lg font-bold bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+                Riziky-Boutic
               </h1>
-              <p className="text-red-200 text-sm font-medium flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                Administration Premium
-              </p>
+              <p className="text-gray-400 text-xs font-medium">Panneau d'Administration</p>
             </div>
           </div>
         </div>
         
         {/* Navigation */}
-        <div className="p-4 space-y-2 max-h-[calc(100vh-220px)] overflow-y-auto scrollbar-thin scrollbar-thumb-red-600/50 scrollbar-track-transparent">
+        <div className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
           {navItems.map((item, index) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`group flex items-center px-4 py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
+              className={`group flex items-center px-3 py-2 rounded-xl transition-all duration-300 hover:scale-105 text-sm ${
                 isActivePath(item.realPath)
-                  ? 'bg-white/20 text-white shadow-lg scale-[1.02] backdrop-blur-sm'
-                  : 'text-red-100 hover:bg-white/10 hover:text-white hover:backdrop-blur-sm'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg scale-105'
+                  : 'text-gray-300 hover:bg-gradient-to-r hover:from-gray-700 hover:to-gray-600 hover:text-white'
               }`}
               onClick={() => setSidebarOpen(false)}
             >
-              <div className={`p-3 rounded-xl mr-4 transition-all duration-300 ${
+              <div className={`p-1.5 rounded-lg mr-2 transition-all duration-300 ${
                 isActivePath(item.realPath) 
-                  ? 'bg-white/30 shadow-lg scale-110' 
-                  : `bg-gradient-to-r ${item.color} opacity-80 group-hover:opacity-100 group-hover:scale-105`
+                  ? 'bg-white/20 shadow-lg' 
+                  : `bg-gradient-to-r ${item.color} opacity-80 group-hover:opacity-100`
               }`}>
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-4 w-4" />
               </div>
-              <div className="flex-1">
-                <span className="font-semibold text-sm">{item.name}</span>
-                <p className="text-xs text-red-200/80 group-hover:text-red-100 transition-colors">
-                  {item.description}
-                </p>
-              </div>
+              <span className="font-medium text-xs">{item.name}</span>
               {isActivePath(item.realPath) && (
-                <div className="ml-auto">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                </div>
+                <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
               )}
             </Link>
           ))}
         </div>
         
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-red-700/30 bg-gradient-to-r from-red-800/50 to-red-700/50 backdrop-blur-sm">
+        <div className="p-3 border-t border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 flex-shrink-0">
           <Link 
             to="/" 
-            className="flex items-center px-4 py-3 text-red-100 rounded-2xl hover:bg-white/10 hover:text-white transition-all duration-300 group hover:backdrop-blur-sm"
+            className="flex items-center px-3 py-2 text-gray-300 rounded-xl hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 hover:text-white transition-all duration-300 group text-sm"
           >
-            <div className="p-3 rounded-xl mr-4 bg-gradient-to-r from-red-600/50 to-red-500/50 group-hover:from-white/20 group-hover:to-white/20 transition-all duration-300">
-              <LogOut className="h-5 w-5" />
+            <div className="p-1.5 rounded-lg mr-2 bg-gradient-to-r from-gray-600 to-gray-500 group-hover:from-white/20 group-hover:to-white/20 transition-all duration-300">
+              <LogOut className="h-4 w-4" />
             </div>
-            <div>
-              <span className="font-semibold text-sm">Retour au site</span>
-              <p className="text-xs text-red-200/80">Interface client</p>
-            </div>
+            <span className="font-medium text-xs">Retour au site</span>
           </Link>
         </div>
       </div>
@@ -268,9 +176,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       )}
       
       {/* Main Content */}
-      <div className="flex-1 min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
-          <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 min-h-[calc(100vh-4rem)] p-6 md:p-8">
+      <div className="flex-1 overflow-hidden">
+        <div className="p-3 md:p-4 h-screen overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 h-full p-4 md:p-6 overflow-y-auto">
             {children}
           </div>
         </div>
