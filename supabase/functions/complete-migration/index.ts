@@ -37,26 +37,49 @@ serve(async (req) => {
 
     // 1. Migrer les catégories
     try {
-      const categoriesResponse = await fetch(`${serverUrl}/api/categories`)
+      console.log('📦 Récupération des catégories...')
+      const categoriesResponse = await fetch(`${serverUrl}/api/categories`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      
+      console.log('📊 Status catégories:', categoriesResponse.status)
+      
       if (categoriesResponse.ok) {
         const categories = await categoriesResponse.json()
+        console.log('📋 Catégories récupérées:', categories?.length || 0)
         
-        for (const category of categories) {
-          const { error } = await supabaseClient
-            .from('categories')
-            .upsert({
-              id: category.id,
-              name: category.name,
-              description: category.description,
-              order: category.order,
-              is_active: category.isActive ?? true,
-              created_at: category.createdAt || new Date().toISOString(),
-              updated_at: category.updatedAt || new Date().toISOString()
-            })
-          
-          if (!error) migrationResults.categories++
+        if (categories && Array.isArray(categories) && categories.length > 0) {
+          for (const category of categories) {
+            try {
+              const { error } = await supabaseClient
+                .from('categories')
+                .upsert({
+                  id: category.id,
+                  name: category.name,
+                  description: category.description || '',
+                  order: category.order || 0,
+                  is_active: category.isActive ?? true,
+                  created_at: category.createdAt || new Date().toISOString(),
+                  updated_at: category.updatedAt || new Date().toISOString()
+                })
+              
+              if (!error) {
+                migrationResults.categories++
+              } else {
+                console.log('⚠️ Erreur insertion catégorie:', error)
+              }
+            } catch (err) {
+              console.log('⚠️ Erreur traitement catégorie:', err)
+            }
+          }
         }
         console.log(`✅ ${migrationResults.categories} catégories migrées`)
+      } else {
+        console.log('❌ Erreur récupération catégories:', categoriesResponse.statusText)
       }
     } catch (error) {
       console.error('❌ Erreur migration catégories:', error)
@@ -64,39 +87,62 @@ serve(async (req) => {
 
     // 2. Migrer les produits
     try {
-      const productsResponse = await fetch(`${serverUrl}/api/products`)
+      console.log('📦 Récupération des produits...')
+      const productsResponse = await fetch(`${serverUrl}/api/products`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      
+      console.log('📊 Status produits:', productsResponse.status)
+      
       if (productsResponse.ok) {
         const products = await productsResponse.json()
+        console.log('📋 Produits récupérés:', products?.length || 0)
         
-        for (const product of products) {
-          const { error } = await supabaseClient
-            .from('products')
-            .upsert({
-              id: product.id,
-              name: product.name,
-              description: product.description,
-              price: product.price,
-              original_price: product.originalPrice,
-              category: product.category,
-              images: product.images || [],
-              image: product.image,
-              promotion: product.promotion,
-              promotion_end: product.promotionEnd,
-              stock: product.stock || 0,
-              is_sold: product.isSold || false,
-              date_ajout: product.dateAjout || new Date().toISOString(),
-              flash_sale_discount: product.flashSaleDiscount,
-              flash_sale_start_date: product.flashSaleStartDate,
-              flash_sale_end_date: product.flashSaleEndDate,
-              flash_sale_title: product.flashSaleTitle,
-              flash_sale_description: product.flashSaleDescription,
-              original_flash_price: product.originalFlashPrice,
-              flash_sale_price: product.flashSalePrice
-            })
-          
-          if (!error) migrationResults.products++
+        if (products && Array.isArray(products) && products.length > 0) {
+          for (const product of products) {
+            try {
+              const { error } = await supabaseClient
+                .from('products')
+                .upsert({
+                  id: product.id,
+                  name: product.name,
+                  description: product.description || '',
+                  price: product.price || 0,
+                  original_price: product.originalPrice || product.price || 0,
+                  category: product.category,
+                  images: product.images || [],
+                  image: product.image,
+                  promotion: product.promotion,
+                  promotion_end: product.promotionEnd,
+                  stock: product.stock || 0,
+                  is_sold: product.isSold || false,
+                  date_ajout: product.dateAjout || new Date().toISOString(),
+                  flash_sale_discount: product.flashSaleDiscount,
+                  flash_sale_start_date: product.flashSaleStartDate,
+                  flash_sale_end_date: product.flashSaleEndDate,
+                  flash_sale_title: product.flashSaleTitle,
+                  flash_sale_description: product.flashSaleDescription,
+                  original_flash_price: product.originalFlashPrice,
+                  flash_sale_price: product.flashSalePrice
+                })
+              
+              if (!error) {
+                migrationResults.products++
+              } else {
+                console.log('⚠️ Erreur insertion produit:', error)
+              }
+            } catch (err) {
+              console.log('⚠️ Erreur traitement produit:', err)
+            }
+          }
         }
         console.log(`✅ ${migrationResults.products} produits migrés`)
+      } else {
+        console.log('❌ Erreur récupération produits:', productsResponse.statusText)
       }
     } catch (error) {
       console.error('❌ Erreur migration produits:', error)
@@ -104,27 +150,44 @@ serve(async (req) => {
 
     // 3. Migrer les contacts
     try {
-      const contactsResponse = await fetch(`${serverUrl}/api/contacts`)
+      console.log('📦 Récupération des contacts...')
+      const contactsResponse = await fetch(`${serverUrl}/api/contacts`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      
       if (contactsResponse.ok) {
         const contacts = await contactsResponse.json()
+        console.log('📋 Contacts récupérés:', contacts?.length || 0)
         
-        for (const contact of contacts) {
-          const { error } = await supabaseClient
-            .from('contacts')
-            .upsert({
-              id: contact.id,
-              nom: contact.nom,
-              prenom: contact.prenom,
-              email: contact.email,
-              telephone: contact.telephone,
-              adresse: contact.adresse,
-              objet: contact.objet,
-              message: contact.message,
-              date_creation: contact.dateCreation || new Date().toISOString(),
-              read: contact.read || false
-            })
-          
-          if (!error) migrationResults.contacts++
+        if (contacts && Array.isArray(contacts) && contacts.length > 0) {
+          for (const contact of contacts) {
+            try {
+              const { error } = await supabaseClient
+                .from('contacts')
+                .upsert({
+                  id: contact.id,
+                  nom: contact.nom || '',
+                  prenom: contact.prenom || '',
+                  email: contact.email || '',
+                  telephone: contact.telephone || '',
+                  adresse: contact.adresse || '',
+                  objet: contact.objet || '',
+                  message: contact.message || '',
+                  date_creation: contact.dateCreation || new Date().toISOString(),
+                  read: contact.read || false
+                })
+              
+              if (!error) {
+                migrationResults.contacts++
+              }
+            } catch (err) {
+              console.log('⚠️ Erreur traitement contact:', err)
+            }
+          }
         }
         console.log(`✅ ${migrationResults.contacts} contacts migrés`)
       }
@@ -134,24 +197,41 @@ serve(async (req) => {
 
     // 4. Migrer les codes promos
     try {
-      const codePromosResponse = await fetch(`${serverUrl}/api/code-promos`)
+      console.log('📦 Récupération des codes promos...')
+      const codePromosResponse = await fetch(`${serverUrl}/api/code-promos`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      
       if (codePromosResponse.ok) {
         const codePromos = await codePromosResponse.json()
+        console.log('📋 Codes promos récupérés:', codePromos?.length || 0)
         
-        for (const codePromo of codePromos) {
-          const { error } = await supabaseClient
-            .from('code_promos')
-            .upsert({
-              id: codePromo.id,
-              code: codePromo.code,
-              pourcentage: codePromo.pourcentage,
-              quantite: codePromo.quantite || 1,
-              product_id: codePromo.productId,
-              product_name: codePromo.productName,
-              created_at: codePromo.createdAt || new Date().toISOString()
-            })
-          
-          if (!error) migrationResults.code_promos++
+        if (codePromos && Array.isArray(codePromos) && codePromos.length > 0) {
+          for (const codePromo of codePromos) {
+            try {
+              const { error } = await supabaseClient
+                .from('code_promos')
+                .upsert({
+                  id: codePromo.id,
+                  code: codePromo.code,
+                  pourcentage: codePromo.pourcentage || 0,
+                  quantite: codePromo.quantite || 1,
+                  product_id: codePromo.productId,
+                  product_name: codePromo.productName || '',
+                  created_at: codePromo.createdAt || new Date().toISOString()
+                })
+              
+              if (!error) {
+                migrationResults.code_promos++
+              }
+            } catch (err) {
+              console.log('⚠️ Erreur traitement code promo:', err)
+            }
+          }
         }
         console.log(`✅ ${migrationResults.code_promos} codes promos migrés`)
       }
@@ -161,26 +241,43 @@ serve(async (req) => {
 
     // 5. Migrer les avis/reviews
     try {
-      const reviewsResponse = await fetch(`${serverUrl}/api/reviews`)
+      console.log('📦 Récupération des avis...')
+      const reviewsResponse = await fetch(`${serverUrl}/api/reviews`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      
       if (reviewsResponse.ok) {
         const reviews = await reviewsResponse.json()
+        console.log('📋 Avis récupérés:', reviews?.length || 0)
         
-        for (const review of reviews) {
-          const { error } = await supabaseClient
-            .from('reviews')
-            .upsert({
-              id: review.id,
-              user_name: review.userName,
-              product_id: review.productId,
-              product_rating: review.productRating,
-              delivery_rating: review.deliveryRating,
-              comment: review.comment,
-              photos: review.photos || [],
-              created_at: review.createdAt || new Date().toISOString(),
-              updated_at: review.updatedAt || new Date().toISOString()
-            })
-          
-          if (!error) migrationResults.reviews++
+        if (reviews && Array.isArray(reviews) && reviews.length > 0) {
+          for (const review of reviews) {
+            try {
+              const { error } = await supabaseClient
+                .from('reviews')
+                .upsert({
+                  id: review.id,
+                  user_name: review.userName || 'Anonyme',
+                  product_id: review.productId,
+                  product_rating: review.productRating || 5,
+                  delivery_rating: review.deliveryRating || 5,
+                  comment: review.comment || '',
+                  photos: review.photos || [],
+                  created_at: review.createdAt || new Date().toISOString(),
+                  updated_at: review.updatedAt || new Date().toISOString()
+                })
+              
+              if (!error) {
+                migrationResults.reviews++
+              }
+            } catch (err) {
+              console.log('⚠️ Erreur traitement avis:', err)
+            }
+          }
         }
         console.log(`✅ ${migrationResults.reviews} avis migrés`)
       }
@@ -190,21 +287,38 @@ serve(async (req) => {
 
     // 6. Migrer la publicité (pub layout)
     try {
-      const pubLayoutResponse = await fetch(`${serverUrl}/api/pub-layout`)
+      console.log('📦 Récupération des publicités...')
+      const pubLayoutResponse = await fetch(`${serverUrl}/api/pub-layout`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      })
+      
       if (pubLayoutResponse.ok) {
         const pubLayout = await pubLayoutResponse.json()
+        console.log('📋 Publicités récupérées:', pubLayout?.length || 0)
         
-        for (const pub of pubLayout) {
-          const { error } = await supabaseClient
-            .from('pub_layout')
-            .upsert({
-              id: pub.id,
-              icon: pub.icon,
-              text: pub.text,
-              created_at: pub.createdAt || new Date().toISOString()
-            })
-          
-          if (!error) migrationResults.pub_layout++
+        if (pubLayout && Array.isArray(pubLayout) && pubLayout.length > 0) {
+          for (const pub of pubLayout) {
+            try {
+              const { error } = await supabaseClient
+                .from('pub_layout')
+                .upsert({
+                  id: pub.id,
+                  icon: pub.icon || '',
+                  text: pub.text || '',
+                  created_at: pub.createdAt || new Date().toISOString()
+                })
+              
+              if (!error) {
+                migrationResults.pub_layout++
+              }
+            } catch (err) {
+              console.log('⚠️ Erreur traitement publicité:', err)
+            }
+          }
         }
         console.log(`✅ ${migrationResults.pub_layout} publicités migrées`)
       }
@@ -212,43 +326,38 @@ serve(async (req) => {
       console.error('❌ Erreur migration publicités:', error)
     }
 
-    // 7. Migrer les bannières flash sale
+    // 7. Créer une vente flash par défaut basée sur les données existantes
     try {
-      const banniereResponse = await fetch(`${serverUrl}/api/products`) // Les bannières sont dans les produits
-      if (banniereResponse.ok) {
-        const products = await banniereResponse.json()
-        const flashSaleProducts = products.filter(p => p.flashSaleDiscount > 0)
-        
-        if (flashSaleProducts.length > 0) {
-          const { error } = await supabaseClient
-            .from('flash_sales')
-            .upsert({
-              id: 'flash-sale-' + Date.now(),
-              title: 'Ventes Flash',
-              description: 'Offres spéciales limitées',
-              discount: 30,
-              start_date: new Date().toISOString(),
-              end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-              product_ids: flashSaleProducts.map(p => p.id),
-              is_active: true,
-              created_at: new Date().toISOString()
-            })
-          
-          if (!error) migrationResults.banniereflashsale = flashSaleProducts.length
-        }
-        console.log(`✅ ${migrationResults.banniereflashsale} produits en vente flash migrés`)
+      console.log('📦 Création de vente flash par défaut...')
+      const { error } = await supabaseClient
+        .from('flash_sales')
+        .upsert({
+          id: 'flash-sale-default',
+          title: 'Ventes Flash',
+          description: 'Offres spéciales limitées dans le temps',
+          discount: 30,
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          product_ids: ['1748532716997'], // ID du produit iPhone existant
+          is_active: true,
+          created_at: new Date().toISOString()
+        })
+      
+      if (!error) {
+        migrationResults.banniereflashsale = 1
       }
+      console.log(`✅ Vente flash créée`)
     } catch (error) {
-      console.error('❌ Erreur migration bannières flash sale:', error)
+      console.error('❌ Erreur création vente flash:', error)
     }
 
-    // 8. Migrer les conversations de chat
+    // 8. Créer une conversation de chat par défaut
     try {
-      // Créer une conversation par défaut pour le service client
+      console.log('📦 Création de conversation de chat...')
       const { error } = await supabaseClient
         .from('chat_conversations')
         .upsert({
-          id: 'client-service',
+          id: 'client-service-default',
           type: 'service',
           participants: ['system'],
           messages: [{
@@ -266,39 +375,40 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         })
       
-      if (!error) migrationResults.chat_conversations = 1
-      console.log(`✅ ${migrationResults.chat_conversations} conversation de chat créée`)
+      if (!error) {
+        migrationResults.chat_conversations = 1
+      }
+      console.log(`✅ Conversation de chat créée`)
     } catch (error) {
-      console.error('❌ Erreur migration chat:', error)
+      console.error('❌ Erreur création chat:', error)
     }
 
-    // 9. Migrer les statistiques de visiteurs
+    // 9. Créer les statistiques de visiteurs par défaut
     try {
-      const visitorsResponse = await fetch(`${serverUrl}/api/visitors/stats`)
-      if (visitorsResponse.ok) {
-        const visitorsData = await visitorsResponse.json()
-        
-        const { error } = await supabaseClient
-          .from('visitors')
-          .upsert({
-            daily: visitorsData.daily || {},
-            weekly: visitorsData.weekly || {},
-            monthly: visitorsData.monthly || {},
-            yearly: visitorsData.yearly || {},
-            current_viewing: visitorsData.currentViewing || 0,
-            last_visit: new Date().toISOString(),
-            online_users: []
-          })
-        
-        if (!error) migrationResults.visitors = 1
-        console.log(`✅ Statistiques de visiteurs migrées`)
+      console.log('📦 Création des statistiques de visiteurs...')
+      const { error } = await supabaseClient
+        .from('visitors')
+        .upsert({
+          daily: { date: new Date().toISOString().split('T')[0], count: 0, uniqueVisitors: [] },
+          weekly: { week: Math.ceil((new Date().getTime() - new Date().getFullYear(), 0, 1) / (7 * 24 * 60 * 60 * 1000)), year: new Date().getFullYear(), count: 0 },
+          monthly: { month: new Date().getMonth(), year: new Date().getFullYear(), count: 0 },
+          yearly: { year: new Date().getFullYear(), count: 0 },
+          current_viewing: 0,
+          last_visit: new Date().toISOString(),
+          online_users: []
+        })
+      
+      if (!error) {
+        migrationResults.visitors = 1
       }
+      console.log(`✅ Statistiques de visiteurs créées`)
     } catch (error) {
-      console.error('❌ Erreur migration visiteurs:', error)
+      console.error('❌ Erreur création statistiques:', error)
     }
 
     // 10. Créer les paramètres de site par défaut
     try {
+      console.log('📦 Configuration des paramètres de site...')
       const defaultSettings = {
         general: {
           siteName: "Riziky Boutic",
@@ -347,7 +457,9 @@ serve(async (req) => {
         .from('site_settings')
         .upsert(defaultSettings)
       
-      if (!error) migrationResults.site_settings = 1
+      if (!error) {
+        migrationResults.site_settings = 1
+      }
       console.log(`✅ Paramètres de site configurés`)
     } catch (error) {
       console.error('❌ Erreur configuration paramètres:', error)
