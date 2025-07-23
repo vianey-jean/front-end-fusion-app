@@ -221,8 +221,7 @@ const CalendarPage: React.FC = () => {
               mode="add"
               onSuccess={handleAddSuccess}
               onCancel={handleCloseAddForm}
-              defaultDate={selectedDate || undefined}
-              defaultTime={selectedHour}
+              selectedDate={selectedDate}
             />
           </AppointmentModal>
         )}
