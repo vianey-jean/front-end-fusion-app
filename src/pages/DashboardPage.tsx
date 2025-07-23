@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import WeekCalendar from '@/components/Weekcalendar';
@@ -29,6 +28,7 @@ const DashboardPage = () => {
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Gérer le paramètre edit de l'URL
   useEffect(() => {
@@ -62,6 +62,7 @@ const DashboardPage = () => {
     console.log('Opening add modal');
     setActiveAppointment(null);
     setOriginalAppointment(null);
+    setSelectedDate(null);
     setShowAppointmentDetails(false);
     setIsAddModalOpen(true);
   };
@@ -71,6 +72,7 @@ const DashboardPage = () => {
     if (appointment) {
       setActiveAppointment(appointment);
       setOriginalAppointment(null);
+      setSelectedDate(null);
       setIsEditModalOpen(false);
       setShowAppointmentDetails(false);
       setIsAddModalOpen(true);
@@ -115,6 +117,7 @@ const DashboardPage = () => {
     console.log('Viewing appointment', appointment);
     setActiveAppointment(appointment);
     setOriginalAppointment(null);
+    setSelectedDate(null);
     setShowAppointmentDetails(true);
     setIsSearchModalOpen(false);
   };
@@ -129,6 +132,7 @@ const DashboardPage = () => {
     
     setActiveAppointment(appointment);
     setOriginalAppointment(originalAppointment);
+    setSelectedDate(null);
     
     setShowAppointmentDetails(false);
     setIsEditModalOpen(false);
@@ -138,6 +142,16 @@ const DashboardPage = () => {
     setIsAddModalOpen(true);
     
     console.log('Modal should open for editing appointment with new date');
+  };
+
+  // Nouvelle fonction pour gérer l'ajout d'un rendez-vous avec date sélectionnée
+  const handleAddAppointment = (date: Date) => {
+    console.log('Adding appointment for date:', date);
+    setSelectedDate(date);
+    setActiveAppointment(null);
+    setOriginalAppointment(null);
+    setShowAppointmentDetails(false);
+    setIsAddModalOpen(true);
   };
 
   const handleFormSuccess = () => {
@@ -150,6 +164,7 @@ const DashboardPage = () => {
     setShowAppointmentDetails(false);
     setActiveAppointment(null);
     setOriginalAppointment(null);
+    setSelectedDate(null);
     refreshData();
   };
 
@@ -169,6 +184,7 @@ const DashboardPage = () => {
     setShowAppointmentDetails(false);
     setActiveAppointment(null);
     setOriginalAppointment(null);
+    setSelectedDate(null);
   };
 
   return (
@@ -251,6 +267,8 @@ const DashboardPage = () => {
               key={`calendar-${refreshTrigger}`} 
               onAppointmentClick={handleViewAppointment}
               onAppointmentDrop={handleAppointmentDrop}
+              onAddAppointment={handleAddAppointment}
+              onEditAppointment={handleOpenEdit}
             />
           </div>
         </div>
@@ -270,6 +288,7 @@ const DashboardPage = () => {
               onSuccess={handleFormSuccess}
               onCancel={handleCloseModals}
               disableDate={!!activeAppointment && !!originalAppointment}
+              selectedDate={selectedDate}
             />
           </AppointmentModal>
         )}

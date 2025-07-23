@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { startOfWeek, addDays, parseISO, isSameDay, format } from 'date-fns';
 import { AppointmentService, Appointment } from '@/services/AppointmentService';
@@ -7,6 +8,7 @@ import CalendarHeader from './CalendarHeader';
 import CalendarDayHeader from './CalendarDayHeader';
 import CalendarDay from './CalendarDay';
 import RizikyLoadingSpinner from './RizikyLoadingSpinner';
+import ConfirmDeleteModal from './ConfirmDeleteModal';
 import { Calendar, Sparkles, Crown, Star } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -17,6 +19,8 @@ interface WeekCalendarProps {
   onAppointmentClick: (appointment: Appointment) => void;
   onAppointmentDrop?: (appointment: Appointment, newDate: Date, originalAppointment: Appointment) => void;
   enableDragAndDrop?: boolean;
+  onAddAppointment?: (date: Date) => void;
+  onEditAppointment?: (appointment: Appointment) => void;
 }
 
 /**
@@ -26,7 +30,9 @@ interface WeekCalendarProps {
 const WeekCalendar: React.FC<WeekCalendarProps> = ({ 
   onAppointmentClick, 
   onAppointmentDrop,
-  enableDragAndDrop = true 
+  enableDragAndDrop = true,
+  onAddAppointment,
+  onEditAppointment
 }) => {
   const isMobile = useIsMobile();
   
@@ -36,6 +42,9 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   const [loading, setLoading] = useState(true);
   const [draggedAppointment, setDraggedAppointment] = useState<Appointment | null>(null);
   const [originalAppointment, setOriginalAppointment] = useState<Appointment | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Service de notifications pour les rappels de rendez-vous
   const { resetNotifications } = useNotificationService(appointments);
@@ -166,6 +175,47 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
     setDraggedAppointment(null);
   };
 
+  // Fonction pour supprimer un rendez-vous
+  const handleDeleteAppointment = (appointment: Appointment) => {
+    setAppointmentToDelete(appointment);
+    setShowDeleteModal(true);
+  };
+
+  // Confirmer la suppression
+  const handleConfirmDelete = async () => {
+    if (!appointmentToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const success = await AppointmentService.delete(appointmentToDelete.id);
+      if (success) {
+        setAppointments(prev => prev.filter(apt => apt.id !== appointmentToDelete.id));
+        toast.success("Rendez-vous supprimé avec succès", {
+          className: "bg-green-700 text-white"
+        });
+        setShowDeleteModal(false);
+        setAppointmentToDelete(null);
+      } else {
+        toast.error("Erreur lors de la suppression", {
+          className: "bg-red-700 text-white"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast.error("Erreur lors de la suppression", {
+        className: "bg-red-700 text-white"
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Fermer le modal de suppression
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setAppointmentToDelete(null);
+  };
+
   // Affichage d'un indicateur de chargement pendant la récupération des données
   if (loading) {
     return (
@@ -181,45 +231,61 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   }
 
   return (
-    <div className="calendar-luxury rounded-3xl premium-shadow-xl overflow-hidden border-0 premium-hover glow-effect">
-      {/* En-tête du calendrier premium avec affichage du mois */}
-      <CalendarHeader 
-        title="Calendrier Hebdomadaire Premium"
-        currentDate={currentDate}
-        onPrevious={previousWeek}
-        onNext={nextWeek}
-      />
+    <>
+      <div className="calendar-luxury rounded-3xl premium-shadow-xl overflow-hidden border-0 premium-hover glow-effect">
+        {/* En-tête du calendrier premium avec affichage du mois */}
+        <CalendarHeader 
+          title="Calendrier Hebdomadaire Premium"
+          currentDate={currentDate}
+          onPrevious={previousWeek}
+          onNext={nextWeek}
+        />
 
-      {/* En-têtes des jours de la semaine premium - masqué sur mobile */}
-      {!isMobile && (
-        <div className="grid grid-cols-7 bg-gradient-to-r from-primary/5 to-purple-500/5 border-b border-primary/20">
-          {days.map((day, index) => (
-            <CalendarDayHeader key={index} day={day} />
+        {/* En-têtes des jours de la semaine premium - masqué sur mobile */}
+        {!isMobile && (
+          <div className="grid grid-cols-7 bg-gradient-to-r from-primary/5 to-purple-500/5 border-b border-primary/20">
+            {days.map((day, index) => (
+              <CalendarDayHeader key={index} day={day} />
+            ))}
+          </div>
+        )}
+
+        {/* Contenu du calendrier avec les rendez-vous pour chaque jour */}
+        <div className={`${
+          isMobile 
+            ? 'flex flex-col bg-gradient-to-b from-white via-primary/2 to-purple-500/5 max-h-[70vh] overflow-y-auto premium-scroll'
+            : 'grid grid-cols-7 min-h-[400px] bg-gradient-to-br from-white via-primary/2 to-purple-500/5'
+        }`}>
+          {days.map((day, dayIndex) => (
+            <CalendarDay 
+              key={dayIndex} 
+              day={day}
+              appointments={getAppointmentsForDate(day)}
+              onAppointmentClick={onAppointmentClick}
+              onDrop={enableDragAndDrop ? handleDrop : undefined}
+              onDragStart={enableDragAndDrop ? handleDragStart : undefined}
+              onCancelDrop={enableDragAndDrop ? handleCancelDrop : undefined}
+              onConfirmDrop={enableDragAndDrop ? handleConfirmDrop : undefined}
+              enableDragAndDrop={enableDragAndDrop}
+              onAddAppointment={onAddAppointment}
+              onEditAppointment={onEditAppointment}
+              onDeleteAppointment={handleDeleteAppointment}
+            />
           ))}
         </div>
-      )}
-
-      {/* Contenu du calendrier avec les rendez-vous pour chaque jour */}
-      <div className={`${
-        isMobile 
-          ? 'flex flex-col bg-gradient-to-b from-white via-primary/2 to-purple-500/5 max-h-[70vh] overflow-y-auto premium-scroll'
-          : 'grid grid-cols-7 min-h-[400px] bg-gradient-to-br from-white via-primary/2 to-purple-500/5'
-      }`}>
-        {days.map((day, dayIndex) => (
-          <CalendarDay 
-            key={dayIndex} 
-            day={day}
-            appointments={getAppointmentsForDate(day)}
-            onAppointmentClick={onAppointmentClick}
-            onDrop={enableDragAndDrop ? handleDrop : undefined}
-            onDragStart={enableDragAndDrop ? handleDragStart : undefined}
-            onCancelDrop={enableDragAndDrop ? handleCancelDrop : undefined}
-            onConfirmDrop={enableDragAndDrop ? handleConfirmDrop : undefined}
-            enableDragAndDrop={enableDragAndDrop}
-          />
-        ))}
       </div>
-    </div>
+
+      {/* Modal de confirmation de suppression */}
+      {showDeleteModal && appointmentToDelete && (
+        <ConfirmDeleteModal
+          isOpen={showDeleteModal}
+          onClose={handleCloseDeleteModal}
+          onConfirm={handleConfirmDelete}
+          appointment={appointmentToDelete}
+          isDeleting={isDeleting}
+        />
+      )}
+    </>
   );
 };
 
