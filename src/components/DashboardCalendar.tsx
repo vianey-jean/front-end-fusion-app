@@ -328,7 +328,7 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({
                         onDrop={(e) => handleDrop(day.fullDate, hour, e)}
                         onDragOver={handleDragOver}
                       >
-                        {/* Bouton d'ajout + rouge */}
+                        {/* Bouton d'ajout + rouge - visible uniquement sur hover */}
                         <button
                           onClick={(e) => handleAddClick(day.fullDate, hour, e)}
                           className="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 opacity-0 group-hover:opacity-100"
@@ -357,7 +357,7 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({
                               >
                                 <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
                                 
-                                {/* Icônes d'actions */}
+                                {/* Icônes d'actions - visibles uniquement sur hover */}
                                 <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover/appointment:opacity-100 transition-all duration-300 z-10">
                                   <button
                                     onClick={(e) => handleEditClick(appointment, e)}
