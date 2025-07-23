@@ -80,23 +80,29 @@ const CalendarAppointment = ({
         {/* Premium border effect */}
         <div className="absolute inset-0 rounded-xl border border-white/20 group-hover:border-white/40 transition-all duration-300"></div>
         
-        {/* Icônes d'actions */}
-        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-          <button
-            onClick={handleEdit}
-            className="w-6 h-6 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-            title="Modifier"
-          >
-            <Edit className="w-3 h-3" />
-          </button>
-          <button
-            onClick={handleDelete}
-            className="w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
-            title="Supprimer"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
+        {/* Icônes d'actions - visibles seulement si les props sont fournies */}
+        {(onEditAppointment || onDeleteAppointment) && (
+          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+            {onEditAppointment && (
+              <button
+                onClick={handleEdit}
+                className="w-6 h-6 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+                title="Modifier"
+              >
+                <Edit className="w-3 h-3" />
+              </button>
+            )}
+            {onDeleteAppointment && (
+              <button
+                onClick={handleDelete}
+                className="w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110"
+                title="Supprimer"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        )}
         
         <div className="relative z-10">
           {/* Title et heure sur la même ligne */}
@@ -171,23 +177,29 @@ const CalendarAppointment = ({
       {/* Premium border effect */}
       <div className="absolute inset-0 rounded-2xl border-2 border-white/20 group-hover:border-white/40 transition-all duration-300"></div>
       
-      {/* Icônes d'actions */}
-      <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
-        <button
-          onClick={handleEdit}
-          className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 premium-shadow"
-          title="Modifier"
-        >
-          <Edit className="w-4 h-4" />
-        </button>
-        <button
-          onClick={handleDelete}
-          className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 premium-shadow"
-          title="Supprimer"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
+      {/* Icônes d'actions - visibles seulement si les props sont fournies */}
+      {(onEditAppointment || onDeleteAppointment) && (
+        <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
+          {onEditAppointment && (
+            <button
+              onClick={handleEdit}
+              className="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 premium-shadow"
+              title="Modifier"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+          )}
+          {onDeleteAppointment && (
+            <button
+              onClick={handleDelete}
+              className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 premium-shadow"
+              title="Supprimer"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      )}
       
       <div className="relative z-10">
         {/* Title avec icon premium */}
