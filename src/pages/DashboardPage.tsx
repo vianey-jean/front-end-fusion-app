@@ -115,7 +115,8 @@ const DashboardPage: React.FC = () => {
             <AppointmentForm 
               onSuccess={handleAddSuccess}
               onCancel={handleCloseAddModal}
-              selectedDate={selectedDate}
+              defaultDate={selectedDate || undefined}
+              defaultTime={selectedHour}
             />
           </AppointmentModal>
         )}
