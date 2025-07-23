@@ -89,11 +89,6 @@ const CalendarPage: React.FC = () => {
     setSelectedTime('');
   };
 
-  const handleDragAndDrop = async (appointment: Appointment, newDate: Date, originalAppointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setShowEditForm(true);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 overflow-hidden mt-[80px]">
       {/* Background premium - plus clair */}
@@ -164,7 +159,6 @@ const CalendarPage: React.FC = () => {
           <TabsContent value="week" className="space-y-6">
             <WeekCalendar 
               onAppointmentClick={handleAppointmentClick}
-              onAppointmentDrop={handleDragAndDrop}
               enableDragAndDrop={true}
               onAddAppointment={handleAddAppointment}
               onEditAppointment={handleEdit}

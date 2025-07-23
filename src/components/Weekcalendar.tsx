@@ -216,20 +216,12 @@ const WeekCalendar = ({
         {/* Navigation de semaine sur mobile */}
         {isMobile && (
           <CalendarHeader 
+            title="Semaine"
             currentDate={currentDate}
-            onPreviousWeek={handlePreviousWeek}
-            onNextWeek={handleNextWeek}
+            onPrevious={handlePreviousWeek}
+            onNext={handleNextWeek}
           />
         )}
-
-        {/* En-têtes des jours de la semaine premium - masqué sur mobile */}
-        {/* {!isMobile && (
-          <div className="grid grid-cols-7 bg-gradient-to-r from-primary/5 to-purple-500/5 border-b border-primary/20">
-            {days.map((day, index) => (
-              <CalendarDayHeader key={index} day={day} />
-            ))}
-          </div>
-        )} */}
 
         {/* Contenu du calendrier avec les rendez-vous pour chaque jour */}
         <div className={`${
