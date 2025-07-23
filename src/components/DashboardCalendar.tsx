@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppointmentService, Appointment } from '@/services/AppointmentService';
 import { addWeeks, format, subWeeks } from 'date-fns';
@@ -229,51 +230,51 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({
       <div className="calendar-luxury rounded-2xl lg:rounded-3xl premium-shadow-xl border-0 overflow-hidden">
         {/* En-tête premium */}
         <CardHeader className="premium-gradient text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"></div>
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
-          
-          <div className="relative z-10 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-2xl font-bold text-white mb-1">
-                  Calendrier Dashboard Premium
-                </CardTitle>
-                <p className="text-white/90 text-lg font-medium">
-                  {format(currentDate, 'MMMM yyyy', { locale: fr })}
-                </p>
-              </div>
-            </div>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
             
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-xs text-white font-medium">Live</span>
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl font-bold text-white mb-1">
+                    Calendrier Dashboard Premium
+                  </CardTitle>
+                  <p className="text-white/90 text-lg font-medium">
+                    {format(currentDate, 'MMMM yyyy', { locale: fr })}
+                  </p>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={previousWeek}
-                  className="text-white hover:bg-white/20 w-10 h-10 p-0"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={nextWeek}
-                  className="text-white hover:bg-white/20 w-10 h-10 p-0"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
+              
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-white font-medium">Live</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={previousWeek}
+                    className="text-white hover:bg-white/20 w-10 h-10 p-0"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={nextWeek}
+                    className="text-white hover:bg-white/20 w-10 h-10 p-0"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
+                </div>
+                <Star className="w-5 h-5 text-yellow-300 animate-pulse" />
               </div>
-              <Star className="w-5 h-5 text-yellow-300 animate-pulse" />
             </div>
-          </div>
-        </CardHeader>
+          </CardHeader>
 
         <div className="overflow-x-auto premium-scroll">
           <div className="min-w-[900px] relative">
@@ -327,7 +328,7 @@ const DashboardCalendar: React.FC<DashboardCalendarProps> = ({
                         onDrop={(e) => handleDrop(day.fullDate, hour, e)}
                         onDragOver={handleDragOver}
                       >
-                        {/* Bouton d'ajout + rouge - visible au hover */}
+                        {/* Bouton d'ajout + rouge */}
                         <button
                           onClick={(e) => handleAddClick(day.fullDate, hour, e)}
                           className="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 opacity-0 group-hover:opacity-100"
