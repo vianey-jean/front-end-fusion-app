@@ -61,8 +61,8 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
     <div
       className={`${
         isMobile 
-          ? 'mb-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-primary/20 p-4'
-          : 'border-r border-primary/20 last:border-r-0 min-h-[400px] bg-gradient-to-b from-white/50 to-primary/5'
+          ? 'mb-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-primary/20 p-4 group'
+          : 'border-r border-primary/20 last:border-r-0 min-h-[400px] bg-gradient-to-b from-white/50 to-primary/5 group'
       } premium-hover transition-all duration-300 relative`}
       onDrop={enableDragAndDrop ? handleDrop : undefined}
       onDragOver={enableDragAndDrop ? handleDragOver : undefined}
@@ -99,10 +99,10 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
           )}
         </div>
         
-        {/* Bouton d'ajout + rouge */}
+        {/* Bouton d'ajout + rouge - visible au hover */}
         <button
           onClick={handleAddClick}
-          className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 premium-shadow hover:scale-110"
+          className="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-all duration-200 premium-shadow hover:scale-110 opacity-0 group-hover:opacity-100"
           title="Ajouter un rendez-vous"
         >
           <Plus className="w-4 h-4" />

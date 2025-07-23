@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import WeekCalendar from '@/components/Weekcalendar';
@@ -14,9 +15,12 @@ import { toast } from 'sonner';
 const CalendarPage: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [showAppointmentDetails, setShowAppointmentDetails] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedHour, setSelectedHour] = useState<string>('');
 
   const handleAppointmentClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
@@ -27,7 +31,13 @@ const CalendarPage: React.FC = () => {
     console.log('Date cliquée:', date);
   };
 
-  const handleEdit = (appointment: Appointment) => {
+  const handleAddAppointment = (date: Date, hour?: string) => {
+    setSelectedDate(date);
+    setSelectedHour(hour || '');
+    setShowAddForm(true);
+  };
+
+  const handleEditAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowAppointmentDetails(false);
     setShowEditForm(true);
@@ -56,6 +66,14 @@ const CalendarPage: React.FC = () => {
     }
   };
 
+  const handleAddSuccess = () => {
+    setRefreshKey(prev => prev + 1);
+    setShowAddForm(false);
+    setSelectedDate(null);
+    setSelectedHour('');
+    toast.success('Rendez-vous ajouté avec succès');
+  };
+
   const handleEditSuccess = async (updatedAppointment: Appointment) => {
     try {
       const success = await AppointmentService.update(updatedAppointment);
@@ -74,6 +92,17 @@ const CalendarPage: React.FC = () => {
   const handleDragAndDrop = async (appointment: Appointment, newDate: Date, originalAppointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowEditForm(true);
+  };
+
+  const handleCloseAddForm = () => {
+    setShowAddForm(false);
+    setSelectedDate(null);
+    setSelectedHour('');
+  };
+
+  const handleCloseEditForm = () => {
+    setShowEditForm(false);
+    setSelectedAppointment(null);
   };
 
   return (
@@ -115,40 +144,39 @@ const CalendarPage: React.FC = () => {
 
         {/* Onglets de calendrier */}
         <Tabs defaultValue="week" className="space-y-8" key={refreshKey}>
-         <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 gap-2 h-auto p-1 bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-xl">
-  
-  <TabsTrigger
-    value="week"
-    className="flex items-center justify-center gap-2 h-12 font-medium w-full"
-  >
-    <Calendar className="w-4 h-4" />
-    Vue Semaine
-  </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 gap-2 h-auto p-1 bg-gradient-to-r from-primary/10 to-purple-500/10 border border-primary/20 rounded-xl">
+            <TabsTrigger
+              value="week"
+              className="flex items-center justify-center gap-2 h-12 font-medium w-full"
+            >
+              <Calendar className="w-4 h-4" />
+              Vue Semaine
+            </TabsTrigger>
 
-  <TabsTrigger
-    value="month"
-    className="flex items-center justify-center gap-2 h-12 font-medium w-full"
-  >
-    <CalendarDays className="w-4 h-4" />
-    Vue Mensuelle
-  </TabsTrigger>
+            <TabsTrigger
+              value="month"
+              className="flex items-center justify-center gap-2 h-12 font-medium w-full"
+            >
+              <CalendarDays className="w-4 h-4" />
+              Vue Mensuelle
+            </TabsTrigger>
 
-  <TabsTrigger
-    value="dashboard"
-    className="flex items-center justify-center gap-2 h-12 font-medium w-full"
-  >
-    <BarChart3 className="w-4 h-4" />
-    Vue Dashboard
-  </TabsTrigger>
-
-</TabsList>
-
+            <TabsTrigger
+              value="dashboard"
+              className="flex items-center justify-center gap-2 h-12 font-medium w-full"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Vue Dashboard
+            </TabsTrigger>
+          </TabsList>
 
           <TabsContent value="week" className="space-y-6">
             <WeekCalendar 
               onAppointmentClick={handleAppointmentClick}
               onAppointmentDrop={handleDragAndDrop}
               enableDragAndDrop={true}
+              onAddAppointment={handleAddAppointment}
+              onEditAppointment={handleEditAppointment}
             />
           </TabsContent>
 
@@ -156,11 +184,16 @@ const CalendarPage: React.FC = () => {
             <MonthlyCalendar 
               onDateClick={handleDateClick}
               onAppointmentClick={handleAppointmentClick}
+              onAddAppointment={handleAddAppointment}
+              onEditAppointment={handleEditAppointment}
             />
           </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-6">
-            <DashboardCalendar />
+            <DashboardCalendar 
+              onAddAppointment={handleAddAppointment}
+              onEditAppointment={handleEditAppointment}
+            />
           </TabsContent>
         </Tabs>
 
@@ -170,19 +203,35 @@ const CalendarPage: React.FC = () => {
             appointment={selectedAppointment}
             open={showAppointmentDetails}
             onOpenChange={setShowAppointmentDetails}
-            onEdit={() => handleEdit(selectedAppointment)}
+            onEdit={() => handleEditAppointment(selectedAppointment)}
             onDelete={() => handleDelete(selectedAppointment)}
           />
+        )}
+
+        {/* Modal d'ajout */}
+        {showAddForm && (
+          <AppointmentModal
+            isOpen={showAddForm}
+            onClose={handleCloseAddForm}
+            title="Ajouter un rendez-vous"
+            mode="add"
+            onSuccess={handleAddSuccess}
+          >
+            <AppointmentForm
+              mode="add"
+              onSuccess={handleAddSuccess}
+              onCancel={handleCloseAddForm}
+              defaultDate={selectedDate || undefined}
+              defaultTime={selectedHour}
+            />
+          </AppointmentModal>
         )}
 
         {/* Modal de modification */}
         {selectedAppointment && showEditForm && (
           <AppointmentModal
             isOpen={showEditForm}
-            onClose={() => {
-              setShowEditForm(false);
-              setSelectedAppointment(null);
-            }}
+            onClose={handleCloseEditForm}
             title="Modifier le rendez-vous"
             mode="edit"
             appointment={selectedAppointment}
@@ -200,10 +249,7 @@ const CalendarPage: React.FC = () => {
                 setShowEditForm(false);
                 setSelectedAppointment(null);
               }}
-              onCancel={() => {
-                setShowEditForm(false);
-                setSelectedAppointment(null);
-              }}
+              onCancel={handleCloseEditForm}
             />
           </AppointmentModal>
         )}
