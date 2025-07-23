@@ -199,11 +199,11 @@ const CalendarPage: React.FC = () => {
             }}
             title="Ajouter un rendez-vous"
             mode="add"
+            onSuccess={handleAddSuccess}
           >
             <AppointmentForm
               mode="add"
               selectedDate={selectedDate}
-              defaultTime={selectedTime}
               onSuccess={handleAddSuccess}
               onCancel={() => {
                 setShowAddForm(false);
