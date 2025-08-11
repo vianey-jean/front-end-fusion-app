@@ -181,7 +181,7 @@ const ClientsPage: React.FC = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-16 max-w-7xl">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        {/*<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-0 shadow-2xl hover:shadow-emerald-500/25 transform hover:-translate-y-2 transition-all duration-300">
             <CardContent className="p-8 text-center">
               <Users className="w-12 h-12 mx-auto mb-4 text-emerald-100" />
@@ -205,7 +205,7 @@ const ClientsPage: React.FC = () => {
               <p className="text-orange-100">Gestion Luxe</p>
             </CardContent>
           </Card>
-        </div>
+        </div>*/}
 
         {/* Clients Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
