@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClientSync } from '@/hooks/useClientSync';
@@ -11,6 +12,8 @@ import { Plus, Edit, Trash2, Phone, MapPin, Users, Sparkles, Crown, Star, Diamon
 import axios from 'axios';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ScrollToTop from '@/components/ScrollToTop';
+import ConfirmDeleteDialog from '@/components/dashboard/forms/ConfirmDeleteDialog';
 
 interface Client {
   id: string;
@@ -34,6 +37,12 @@ const ClientsPage: React.FC = () => {
     adresse: ''
   });
 
+  // Dialogues de confirmation
+  const [showAddConfirm, setShowAddConfirm] = useState(false);
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:10000';
 
   const resetForm = () => {
@@ -56,7 +65,7 @@ const ClientsPage: React.FC = () => {
     setIsAddDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.nom.trim() || !formData.phone.trim() || !formData.adresse.trim()) {
       toast({
@@ -67,37 +76,36 @@ const ClientsPage: React.FC = () => {
       return;
     }
 
+    if (editingClient) {
+      setShowEditConfirm(true);
+    } else {
+      setShowAddConfirm(true);
+    }
+  };
+
+  const confirmAdd = async () => {
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
       
-      if (editingClient) {
-        await axios.put(`${API_BASE_URL}/api/clients/${editingClient.id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        toast({
-          title: "Succès",
-          description: "Client mis à jour avec succès",
-          className: "notification-success",
-        });
-      } else {
-        await axios.post(`${API_BASE_URL}/api/clients`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        toast({
-          title: "Succès", 
-          description: "Client ajouté avec succès",
-          className: "notification-success",
-        });
-      }
+      await axios.post(`${API_BASE_URL}/api/clients`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast({
+        title: "Succès", 
+        description: "Client ajouté avec succès",
+        className: "notification-success",
+      });
       
       setIsAddDialogOpen(false);
+      setShowAddConfirm(false);
       resetForm();
       refetch();
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue",
+        description: "Une erreur est survenue lors de l'ajout",
         variant: "destructive",
       });
     } finally {
@@ -105,12 +113,50 @@ const ClientsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteClient = async (client: Client) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${client.nom} ?`)) return;
-
+  const confirmEdit = async () => {
+    if (!editingClient) return;
+    
+    setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${API_BASE_URL}/api/clients/${client.id}`, {
+      
+      await axios.put(`${API_BASE_URL}/api/clients/${editingClient.id}`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast({
+        title: "Succès",
+        description: "Client mis à jour avec succès",
+        className: "notification-success",
+      });
+      
+      setIsAddDialogOpen(false);
+      setShowEditConfirm(false);
+      resetForm();
+      refetch();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la modification",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteClient = (client: Client) => {
+    setClientToDelete(client);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!clientToDelete) return;
+
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_BASE_URL}/api/clients/${clientToDelete.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -119,6 +165,9 @@ const ClientsPage: React.FC = () => {
         description: "Client supprimé avec succès", 
         className: "notification-success",
       });
+      
+      setShowDeleteConfirm(false);
+      setClientToDelete(null);
       refetch();
     } catch (error) {
       toast({
@@ -126,6 +175,8 @@ const ClientsPage: React.FC = () => {
         description: "Erreur lors de la suppression",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -146,32 +197,57 @@ const ClientsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-100 dark:from-slate-900 dark:via-purple-900 dark:to-indigo-950">
       <Navbar />
+      <ScrollToTop />
 
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 dark:from-purple-800 dark:via-violet-800 dark:to-indigo-800">
         <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative container mx-auto px-4 py-16">
+        
+        {/* Particules flottantes */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-4 h-4 bg-yellow-300/30 rounded-full animate-pulse"></div>
+          <div className="absolute top-40 right-32 w-6 h-6 bg-pink-300/30 rounded-full animate-bounce"></div>
+          <div className="absolute bottom-32 left-40 w-5 h-5 bg-blue-300/30 rounded-full animate-pulse"></div>
+          <div className="absolute top-60 left-1/2 w-3 h-3 bg-green-300/30 rounded-full animate-bounce"></div>
+        </div>
+        
+        <div className="relative container mx-auto px-4 py-20">
           <div className="text-center">
-            <div className="inline-flex items-center gap-3 mb-6">
-              <Crown className="w-12 h-12 text-yellow-300" />
-              <h1 className="text-4xl md:text-6xl font-bold text-white">
-                Portefeuille <span className="text-yellow-300">Premium</span>
-              </h1>
-              <Star className="w-12 h-12 text-yellow-300 animate-pulse" />
-            </div>
-            <p className="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
-              Gérez vos clients avec élégance et sophistication
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-3 border border-white/30">
-                <span className="text-white font-semibold">{clients.length} Client{clients.length > 1 ? 's' : ''} VIP</span>
+            <div className="inline-flex items-center gap-4 mb-8">
+              <div className="relative">
+                <Crown className="w-16 h-16 text-yellow-300 animate-pulse" />
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
+                  <Star className="w-3 h-3 text-white" />
+                </div>
               </div>
+              <h1 className="text-5xl md:text-7xl font-bold text-white bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text">
+                Portefeuille <span className="text-transparent bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-300 bg-clip-text animate-pulse">Élite</span>
+              </h1>
+              <div className="relative">
+                <Diamond className="w-16 h-16 text-purple-200 animate-spin-slow" />
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl"></div>
+              </div>
+            </div>
+            
+            <p className="text-2xl text-purple-100 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Gérez vos clients VIP avec une sophistication et une élégance incomparables
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl px-8 py-4 border border-white/20 shadow-2xl">
+                <div className="flex items-center gap-3">
+                  <Users className="w-8 h-8 text-emerald-300" />
+                  <span className="text-white font-bold text-xl">{clients.length} Client{clients.length > 1 ? 's' : ''} Premium</span>
+                </div>
+              </div>
+              
               <Button 
                 onClick={handleAddClient} 
-                className="bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-black font-bold px-8 py-4 rounded-full shadow-2xl hover:shadow-yellow-500/25 transform hover:-translate-y-1 transition-all duration-300"
+                className="group bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 hover:from-yellow-500 hover:via-orange-500 hover:to-red-500 text-black font-bold px-10 py-6 rounded-2xl shadow-2xl hover:shadow-yellow-500/30 transform hover:-translate-y-2 transition-all duration-500 border-2 border-yellow-300/50"
               >
-                <Plus className="w-5 h-5 mr-2" />
-                Nouveau Client VIP
+                <Plus className="w-6 h-6 mr-3 group-hover:rotate-90 transition-transform duration-300" />
+                <span className="text-lg">Nouveau Client Élite</span>
+                <Sparkles className="w-6 h-6 ml-3 group-hover:scale-125 transition-transform duration-300" />
               </Button>
             </div>
           </div>
@@ -179,51 +255,28 @@ const ClientsPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-16 max-w-7xl">
-        {/* Stats Cards */}
-        {/*<div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-0 shadow-2xl hover:shadow-emerald-500/25 transform hover:-translate-y-2 transition-all duration-300">
-            <CardContent className="p-8 text-center">
-              <Users className="w-12 h-12 mx-auto mb-4 text-emerald-100" />
-              <h3 className="text-3xl font-bold mb-2">{clients.length}</h3>
-              <p className="text-emerald-100">Clients Premium</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-purple-500 to-violet-600 text-white border-0 shadow-2xl hover:shadow-purple-500/25 transform hover:-translate-y-2 transition-all duration-300">
-            <CardContent className="p-8 text-center">
-              <Diamond className="w-12 h-12 mx-auto mb-4 text-purple-100" />
-              <h3 className="text-3xl font-bold mb-2">VIP</h3>
-              <p className="text-purple-100">Service Excellence</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-orange-500 to-red-600 text-white border-0 shadow-2xl hover:shadow-orange-500/25 transform hover:-translate-y-2 transition-all duration-300">
-            <CardContent className="p-8 text-center">
-              <Crown className="w-12 h-12 mx-auto mb-4 text-orange-100" />
-              <h3 className="text-3xl font-bold mb-2">Premium</h3>
-              <p className="text-orange-100">Gestion Luxe</p>
-            </CardContent>
-          </Card>
-        </div>*/}
-
+      <div className="container mx-auto px-4 py-20 max-w-7xl">
         {/* Clients Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {clients.map((client, index) => (
             <Card 
               key={client.id} 
-              className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 backdrop-blur-sm border-0 shadow-xl hover:shadow-purple-500/20 relative overflow-hidden"
+              className="group hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-4 hover:rotate-1 bg-gradient-to-br from-white via-gray-50 to-purple-50/30 dark:from-gray-800 dark:via-gray-900 dark:to-purple-900/30 backdrop-blur-sm border-0 shadow-xl hover:shadow-purple-500/25 relative overflow-hidden"
               style={{
-                animationDelay: `${index * 100}ms`
+                animationDelay: `${index * 150}ms`
               }}
             >
-              {/* Premium Badge */}
-              <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-black text-xs font-bold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                VIP
+              {/* Premium Badge animé */}
+              <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 text-black text-xs font-bold px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-x-4 group-hover:translate-x-0 animate-bounce">
+                <Star className="w-3 h-3 inline mr-1" />
+                ÉLITE
               </div>
               
-              {/* Shine Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              {/* Effet de brillance */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              
+              {/* Halo lumineux */}
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500"></div>
               
               <CardHeader className="pb-4 relative z-10">
                 <div className="flex justify-between items-start">
@@ -231,19 +284,19 @@ const ClientsPage: React.FC = () => {
                     <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
                       {client.nom}
                     </CardTitle>
-                    <CardDescription className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    <CardDescription className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                       <span className="inline-flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-500" />
-                        Depuis le {new Date(client.dateCreation).toLocaleDateString('fr-FR')}
+                        <Crown className="w-3 h-3 text-yellow-500" />
+                        Membre depuis le {new Date(client.dateCreation).toLocaleDateString('fr-FR')}
                       </span>
                     </CardDescription>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEditClient(client)}
-                      className="h-9 w-9 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-full"
+                      className="h-10 w-10 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-full hover:scale-110 transition-transform duration-200"
                     >
                       <Edit className="w-4 h-4 text-blue-600" />
                     </Button>
@@ -251,7 +304,7 @@ const ClientsPage: React.FC = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteClient(client)}
-                      className="h-9 w-9 p-0 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full"
+                      className="h-10 w-10 p-0 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-full hover:scale-110 transition-transform duration-200"
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
                     </Button>
@@ -261,15 +314,15 @@ const ClientsPage: React.FC = () => {
               
               <CardContent className="relative z-10">
                 <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
-                    <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full shadow-lg">
+                  <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-teal-900/30 rounded-xl border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm">
+                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full shadow-lg">
                       <Phone className="w-5 h-5 text-white" />
                     </div>
                     <span className="text-gray-700 dark:text-gray-200 font-semibold">{client.phone}</span>
                   </div>
                   
-                  <div className="flex items-start gap-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full shadow-lg mt-0.5">
+                  <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full shadow-lg mt-0.5">
                       <MapPin className="w-5 h-5 text-white" />
                     </div>
                     <span className="text-gray-700 dark:text-gray-200 leading-relaxed line-clamp-2">{client.adresse}</span>
@@ -280,26 +333,33 @@ const ClientsPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Empty State */}
+        {/* Empty State Ultra Premium */}
         {clients.length === 0 && (
-          <div className="text-center py-20">
-            <div className="relative inline-flex items-center justify-center w-40 h-40 bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/20 dark:via-violet-900/20 dark:to-indigo-900/20 rounded-full mb-12 shadow-2xl">
+          <div className="text-center py-32">
+            <div className="relative inline-flex items-center justify-center w-48 h-48 bg-gradient-to-br from-purple-100 via-violet-100 to-indigo-100 dark:from-purple-900/20 dark:via-violet-900/20 dark:to-indigo-900/20 rounded-full mb-16 shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-violet-400/20 rounded-full animate-pulse"></div>
-              <Users className="w-20 h-20 text-purple-600 dark:text-purple-400 relative z-10" />
-              <div className="absolute -top-4 -right-4 w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-xl">
-                <Crown className="w-6 h-6 text-white" />
+              <div className="absolute inset-4 bg-gradient-to-r from-pink-400/10 to-purple-400/10 rounded-full animate-ping"></div>
+              <Users className="w-24 h-24 text-purple-600 dark:text-purple-400 relative z-10" />
+              <div className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center shadow-xl animate-bounce">
+                <Crown className="w-8 h-8 text-white" />
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Votre portefeuille premium vous attend</h3>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto">
-              Commencez à construire votre réseau de clients VIP avec notre système de gestion premium
+            
+            <h3 className="text-4xl font-bold text-gray-900 dark:text-white mb-6 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Votre Empire Clientèle vous attend
+            </h3>
+            
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-16 max-w-3xl mx-auto leading-relaxed">
+              Commencez à construire votre réseau exclusif de clients VIP avec notre système de gestion ultra-premium
             </p>
+            
             <Button 
               onClick={handleAddClient} 
-              className="bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white text-lg px-12 py-6 rounded-full shadow-2xl hover:shadow-purple-500/25 transform hover:-translate-y-2 transition-all duration-300"
+              className="group bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-700 hover:via-violet-700 hover:to-indigo-700 text-white text-xl px-16 py-8 rounded-2xl shadow-2xl hover:shadow-purple-500/30 transform hover:-translate-y-3 transition-all duration-500 border-2 border-purple-400/30"
             >
-              <Plus className="w-6 h-6 mr-3" />
-              Créer votre premier client VIP
+              <Crown className="w-8 h-8 mr-4 group-hover:rotate-12 transition-transform duration-300" />
+              Créer votre Premier Client Élite
+              <Sparkles className="w-8 h-8 ml-4 group-hover:scale-125 transition-transform duration-300" />
             </Button>
           </div>
         )}
@@ -307,7 +367,7 @@ const ClientsPage: React.FC = () => {
 
       <Footer />
       
-      {/* Dialog */}
+      {/* Dialog Principal */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
           <DialogHeader>
@@ -319,7 +379,7 @@ const ClientsPage: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleFormSubmit}>
             <div className="grid gap-6 py-6">
               <div className="space-y-2">
                 <Label htmlFor="nom" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Nom complet</Label>
@@ -373,12 +433,63 @@ const ClientsPage: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
-                {isSubmitting ? 'Enregistrement...' : (editingClient ? 'Mettre à jour' : 'Ajouter')}
+                {editingClient ? 'Modifier' : 'Ajouter'}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Dialogues de confirmation */}
+      <Dialog open={showAddConfirm} onOpenChange={setShowAddConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmer l'ajout</DialogTitle>
+            <DialogDescription>
+              Voulez-vous vraiment ajouter ce client à votre portefeuille ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddConfirm(false)} disabled={isSubmitting}>
+              Annuler
+            </Button>
+            <Button onClick={confirmAdd} disabled={isSubmitting}>
+              {isSubmitting ? 'Ajout...' : 'Oui, ajouter'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showEditConfirm} onOpenChange={setShowEditConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmer la modification</DialogTitle>
+            <DialogDescription>
+              Voulez-vous vraiment modifier les informations de ce client ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditConfirm(false)} disabled={isSubmitting}>
+              Annuler
+            </Button>
+            <Button onClick={confirmEdit} disabled={isSubmitting}>
+              {isSubmitting ? 'Modification...' : 'Oui, modifier'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setClientToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Confirmer la suppression"
+        description={`Voulez-vous vraiment supprimer ${clientToDelete?.nom} de votre portefeuille ?`}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 };
