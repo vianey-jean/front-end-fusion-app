@@ -42,7 +42,9 @@ export const useClientSync = () => {
       }
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const searchClients = (query: string): Client[] => {
