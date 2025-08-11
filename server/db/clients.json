@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1",
+    "nom": "Marie Dupont",
+    "phone": "0692123456",
+    "adresse": "123 Rue de la Paix, Saint-Denis",
+    "dateCreation": "2024-01-15T10:30:00.000Z"
+  },
+  {
+    "id": "2",
+    "nom": "Jean Martin",
+    "phone": "0693987654",
+    "adresse": "45 Avenue des Palmiers, Saint-Paul",
+    "dateCreation": "2024-01-20T14:15:00.000Z"
+  }
+]

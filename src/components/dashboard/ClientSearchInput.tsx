@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,10 +26,18 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
   const { searchClients } = useClientSync();
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Client[]>([]);
+  const [isSelecting, setIsSelecting] = useState(false); // empêche relance auto recherche après clic
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Recherche des clients
   useEffect(() => {
+    // si on est en train de sélectionner, on ne relance pas la recherche
+    if (isSelecting) {
+      setIsSelecting(false);
+      return;
+    }
+
     if (value.length >= 3) {
       const results = searchClients(value);
       setSuggestions(results);
@@ -39,8 +46,9 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
       setSuggestions([]);
       setIsOpen(false);
     }
-  }, [value, searchClients]);
+  }, [value, searchClients, isSelecting]);
 
+  // Gestion clic à l'extérieur
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -57,18 +65,19 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Sélection d'un client
   const handleClientSelect = (client: Client) => {
+    setIsSelecting(true); // empêche relance de recherche
     onChange(client.nom);
     onClientSelect(client);
-    setIsOpen(false);
-    setSuggestions([]);
+    setSuggestions([]); // vide la liste immédiatement
+    setIsOpen(false); // ferme le menu
   };
 
+  // Changement dans l'input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
-    
-    // Si l'utilisateur efface ou modifie, réinitialiser la sélection
     if (newValue.length < 3) {
       onClientSelect(null);
     }
@@ -86,7 +95,7 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
         disabled={disabled}
         autoComplete="off"
       />
-      
+
       {isOpen && suggestions.length > 0 && (
         <div
           ref={dropdownRef}

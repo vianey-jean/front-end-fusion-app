@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Phone, MapPin, Users, Sparkles } from 'lucide-react';
 import axios from 'axios';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 interface Client {
   id: string;
@@ -144,34 +146,7 @@ const ClientsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-800 dark:via-purple-800 dark:to-indigo-800">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative container mx-auto px-4 py-16">
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-6">
-              <Users className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Gestion des <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Clients</span>
-            </h1>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Gérez votre portefeuille clients avec élégance et efficacité
-            </p>
-            <div className="flex items-center justify-center gap-4 text-white/80">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">{clients.length} client{clients.length > 1 ? 's' : ''}</span>
-              </div>
-              <div className="w-1 h-1 bg-white/40 rounded-full"></div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-medium">Synchronisation temps réel</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <Navbar />
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12 max-w-7xl">
@@ -269,6 +244,7 @@ const ClientsPage: React.FC = () => {
         )}
       </div>
 
+<Footer />
       {/* Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
