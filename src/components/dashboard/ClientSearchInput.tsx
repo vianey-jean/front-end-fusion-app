@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,13 +27,12 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
   const { searchClients } = useClientSync();
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Client[]>([]);
-  const [isSelecting, setIsSelecting] = useState(false); // empêche relance auto recherche après clic
+  const [isSelecting, setIsSelecting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Recherche des clients
   useEffect(() => {
-    // si on est en train de sélectionner, on ne relance pas la recherche
     if (isSelecting) {
       setIsSelecting(false);
       return;
@@ -48,7 +48,7 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
     }
   }, [value, searchClients, isSelecting]);
 
-  // Gestion clic à l'extérieur
+  // Gestion clic à l'extérieur et changement de focus
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -61,17 +61,33 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
       }
     };
 
+    const handleFocusChange = (event: FocusEvent) => {
+      // Si le focus va vers un autre élément qui n'est pas le dropdown
+      if (
+        event.target !== inputRef.current &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('focusin', handleFocusChange);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('focusin', handleFocusChange);
+    };
   }, []);
 
   // Sélection d'un client
   const handleClientSelect = (client: Client) => {
-    setIsSelecting(true); // empêche relance de recherche
+    setIsSelecting(true);
     onChange(client.nom);
     onClientSelect(client);
-    setSuggestions([]); // vide la liste immédiatement
-    setIsOpen(false); // ferme le menu
+    setSuggestions([]);
+    setIsOpen(false); // Fermer immédiatement le dropdown
   };
 
   // Changement dans l'input
@@ -83,6 +99,14 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
     }
   };
 
+  // Gestionnaire pour fermer le dropdown quand on clique ailleurs dans le formulaire
+  const handleInputBlur = () => {
+    // Délai pour permettre au clic sur une suggestion de s'exécuter
+    setTimeout(() => {
+      setIsOpen(false);
+    }, 150);
+  };
+
   return (
     <div className="relative">
       <Label htmlFor="clientName">Nom du client</Label>
@@ -91,6 +115,7 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
         id="clientName"
         value={value}
         onChange={handleInputChange}
+        onBlur={handleInputBlur}
         placeholder="Saisir au moins 3 caractères pour rechercher..."
         disabled={disabled}
         autoComplete="off"
@@ -107,6 +132,7 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
               type="button"
               className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0 focus:bg-gray-50 dark:focus:bg-gray-700 focus:outline-none transition-colors"
               onClick={() => handleClientSelect(client)}
+              onMouseDown={(e) => e.preventDefault()} // Empêche le blur de l'input
             >
               <div className="font-medium text-gray-900 dark:text-white">{client.nom}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">{client.phone}</div>
