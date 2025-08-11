@@ -61,6 +61,7 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
     onChange(client.nom);
     onClientSelect(client);
     setIsOpen(false);
+    setSuggestions([]);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,18 +90,18 @@ const ClientSearchInput: React.FC<ClientSearchInputProps> = ({
       {isOpen && suggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto"
+          className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto"
         >
           {suggestions.map((client) => (
             <button
               key={client.id}
               type="button"
-              className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:bg-gray-50 focus:outline-none"
+              className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0 focus:bg-gray-50 dark:focus:bg-gray-700 focus:outline-none transition-colors"
               onClick={() => handleClientSelect(client)}
             >
-              <div className="font-medium text-gray-900">{client.nom}</div>
-              <div className="text-sm text-gray-600">{client.phone}</div>
-              <div className="text-sm text-gray-500 truncate">{client.adresse}</div>
+              <div className="font-medium text-gray-900 dark:text-white">{client.nom}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{client.phone}</div>
+              <div className="text-sm text-gray-500 dark:text-gray-500 truncate">{client.adresse}</div>
             </button>
           ))}
         </div>

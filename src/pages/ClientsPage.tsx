@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Phone, MapPin } from 'lucide-react';
+import { Plus, Edit, Trash2, Phone, MapPin, Users, Sparkles } from 'lucide-react';
 import axios from 'axios';
 
 interface Client {
@@ -34,22 +34,6 @@ const ClientsPage: React.FC = () => {
   });
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:10000';
-
-  // Redirection si non authentifié - mais on garde la page si déjà authentifié
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-96">
-          <CardHeader>
-            <CardTitle>Accès restreint</CardTitle>
-            <CardDescription>
-              Vous devez être connecté pour accéder à cette page.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
 
   const resetForm = () => {
     setFormData({ nom: '', phone: '', adresse: '' });
@@ -146,149 +130,211 @@ const ClientsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Chargement des clients...</p>
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            <Sparkles className="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300 font-medium">Chargement de vos clients...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Clients</h1>
-          <p className="text-gray-600 mt-2">
-            {clients.length} client{clients.length > 1 ? 's' : ''} enregistré{clients.length > 1 ? 's' : ''}
-          </p>
-        </div>
-        <Button onClick={handleAddClient} className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="w-4 h-4 mr-2" />
-          Nouveau Client
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clients.map((client) => (
-          <Card key={client.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{client.nom}</CardTitle>
-                  <CardDescription className="text-sm text-gray-500">
-                    Ajouté le {new Date(client.dateCreation).toLocaleDateString('fr-FR')}
-                  </CardDescription>
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditClient(client)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteClient(client)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-800 dark:via-purple-800 dark:to-indigo-800">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative container mx-auto px-4 py-16">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-6">
+              <Users className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Gestion des <span className="bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">Clients</span>
+            </h1>
+            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+              Gérez votre portefeuille clients avec élégance et efficacité
+            </p>
+            <div className="flex items-center justify-center gap-4 text-white/80">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium">{clients.length} client{clients.length > 1 ? 's' : ''}</span>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <span>{client.phone}</span>
-                </div>
-                <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                  <span className="line-clamp-2">{client.adresse}</span>
-                </div>
+              <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-medium">Synchronisation temps réel</span>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {clients.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
+            </div>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun client enregistré</h3>
-          <p className="text-gray-500 mb-6">Commencez par ajouter votre premier client.</p>
-          <Button onClick={handleAddClient} className="bg-blue-600 hover:bg-blue-700">
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12 max-w-7xl">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Votre Portefeuille</h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              {clients.length} client{clients.length > 1 ? 's' : ''} enregistré{clients.length > 1 ? 's' : ''}
+            </p>
+          </div>
+          <Button 
+            onClick={handleAddClient} 
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+          >
             <Plus className="w-4 h-4 mr-2" />
-            Ajouter un client
+            Nouveau Client
           </Button>
         </div>
-      )}
 
+        {/* Clients Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {clients.map((client) => (
+            <Card key={client.id} className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg hover:bg-white dark:hover:bg-gray-800">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                      {client.nom}
+                    </CardTitle>
+                    <CardDescription className="text-sm text-gray-500 dark:text-gray-400">
+                      Ajouté le {new Date(client.dateCreation).toLocaleDateString('fr-FR')}
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditClient(client)}
+                      className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/20"
+                    >
+                      <Edit className="w-4 h-4 text-blue-600" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteClient(client)}
+                      className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/20"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-full">
+                      <Phone className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300 font-medium">{client.phone}</span>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm">
+                    <div className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full mt-0.5">
+                      <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300 line-clamp-2">{client.adresse}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {clients.length === 0 && (
+          <div className="text-center py-16">
+            <div className="relative inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full mb-8">
+              <Users className="w-16 h-16 text-blue-600 dark:text-blue-400" />
+              <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
+                <Plus className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Aucun client enregistré</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+              Commencez à construire votre portefeuille client dès maintenant
+            </p>
+            <Button 
+              onClick={handleAddClient} 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter votre premier client
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-0 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {editingClient ? 'Modifier le client' : 'Nouveau client'}
             </DialogTitle>
-            <DialogDescription>
-              {editingClient ? 'Modifiez les informations du client.' : 'Ajoutez un nouveau client à votre base de données.'}
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              {editingClient ? 'Modifiez les informations du client.' : 'Ajoutez un nouveau client à votre portefeuille.'}
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-6 py-6">
               <div className="space-y-2">
-                <Label htmlFor="nom">Nom complet</Label>
+                <Label htmlFor="nom" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Nom complet</Label>
                 <Input
                   id="nom"
                   value={formData.nom}
                   onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
                   placeholder="Nom et prénom"
+                  className="border-gray-200 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone">Numéro de téléphone</Label>
+                <Label htmlFor="phone" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Numéro de téléphone</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="Ex: 0692123456"
+                  className="border-gray-200 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="adresse">Adresse</Label>
+                <Label htmlFor="adresse" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Adresse</Label>
                 <Input
                   id="adresse"
                   value={formData.adresse}
                   onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
                   placeholder="Adresse complète"
+                  className="border-gray-200 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
             </div>
             
-            <DialogFooter>
+            <DialogFooter className="gap-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsAddDialogOpen(false)}
                 disabled={isSubmitting}
+                className="border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
               >
                 Annuler
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              >
                 {isSubmitting ? 'Enregistrement...' : (editingClient ? 'Mettre à jour' : 'Ajouter')}
               </Button>
             </DialogFooter>
