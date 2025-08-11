@@ -88,6 +88,10 @@ class RealtimeService {
       case 'depensedumois':
         syncData = { depenses: receivedData };
         break;
+
+      case 'clients':
+        syncData = { clients: receivedData };
+        break;
     }
 
     if (Object.keys(syncData).length > 0) {
@@ -121,12 +125,13 @@ class RealtimeService {
       const currentMonth = currentDate.getMonth() + 1;
       const currentYear = currentDate.getFullYear();
       
-      const [products, sales, pretFamilles, pretProduits, depenses] = await Promise.all([
+      const [products, sales, pretFamilles, pretProduits, depenses, clients] = await Promise.all([
         api.get('/products').catch(() => ({ data: [] })),
         api.get(`/sales/by-month?month=${currentMonth}&year=${currentYear}`).catch(() => ({ data: [] })),
         api.get('/pretfamilles').catch(() => ({ data: [] })),
         api.get('/pretproduits').catch(() => ({ data: [] })),
-        api.get('/depenses/mouvements').catch(() => ({ data: [] }))
+        api.get('/depenses/mouvements').catch(() => ({ data: [] })),
+        api.get('/clients').catch(() => ({ data: [] }))
       ]);
 
       const syncData: SyncData = {
@@ -134,7 +139,8 @@ class RealtimeService {
         sales: sales.data,
         pretFamilles: pretFamilles.data,
         pretProduits: pretProduits.data,
-        depenses: depenses.data
+        depenses: depenses.data,
+        clients: clients.data
       };
 
       // Mettre à jour le cache
@@ -143,6 +149,7 @@ class RealtimeService {
       this.dataCacheManager.updateCache('pretfamilles', pretFamilles.data);
       this.dataCacheManager.updateCache('pretproduits', pretProduits.data);
       this.dataCacheManager.updateCache('depensedumois', depenses.data);
+      this.dataCacheManager.updateCache('clients', clients.data);
 
       this.lastSyncTime = new Date();
       this.notifyListeners(syncData);

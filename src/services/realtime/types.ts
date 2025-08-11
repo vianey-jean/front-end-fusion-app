@@ -1,10 +1,11 @@
 
 export interface SyncData {
-  products: any[];
-  sales: any[];
-  pretFamilles: any[];
-  pretProduits: any[];
-  depenses: any[];
+  products?: any[];
+  sales?: any[];
+  pretFamilles?: any[];
+  pretProduits?: any[];
+  depenses?: any[];
+  clients?: any[];
 }
 
 export interface SyncEvent {
