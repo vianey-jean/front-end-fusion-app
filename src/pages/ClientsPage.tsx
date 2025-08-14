@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClientSync } from '@/hooks/useClientSync';
@@ -14,6 +13,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
 import ConfirmDeleteDialog from '@/components/dashboard/forms/ConfirmDeleteDialog';
+import Layout from '@/components/Layout';
+import PremiumLoading from '@/components/ui/premium-loading';
 
 interface Client {
   id: string;
@@ -182,15 +183,14 @@ const ClientsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-100 dark:from-slate-900 dark:via-purple-900 dark:to-indigo-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-20 h-20 border-4 border-purple-200 dark:border-purple-800 border-t-purple-600 dark:border-t-purple-400 rounded-full animate-spin mx-auto"></div>
-            <Diamond className="w-10 h-10 text-purple-600 dark:text-purple-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-pulse" />
-          </div>
-          <p className="mt-6 text-gray-700 dark:text-gray-200 font-semibold text-lg">Chargement de votre portefeuille premium...</p>
-        </div>
-      </div>
+      <Layout>
+        <PremiumLoading 
+          text="Bienvenue sur Listes des Clients"
+          size="xl"
+          overlay={true}
+          variant="default"
+        />
+      </Layout>
     );
   }
 
@@ -221,7 +221,7 @@ const ClientsPage: React.FC = () => {
                 </div>
               </div>
               <h1 className="text-5xl md:text-7xl font-bold text-white bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text">
-                Portefeuille <span className="text-transparent bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-300 bg-clip-text animate-pulse">Élite</span>
+                Listes Clients <span className="text-transparent bg-gradient-to-r from-yellow-300 via-orange-300 to-yellow-300 bg-clip-text animate-pulse">Élite</span>
               </h1>
               <div className="relative">
                 <Diamond className="w-16 h-16 text-purple-200 animate-spin-slow" />
@@ -446,7 +446,7 @@ const ClientsPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Confirmer l'ajout</DialogTitle>
             <DialogDescription>
-              Voulez-vous vraiment ajouter ce client à votre portefeuille ?
+              Voulez-vous vraiment ajouter ce client à votre base ?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
