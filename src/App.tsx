@@ -1,18 +1,21 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
-import { AppProvider } from './contexts/AppContext';
-import { AccessibilityProvider } from './components/accessibility/AccessibilityProvider';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { AppProvider } from '@/contexts/AppContext';
+import { AccessibilityProvider } from '@/components/accessibility/AccessibilityProvider';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import RealtimeWrapper from '@/components/common/RealtimeWrapper';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
+import TendancesPage from './pages/TendancesPage';
+import ClientsPage from './pages/ClientsPage';
 import Produits from './pages/Produits';
 import Ventes from './pages/Ventes';
-import ClientsPage from './pages/ClientsPage';
 import PretFamilles from './pages/PretFamilles';
 import PretProduits from './pages/PretProduits';
 import Depenses from './pages/Depenses';
@@ -22,25 +25,23 @@ import HomePage from './pages/HomePage';
 import TendancesPage from './pages/TendancesPage';
 import Comptabilite from './pages/Comptabilite';
 import MessagesPage from './pages/MessagesPage';
-import { Toaster } from './components/ui/sonner';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+import NotFound from './pages/NotFound';
+import '@/styles/accessibility.css';
+import './App.css';
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <AccessibilityProvider>
       <ThemeProvider>
-        <AccessibilityProvider>
-          <AuthProvider>
-            <AppProvider>
-              <Router>
+        <AuthProvider>
+          <AppProvider>
+            <RealtimeWrapper>
+              <Router
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true,
+                }}
+              >
                 <div className="min-h-screen bg-background">
                   <Routes>
                     <Route path="/" element={<HomePage />} />
@@ -49,9 +50,14 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ResetPasswordPage />} />
-                    <Route path="/" element={
+                    <Route path="/dashboard" element={
                       <ProtectedRoute>
                         <DashboardPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/messages" element={
+                      <ProtectedRoute>
+                        <MessagesPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/produits" element={
@@ -68,11 +74,6 @@ function App() {
                     <Route path="/clients" element={
                       <ProtectedRoute>
                         <ClientsPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/messages" element={
-                      <ProtectedRoute>
-                        <MessagesPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/pret-familles" element={
@@ -100,16 +101,16 @@ function App() {
                         <Comptabilite />
                       </ProtectedRoute>
                     } />
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={<NotFound />} />
                   </Routes>
                 </div>
                 <Toaster />
               </Router>
-            </AppProvider>
-          </AuthProvider>
-        </AccessibilityProvider>
+            </RealtimeWrapper>
+          </AppProvider>
+        </AuthProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+    </AccessibilityProvider>
   );
 }
 
