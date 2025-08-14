@@ -1,46 +1,46 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { AppProvider } from '@/contexts/AppContext';
-import { AccessibilityProvider } from '@/components/accessibility/AccessibilityProvider';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { RealtimeWrapper } from '@/components/common/RealtimeWrapper';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { AppProvider } from './contexts/AppContext';
+import { AccessibilityProvider } from './components/accessibility/AccessibilityProvider';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
-import TendancesPage from './pages/TendancesPage';
-import ClientsPage from './pages/ClientsPage';
 import Produits from './pages/Produits';
 import Ventes from './pages/Ventes';
+import ClientsPage from './pages/ClientsPage';
 import PretFamilles from './pages/PretFamilles';
 import PretProduits from './pages/PretProduits';
 import Depenses from './pages/Depenses';
 import Contact from './pages/ContactPage';
 import Apropos from './pages/AboutPage';
 import HomePage from './pages/HomePage';
+import TendancesPage from './pages/TendancesPage';
 import Comptabilite from './pages/Comptabilite';
 import MessagesPage from './pages/MessagesPage';
-import NotFound from './pages/NotFound';
-import '@/styles/accessibility.css';
-import './App.css';
+import { Toaster } from './components/ui/sonner';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function App() {
   return (
-    <AccessibilityProvider>
+    <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <AppProvider>
-            <RealtimeWrapper>
-              <Router
-                future={{
-                  v7_startTransition: true,
-                  v7_relativeSplatPath: true,
-                }}
-              >
+        <AccessibilityProvider>
+          <AuthProvider>
+            <AppProvider>
+              <Router>
                 <div className="min-h-screen bg-background">
                   <Routes>
                     <Route path="/" element={<HomePage />} />
@@ -49,14 +49,9 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ResetPasswordPage />} />
-                    <Route path="/dashboard" element={
+                    <Route path="/" element={
                       <ProtectedRoute>
                         <DashboardPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/messages" element={
-                      <ProtectedRoute>
-                        <MessagesPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/produits" element={
@@ -73,6 +68,11 @@ function App() {
                     <Route path="/clients" element={
                       <ProtectedRoute>
                         <ClientsPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/messages" element={
+                      <ProtectedRoute>
+                        <MessagesPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/pret-familles" element={
@@ -100,16 +100,16 @@ function App() {
                         <Comptabilite />
                       </ProtectedRoute>
                     } />
-                    <Route path="*" element={<NotFound />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </div>
                 <Toaster />
               </Router>
-            </RealtimeWrapper>
-          </AppProvider>
-        </AuthProvider>
+            </AppProvider>
+          </AuthProvider>
+        </AccessibilityProvider>
       </ThemeProvider>
-    </AccessibilityProvider>
+    </QueryClientProvider>
   );
 }
 
