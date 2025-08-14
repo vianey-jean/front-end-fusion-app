@@ -147,13 +147,14 @@ class RealtimeService {
       const currentMonth = currentDate.getMonth() + 1;
       const currentYear = currentDate.getFullYear();
       
-      const [products, sales, pretFamilles, pretProduits, depenses, clients] = await Promise.all([
+      const [products, sales, pretFamilles, pretProduits, depenses, clients, messages] = await Promise.all([
         api.get('/products').catch(() => ({ data: [] })),
         api.get(`/sales/by-month?month=${currentMonth}&year=${currentYear}`).catch(() => ({ data: [] })),
         api.get('/pretfamilles').catch(() => ({ data: [] })),
         api.get('/pretproduits').catch(() => ({ data: [] })),
         api.get('/depenses/mouvements').catch(() => ({ data: [] })),
-        api.get('/clients').catch(() => ({ data: [] }))
+        api.get('/clients').catch(() => ({ data: [] })),
+        api.get('/messages').catch(() => ({ data: [] }))
       ]);
 
       const syncData: SyncData = {
@@ -162,7 +163,8 @@ class RealtimeService {
         pretFamilles: pretFamilles.data,
         pretProduits: pretProduits.data,
         depenses: depenses.data,
-        clients: clients.data
+        clients: clients.data,
+        messages: messages.data
       };
 
       console.log('📊 Données synchronisées:', syncData);
@@ -174,6 +176,7 @@ class RealtimeService {
       this.dataCacheManager.updateCache('pretproduits', pretProduits.data);
       this.dataCacheManager.updateCache('depensedumois', depenses.data);
       this.dataCacheManager.updateCache('clients', clients.data);
+      this.dataCacheManager.updateCache('messages', messages.data);
 
       this.lastSyncTime = new Date();
       this.notifyListeners(syncData);
