@@ -18,6 +18,7 @@ import PretProduits from './pages/PretProduits';
 import Depenses from './pages/Depenses';
 import Contact from './pages/ContactPage';
 import Apropos from './pages/AboutPage';
+import HomePage from './pages/HomePage';
 import TendancesPage from './pages/TendancesPage';
 import Comptabilite from './pages/Comptabilite';
 import MessagesPage from './pages/MessagesPage';
@@ -42,6 +43,9 @@ function App() {
               <Router>
                 <div className="min-h-screen bg-background">
                   <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/about" element={<Apropos />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/forgot-password" element={<ResetPasswordPage />} />
@@ -60,16 +64,7 @@ function App() {
                         <Ventes />
                       </ProtectedRoute>
                     } />
-                     <Route path="/contact" element={
-                      <ProtectedRoute>
-                        <Contact />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/about" element={
-                      <ProtectedRoute>
-                        <Apropos />
-                      </ProtectedRoute>
-                    } />
+                   
                     <Route path="/clients" element={
                       <ProtectedRoute>
                         <ClientsPage />
