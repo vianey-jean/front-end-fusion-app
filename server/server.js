@@ -1,193 +1,78 @@
 
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
-const dotenv = require('dotenv');
-const bcrypt = require('bcryptjs');
+const passport = require('./config/passport');
 
-// Load environment variables
-dotenv.config();
-
-// Initialize express app
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3001;
 
-// Configuration CORS simplifiée pour le développement
+// Enhanced CORS configuration
 const corsOptions = {
-  origin: true, // Permet toutes les origines en développement
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:8080',
+      'https://loving-river-0c35b7710.5.azurestaticapps.net',
+      'https://server-gestion-ventes.onrender.com'
+    ];
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Allow all origins for development
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'Cache-Control',
-    'X-Requested-With',
-    'Accept',
-    'Origin'
-  ],
-  optionsSuccessStatus: 200
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Length', 'X-Request-ID'],
+  maxAge: 86400
 };
 
-// Middleware CORS global
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Middleware
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(passport.initialize());
 
-// Create db directory if it doesn't exist
-const dbPath = path.join(__dirname, 'db');
-if (!fs.existsSync(dbPath)) {
-  fs.mkdirSync(dbPath);
-}
+// Static files
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Create uploads directory if it doesn't exist
-const uploadsPath = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(uploadsPath);
-}
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/products', require('./routes/products'));
+app.use('/api/sales', require('./routes/sales'));
+app.use('/api/benefices', require('./routes/benefices'));
+app.use('/api/pretfamilles', require('./routes/pretfamilles'));
+app.use('/api/pretproduits', require('./routes/pretproduits'));
+app.use('/api/depenses', require('./routes/depenses'));
+app.use('/api/clients', require('./routes/clients'));
+app.use('/api/messages', require('./routes/messages'));
+app.use('/api/sync', require('./routes/sync'));
 
-// Hash a password
-const hashPassword = (password) => {
-  const salt = bcrypt.genSaltSync(10);
-  return bcrypt.hashSync(password, salt);
-};
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date() });
+});
 
-const productsPath = path.join(dbPath, 'products.json');
-if (!fs.existsSync(productsPath)) {
-  fs.writeFileSync(productsPath, JSON.stringify([
-    {
-      id: "1",
-      description: "Laptop",
-      purchasePrice: 500,
-      quantity: 10
-    },
-    {
-      id: "2",
-      description: "Smartphone",
-      purchasePrice: 300,
-      quantity: 15
-    },
-    {
-      id: "3",
-      description: "Headphones",
-      purchasePrice: 50,
-      quantity: 30
-    }
-  ], null, 2));
-}
+// Catch all handler
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-const salesPath = path.join(dbPath, 'sales.json');
-if (!fs.existsSync(salesPath)) {
-  fs.writeFileSync(salesPath, JSON.stringify([], null, 2));
-}
-
-// Créer le fichier clients.json s'il n'existe pas
-const clientsPath = path.join(dbPath, 'clients.json');
-if (!fs.existsSync(clientsPath)) {
-  fs.writeFileSync(clientsPath, JSON.stringify([
-    {
-      id: "1",
-      nom: "Marie Dupont",
-      phone: "0692123456",
-      adresse: "123 Rue de la Paix, Saint-Denis",
-      dateCreation: "2024-01-15T10:30:00.000Z"
-    },
-    {
-      id: "2", 
-      nom: "Jean Martin",
-      phone: "0693987654",
-      adresse: "45 Avenue des Palmiers, Saint-Paul",
-      dateCreation: "2024-01-20T14:15:00.000Z"
-    }
-  ], null, 2));
-}
-
-// Créer les nouveaux fichiers JSON s'ils n'existent pas
-const pretFamillesPath = path.join(dbPath, 'pretfamilles.json');
-if (!fs.existsSync(pretFamillesPath)) {
-  fs.writeFileSync(pretFamillesPath, JSON.stringify([
-    { id: "1", nom: "Famille Martin", pretTotal: 2000, soldeRestant: 1500, dernierRemboursement: 500, dateRemboursement: "2024-04-15" },
-    { id: "2", nom: "Famille Dupont", pretTotal: 1000, soldeRestant: 500, dernierRemboursement: 200, dateRemboursement: "2024-04-10" },
-    { id: "3", nom: "Famille Bernard", pretTotal: 3000, soldeRestant: 2000, dernierRemboursement: 1000, dateRemboursement: "2024-04-05" }
-  ], null, 2));
-}
-
-const pretProduitsPath = path.join(dbPath, 'pretproduits.json');
-if (!fs.existsSync(pretProduitsPath)) {
-  fs.writeFileSync(pretProduitsPath, JSON.stringify([
-    { id: "1", date: "2023-04-10", description: "Perruque Blonde", prixVente: 450, avanceRecue: 200, reste: 250, estPaye: false },
-    { id: "2", date: "2023-04-15", description: "Perruque Brune", prixVente: 300, avanceRecue: 300, reste: 0, estPaye: true },
-    { id: "3", date: "2023-04-20", description: "Perruque Rousse", prixVente: 500, avanceRecue: 250, reste: 250, estPaye: false }
-  ], null, 2));
-}
-
-const depenseDuMoisPath = path.join(dbPath, 'depensedumois.json');
-if (!fs.existsSync(depenseDuMoisPath)) {
-  fs.writeFileSync(depenseDuMoisPath, JSON.stringify([
-    { id: "1", date: "2023-04-05", description: "Salaire", categorie: "salaire", debit: 0, credit: 2000, solde: 2000 },
-    { id: "2", date: "2023-04-10", description: "Courses Leclerc", categorie: "courses", debit: 150, credit: 0, solde: 1850 },
-    { id: "3", date: "2023-04-15", description: "Restaurant", categorie: "restaurant", debit: 45, credit: 0, solde: 1805 },
-    { id: "4", date: "2023-04-20", description: "Free Mobile", categorie: "free", debit: 19.99, credit: 0, solde: 1785.01 }
-  ], null, 2));
-}
-
-const depenseFixePath = path.join(dbPath, 'depensefixe.json');
-if (!fs.existsSync(depenseFixePath)) {
-  fs.writeFileSync(depenseFixePath, JSON.stringify({
-    free: 19.99,
-    internetZeop: 39.99,
-    assuranceVoiture: 85,
-    autreDepense: 45,
-    assuranceVie: 120,
-    total: 309.98
-  }, null, 2));
-}
-
-const beneficePath = path.join(dbPath, 'benefice.json');
-if (!fs.existsSync(beneficePath)) {
-  fs.writeFileSync(beneficePath, JSON.stringify([], null, 2));
-}
-
-// Import routes
-const authRoutes = require('./routes/auth');
-const productRoutes = require('./routes/products');
-const salesRoutes = require('./routes/sales');
-const clientRoutes = require('./routes/clients');
-const pretFamillesRoutes = require('./routes/pretfamilles');
-const pretProduitsRoutes = require('./routes/pretproduits');
-const depensesRoutes = require('./routes/depenses');
-const syncRoutes = require('./routes/sync');
-const beneficesRoutes = require('./routes/benefices');
-
-// Use routes
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/sales', salesRoutes);
-app.use('/api/clients', clientRoutes);
-app.use('/api/pretfamilles', pretFamillesRoutes);
-app.use('/api/pretproduits', pretProduitsRoutes);
-app.use('/api/depenses', depensesRoutes);
-app.use('/api/sync', syncRoutes);
-app.use('/api/benefices', beneficesRoutes);
-
-// Static file serving for uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Error handling middleware
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error('Server error:', err.stack);
-  res.status(500).json({ 
-    error: 'Something broke!', 
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
+  console.error('Global error:', err);
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`CORS enabled for all origins in development`);
-  console.log(`Sync events available at http://localhost:${PORT}/api/sync/events`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
 });
+
+module.exports = app;

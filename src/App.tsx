@@ -1,115 +1,164 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
-import { AppProvider } from './contexts/AppContext';
-import { AccessibilityProvider } from './components/accessibility/AccessibilityProvider';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import DashboardPage from './pages/DashboardPage';
-import Produits from './pages/Produits';
-import Ventes from './pages/Ventes';
-import ClientsPage from './pages/ClientsPage';
-import PretFamilles from './pages/PretFamilles';
-import PretProduits from './pages/PretProduits';
-import Depenses from './pages/Depenses';
-import Contact from './pages/ContactPage';
-import Apropos from './pages/AboutPage';
-import HomePage from './pages/HomePage';
-import TendancesPage from './pages/TendancesPage';
-import Comptabilite from './pages/Comptabilite';
-import MessagesPage from './pages/MessagesPage';
-import { Toaster } from './components/ui/sonner';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { AppProvider } from '@/contexts/AppContext';
+import { RealtimeWrapper } from '@/components/common/RealtimeWrapper';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Toaster } from '@/components/ui/toaster';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
+// Pages
+import HomePage from '@/pages/HomePage';
+import AboutPage from '@/pages/AboutPage';
+import ContactPage from '@/pages/ContactPage';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import ResetPasswordPage from '@/pages/ResetPasswordPage';
+import DashboardPage from '@/pages/DashboardPage';
+import MessagesPage from '@/pages/MessagesPage';
+import Produits from '@/pages/Produits';
+import Ventes from '@/pages/Ventes';
+import Depenses from '@/pages/Depenses';
+import PretFamilles from '@/pages/PretFamilles';
+import PretProduits from '@/pages/PretProduits';
+import Comptabilite from '@/pages/Comptabilite';
+import TendancesPage from '@/pages/TendancesPage';
+import ClientsPage from '@/pages/ClientsPage';
+import NotFound from '@/pages/NotFound';
+
+// Create router avec les future flags
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <HomePage />
   },
+  {
+    path: "/about",
+    element: <AboutPage />
+  },
+  {
+    path: "/contact",
+    element: <ContactPage />
+  },
+  {
+    path: "/login",
+    element: <LoginPage />
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPasswordPage />
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <DashboardPage />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/messages",
+    element: (
+      <ProtectedRoute>
+        <MessagesPage />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/produits",
+    element: (
+      <ProtectedRoute>
+        <Produits />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/ventes",
+    element: (
+      <ProtectedRoute>
+        <Ventes />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/depenses",
+    element: (
+      <ProtectedRoute>
+        <Depenses />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/pret-familles",
+    element: (
+      <ProtectedRoute>
+        <PretFamilles />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/pret-produits",
+    element: (
+      <ProtectedRoute>
+        <PretProduits />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/comptabilite",
+    element: (
+      <ProtectedRoute>
+        <Comptabilite />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/tendances",
+    element: (
+      <ProtectedRoute>
+        <TendancesPage />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/clients",
+    element: (
+      <ProtectedRoute>
+        <ClientsPage />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "*",
+    element: <NotFound />
+  }
+], {
+  future: {
+    v7_relativeSplatPath: true,
+    v7_fetcherPersist: true,
+    v7_normalizeFormMethod: true,
+    v7_partialHydration: true,
+    v7_skipActionErrorRevalidation: true
+  }
 });
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AccessibilityProvider>
-          <AuthProvider>
-            <AppProvider>
-              <Router>
-                <div className="min-h-screen bg-background">
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/about" element={<Apropos />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/forgot-password" element={<ResetPasswordPage />} />
-                    <Route path="/" element={
-                      <ProtectedRoute>
-                        <DashboardPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/produits" element={
-                      <ProtectedRoute>
-                        <Produits />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/ventes" element={
-                      <ProtectedRoute>
-                        <Ventes />
-                      </ProtectedRoute>
-                    } />
-                   
-                    <Route path="/clients" element={
-                      <ProtectedRoute>
-                        <ClientsPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/messages" element={
-                      <ProtectedRoute>
-                        <MessagesPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/pret-familles" element={
-                      <ProtectedRoute>
-                        <PretFamilles />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/pret-produits" element={
-                      <ProtectedRoute>
-                        <PretProduits />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/depenses" element={
-                      <ProtectedRoute>
-                        <Depenses />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/tendances" element={
-                      <ProtectedRoute>
-                        <TendancesPage />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/comptabilite" element={
-                      <ProtectedRoute>
-                        <Comptabilite />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </div>
-                <Toaster />
-              </Router>
-            </AppProvider>
-          </AuthProvider>
-        </AccessibilityProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppProvider>
+          <RealtimeWrapper>
+            <RouterProvider router={router} />
+            <Toaster />
+          </RealtimeWrapper>
+        </AppProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
