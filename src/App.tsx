@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, createBrowserRouter, RouterProv
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AppProvider } from '@/contexts/AppContext';
+import { AccessibilityProvider } from '@/components/accessibility/AccessibilityProvider';
 import { RealtimeWrapper } from '@/components/common/RealtimeWrapper';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Toaster } from '@/components/ui/toaster';
@@ -150,14 +151,16 @@ const router = createBrowserRouter([
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <AppProvider>
-          <RealtimeWrapper>
-            <RouterProvider router={router} />
-            <Toaster />
-          </RealtimeWrapper>
-        </AppProvider>
-      </AuthProvider>
+      <AccessibilityProvider>
+        <AuthProvider>
+          <AppProvider>
+            <RealtimeWrapper>
+              <RouterProvider router={router} />
+              <Toaster />
+            </RealtimeWrapper>
+          </AppProvider>
+        </AuthProvider>
+      </AccessibilityProvider>
     </ThemeProvider>
   );
 }
