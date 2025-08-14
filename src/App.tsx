@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AppProvider } from '@/contexts/AppContext';
 import { RealtimeWrapper } from '@/components/common/RealtimeWrapper';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Toaster } from '@/components/ui/toaster';
 
 // Pages
