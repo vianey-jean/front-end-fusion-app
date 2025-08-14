@@ -20,6 +20,7 @@ import Contact from './pages/ContactPage';
 import Apropos from './pages/AboutPage';
 import TendancesPage from './pages/TendancesPage';
 import Comptabilite from './pages/Comptabilite';
+import MessagesPage from './pages/MessagesPage';
 import { Toaster } from './components/ui/sonner';
 
 const queryClient = new QueryClient({
@@ -72,6 +73,11 @@ function App() {
                     <Route path="/clients" element={
                       <ProtectedRoute>
                         <ClientsPage />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/messages" element={
+                      <ProtectedRoute>
+                        <MessagesPage />
                       </ProtectedRoute>
                     } />
                     <Route path="/pret-familles" element={

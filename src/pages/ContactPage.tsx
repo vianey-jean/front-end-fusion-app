@@ -4,16 +4,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useMessages } from '@/hooks/useMessages';
 import Layout from '@/components/Layout';
 import PremiumLoading from '@/components/ui/premium-loading';
 import { Mail, Phone, MapPin, Send, Clock, MessageCircle } from 'lucide-react';
 
 const ContactPage: React.FC = () => {
   const { toast } = useToast();
+  const { sendMessage } = useMessages();
   const [formData, setFormData] = useState({
-    name: '',
+    nom: '',
     email: '',
-    subject: '',
+    sujet: '',
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,26 +37,49 @@ const ContactPage: React.FC = () => {
     });
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.nom || !formData.email || !formData.sujet || !formData.message) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
-    setTimeout(() => {
+    try {
+      await sendMessage({
+        nom: formData.nom,
+        email: formData.email,
+        sujet: formData.sujet,
+        message: formData.message
+      });
+
       toast({
         title: "Message envoyé",
-        description: "Nous vous répondrons dans les plus brefs délais.",
+        description: "Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.",
         className: "notification-success",
       });
       
       setFormData({
-        name: '',
+        nom: '',
         email: '',
-        subject: '',
+        sujet: '',
         message: '',
       });
-      
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   if (isLoading) {
@@ -196,14 +221,14 @@ const ContactPage: React.FC = () => {
                   <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-3">
-                        <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        <Label htmlFor="nom" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                           Nom complet
                         </Label>
                         <Input
-                          id="name"
-                          name="name"
+                          id="nom"
+                          name="nom"
                           placeholder="Votre nom"
-                          value={formData.name}
+                          value={formData.nom}
                           onChange={handleChange}
                           required
                           className="h-14 bg-white/50 dark:bg-gray-700/50 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 transition-all duration-200"
@@ -228,14 +253,14 @@ const ContactPage: React.FC = () => {
                     </div>
 
                     <div className="space-y-3">
-                      <Label htmlFor="subject" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      <Label htmlFor="sujet" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                         Sujet
                       </Label>
                       <Input
-                        id="subject"
-                        name="subject"
+                        id="sujet"
+                        name="sujet"
                         placeholder="Sujet de votre message"
-                        value={formData.subject}
+                        value={formData.sujet}
                         onChange={handleChange}
                         required
                         className="h-14 bg-white/50 dark:bg-gray-700/50 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 transition-all duration-200"
