@@ -12,7 +12,14 @@ import {
   Eye, 
   EyeOff,
   Clock,
-  User
+  User,
+  Search,
+  Filter,
+  Archive,
+  Star,
+  Reply,
+  Forward,
+  MoreVertical
 } from 'lucide-react';
 import { useMessages, Message } from '@/hooks/use-messages';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,23 +27,30 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Input } from '@/components/ui/input';
 
 const MessagesPage: React.FC = () => {
   const { messages, unreadCount, isLoading, markAsRead, markAsUnread, deleteMessage } = useMessages();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardContent className="pt-8">
-            <MessageSquare className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-600 mb-2">Accès restreint</h2>
-            <p className="text-gray-500 mb-6">
-              Vous devez être connecté pour accéder à vos messages.
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center shadow-2xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
+          <CardContent className="pt-12 pb-8">
+            <div className="relative mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-xl opacity-20"></div>
+              <MessageSquare className="relative h-20 w-20 text-blue-500 mx-auto" />
+            </div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+              Accès Premium Requis
+            </h2>
+            <div className="text-slate-600 dark:text-slate-300 mb-6">
+              Connectez-vous pour accéder à votre messagerie sécurisée.
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -75,87 +89,126 @@ const MessagesPage: React.FC = () => {
     }
   };
 
+  const filteredMessages = messages.filter(message =>
+    message.expediteurNom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    message.sujet.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    message.contenu.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-            Mes Messages
-          </h1>
-          <div className="flex items-center justify-center gap-4">
-            <Badge variant="outline" className="px-3 py-1">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              {messages.length} message{messages.length > 1 ? 's' : ''}
-            </Badge>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
+      <div className="container mx-auto px-6 py-8">
+        {/* Header Premium */}
+        <div className="text-center mb-10">
+          <div className="relative inline-block mb-6">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-2xl opacity-20"></div>
+            <h1 className="relative text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Messagerie Premium
+            </h1>
+          </div>
+          <div className="flex items-center justify-center gap-6 mb-8">
+            <div className="flex items-center gap-3 px-6 py-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-blue-200/50 dark:border-blue-700/50 shadow-lg">
+              <MessageSquare className="h-5 w-5 text-blue-600" />
+              <span className="font-semibold text-slate-700 dark:text-slate-200">
+                {messages.length} message{messages.length > 1 ? 's' : ''}
+              </span>
+            </div>
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="px-3 py-1">
-                <Mail className="h-4 w-4 mr-2" />
-                {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
-              </Badge>
+              <div className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-red-500/20 to-pink-500/20 backdrop-blur-xl rounded-2xl border border-red-200/50 dark:border-red-700/50 shadow-lg">
+                <Mail className="h-5 w-5 text-red-600" />
+                <span className="font-semibold text-red-700 dark:text-red-300">
+                  {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
+                </span>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {/* Liste des messages */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5 text-purple-600" />
-                  Liste des messages
+        <div className="grid lg:grid-cols-5 gap-8 max-w-8xl mx-auto">
+          {/* Sidebar des messages */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-2xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
+              <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 pb-6">
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                    <Mail className="h-5 w-5 text-white" />
+                  </div>
+                  Boîte de réception
                 </CardTitle>
+                
+                {/* Barre de recherche premium */}
+                <div className="relative mt-4">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Rechercher dans les messages..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-12 pr-4 py-3 bg-slate-50/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all duration-200"
+                  />
+                </div>
               </CardHeader>
+              
               <CardContent className="p-0">
                 {isLoading ? (
-                  <div className="p-4 text-center text-gray-500">
-                    Chargement des messages...
+                  <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <div className="text-slate-500">Chargement de vos messages...</div>
                   </div>
-                ) : messages.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>Aucun message reçu</p>
+                ) : filteredMessages.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-300 to-slate-400 rounded-full blur-xl opacity-20"></div>
+                      <MessageSquare className="relative h-16 w-16 mx-auto text-slate-300" />
+                    </div>
+                    <div className="text-slate-500 text-lg">Aucun message trouvé</div>
                   </div>
                 ) : (
-                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {messages.map((message) => (
+                  <div className="divide-y divide-slate-200/50 dark:divide-slate-700/50">
+                    {filteredMessages.map((message) => (
                       <div
                         key={message.id}
-                        className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${
+                        className={`p-6 cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 group ${
                           !message.lu 
-                            ? 'bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500' 
+                            ? 'bg-gradient-to-r from-emerald-50/80 to-green-50/80 dark:from-emerald-900/30 dark:to-green-900/30 border-l-4 border-emerald-400' 
                             : ''
                         } ${
                           selectedMessage?.id === message.id 
-                            ? 'bg-purple-50 dark:bg-purple-900/20' 
+                            ? 'bg-gradient-to-r from-blue-50/80 to-purple-50/80 dark:from-blue-900/40 dark:to-purple-900/40 border-l-4 border-blue-400' 
                             : ''
                         }`}
                         onClick={() => handleMessageClick(message)}
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-gray-500" />
-                            <span className={`font-medium text-sm ${!message.lu ? 'font-bold' : ''}`}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 rounded-xl">
+                              <User className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                            </div>
+                            <span className={`font-semibold text-base ${!message.lu ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}>
                               {message.expediteurNom}
                             </span>
                           </div>
                           {!message.lu && (
-                            <Badge variant="destructive" className="text-xs px-2 py-0.5">
+                            <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-3 py-1 shadow-lg">
                               Nouveau
                             </Badge>
                           )}
                         </div>
                         
-                        <p className={`text-sm mb-2 ${!message.lu ? 'font-semibold' : 'text-gray-600 dark:text-gray-300'}`}>
+                        <div className={`text-base mb-3 line-clamp-2 ${!message.lu ? 'font-semibold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
                           {message.sujet}
-                        </p>
+                        </div>
                         
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <Calendar className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(message.dateEnvoi), { 
-                            addSuffix: true, 
-                            locale: fr 
-                          })}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <Clock className="h-3 w-3" />
+                            {formatDistanceToNow(new Date(message.dateEnvoi), { 
+                              addSuffix: true, 
+                              locale: fr 
+                            })}
+                          </div>
+                          {!message.lu && (
+                            <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg"></div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -165,45 +218,53 @@ const MessagesPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Détail du message sélectionné */}
-          <div className="lg:col-span-2">
+          {/* Panneau de lecture du message */}
+          <div className="lg:col-span-3">
             {selectedMessage ? (
-              <Card>
-                <CardHeader className="border-b">
+              <Card className="shadow-2xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
+                <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 pb-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="flex items-center gap-2 mb-2">
-                        <Mail className="h-5 w-5 text-purple-600" />
-                        {selectedMessage.sujet}
+                      <CardTitle className="flex items-center gap-3 mb-4 text-2xl">
+                        <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                          <Mail className="h-6 w-6 text-white" />
+                        </div>
+                        <span className="bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent">
+                          {selectedMessage.sujet}
+                        </span>
                         {!selectedMessage.lu && (
-                          <Badge variant="destructive" className="text-xs">
+                          <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white">
                             Non lu
                           </Badge>
                         )}
                       </CardTitle>
-                      <CardDescription className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          <strong>De:</strong> {selectedMessage.expediteurNom}
+                      <CardDescription className="space-y-3 text-base">
+                        <div className="flex items-center gap-3 p-3 bg-slate-50/50 dark:bg-slate-700/50 rounded-xl">
+                          <User className="h-4 w-4 text-slate-500" />
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">De:</span>
+                          <span className="text-slate-600 dark:text-slate-300">{selectedMessage.expediteurNom}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          <strong>Email:</strong> {selectedMessage.expediteurEmail}
+                        <div className="flex items-center gap-3 p-3 bg-slate-50/50 dark:bg-slate-700/50 rounded-xl">
+                          <Mail className="h-4 w-4 text-slate-500" />
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">Email:</span>
+                          <span className="text-slate-600 dark:text-slate-300">{selectedMessage.expediteurEmail}</span>
                         </div>
                         {selectedMessage.expediteurTelephone && (
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4" />
-                            <strong>Téléphone:</strong> {selectedMessage.expediteurTelephone}
+                          <div className="flex items-center gap-3 p-3 bg-slate-50/50 dark:bg-slate-700/50 rounded-xl">
+                            <Phone className="h-4 w-4 text-slate-500" />
+                            <span className="font-semibold text-slate-700 dark:text-slate-200">Téléphone:</span>
+                            <span className="text-slate-600 dark:text-slate-300">{selectedMessage.expediteurTelephone}</span>
                           </div>
                         )}
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          <strong>Reçu le:</strong> {new Date(selectedMessage.dateEnvoi).toLocaleString('fr-FR')}
+                        <div className="flex items-center gap-3 p-3 bg-slate-50/50 dark:bg-slate-700/50 rounded-xl">
+                          <Calendar className="h-4 w-4 text-slate-500" />
+                          <span className="font-semibold text-slate-700 dark:text-slate-200">Reçu le:</span>
+                          <span className="text-slate-600 dark:text-slate-300">{new Date(selectedMessage.dateEnvoi).toLocaleString('fr-FR')}</span>
                         </div>
                       </CardDescription>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <Button
                         variant="outline"
                         size="sm"
@@ -211,6 +272,7 @@ const MessagesPage: React.FC = () => {
                           ? handleMarkAsUnread(selectedMessage) 
                           : handleMarkAsRead(selectedMessage)
                         }
+                        className="bg-white/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200"
                       >
                         {selectedMessage.lu ? (
                           <>
@@ -227,23 +289,29 @@ const MessagesPage: React.FC = () => {
                       
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-lg"
+                          >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Supprimer
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-0 shadow-2xl">
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                            <AlertDialogDescription>
+                            <AlertDialogTitle className="text-xl">Confirmer la suppression</AlertDialogTitle>
+                            <AlertDialogDescription className="text-base">
                               Êtes-vous sûr de vouloir supprimer ce message ? Cette action est irréversible.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogCancel className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600">
+                              Annuler
+                            </AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => handleDelete(selectedMessage.id)}
-                              className="bg-red-500 hover:bg-red-600"
+                              className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
                             >
                               Supprimer
                             </AlertDialogAction>
@@ -254,23 +322,30 @@ const MessagesPage: React.FC = () => {
                   </div>
                 </CardHeader>
                 
-                <CardContent className="pt-6">
+                <CardContent className="pt-8">
                   <div className="prose dark:prose-invert max-w-none">
-                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                      <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
+                    <div className="bg-gradient-to-br from-slate-50/80 to-blue-50/50 dark:from-slate-800/80 dark:to-blue-900/30 p-8 rounded-2xl border border-slate-200/50 dark:border-slate-600/50 shadow-inner">
+                      <div className="whitespace-pre-wrap text-slate-800 dark:text-slate-200 leading-relaxed text-lg">
                         {selectedMessage.contenu}
-                      </p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ) : (
-              <Card className="h-full">
-                <CardContent className="flex items-center justify-center h-full py-20">
-                  <div className="text-center text-gray-500">
-                    <MessageSquare className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                    <h3 className="text-lg font-medium mb-2">Sélectionnez un message</h3>
-                    <p>Choisissez un message dans la liste pour le lire</p>
+              <Card className="h-full shadow-2xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl">
+                <CardContent className="flex items-center justify-center h-full py-32">
+                  <div className="text-center">
+                    <div className="relative mb-8">
+                      <div className="absolute inset-0 bg-gradient-to-r from-slate-300 to-slate-400 rounded-full blur-2xl opacity-20"></div>
+                      <MessageSquare className="relative h-24 w-24 mx-auto text-slate-300" />
+                    </div>
+                    <h3 className="text-2xl font-semibold text-slate-600 dark:text-slate-300 mb-3">
+                      Sélectionnez un message
+                    </h3>
+                    <div className="text-slate-500 text-lg">
+                      Choisissez un message dans votre boîte de réception pour le lire
+                    </div>
                   </div>
                 </CardContent>
               </Card>

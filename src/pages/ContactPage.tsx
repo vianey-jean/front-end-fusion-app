@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, Clock, Globe, Shield, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMessages } from '@/hooks/use-messages';
 
@@ -79,15 +79,24 @@ const ContactPage: React.FC = () => {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
-          <CardContent className="pt-8">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-green-600 mb-2">Message envoyé !</h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Merci pour votre message. Nous vous répondrons dans les plus brefs délais.
-            </p>
-            <Button onClick={() => setIsSubmitted(false)} className="w-full">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-blue-100 dark:from-emerald-900 dark:via-teal-900 dark:to-blue-900 flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg text-center shadow-2xl border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-2xl">
+          <CardContent className="pt-12 pb-10">
+            <div className="relative mb-8">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full blur-2xl opacity-30"></div>
+              <CheckCircle className="relative h-24 w-24 text-emerald-500 mx-auto animate-pulse" />
+            </div>
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-4">
+              Message Envoyé !
+            </h2>
+            <div className="text-slate-600 dark:text-slate-300 mb-8 text-lg leading-relaxed">
+              Merci pour votre message premium. Notre équipe d'experts vous répondra dans les plus brefs délais avec une attention particulière.
+            </div>
+            <Button 
+              onClick={() => setIsSubmitted(false)} 
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white py-4 text-lg font-semibold shadow-xl hover:shadow-emerald-500/25 transition-all duration-300"
+            >
+              <Send className="mr-3 h-5 w-5" />
               Envoyer un autre message
             </Button>
           </CardContent>
@@ -97,163 +106,241 @@ const ContactPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-            Contactez-nous
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Une question ? Un besoin ? N'hésitez pas à nous contacter. Notre équipe vous répondra dans les plus brefs délais.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
+      <div className="container mx-auto px-6 py-16">
+        {/* Header Premium */}
+        <div className="text-center mb-16">
+          <div className="relative inline-block mb-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 rounded-full blur-3xl opacity-20"></div>
+            <h1 className="relative text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Contactez-nous
+            </h1>
+          </div>
+          <div className="max-w-3xl mx-auto">
+            <div className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-8">
+              Une question ? Un projet ? Notre équipe d'experts est à votre disposition pour vous accompagner dans votre réussite.
+            </div>
+            <div className="flex items-center justify-center gap-8 text-sm text-slate-500">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-green-500" />
+                <span>Sécurisé & Confidentiel</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <span>Réponse sous 24h</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-purple-500" />
+                <span>Service Premium</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {/* Formulaire de contact */}
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-purple-600" />
-                Envoyez-nous un message
-              </CardTitle>
-              <CardDescription>
-                Remplissez le formulaire ci-dessous et nous vous répondrons rapidement.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="expediteurNom">Nom complet *</Label>
-                    <Input
-                      id="expediteurNom"
-                      name="expediteurNom"
-                      value={formData.expediteurNom}
-                      onChange={handleChange}
-                      placeholder="Votre nom complet"
-                      required
-                    />
+        <div className="grid lg:grid-cols-3 gap-12 max-w-7xl mx-auto">
+          {/* Formulaire de contact premium */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-2xl border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-2xl">
+              <CardHeader className="pb-8">
+                <CardTitle className="flex items-center gap-4 text-2xl">
+                  <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-lg">
+                    <Mail className="h-6 w-6 text-white" />
                   </div>
-                  <div>
-                    <Label htmlFor="expediteurEmail">Email *</Label>
-                    <Input
-                      id="expediteurEmail"
-                      name="expediteurEmail"
-                      type="email"
-                      value={formData.expediteurEmail}
-                      onChange={handleChange}
-                      placeholder="votre@email.com"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="expediteurTelephone">Téléphone</Label>
-                  <Input
-                    id="expediteurTelephone"
-                    name="expediteurTelephone"
-                    value={formData.expediteurTelephone}
-                    onChange={handleChange}
-                    placeholder="Votre numéro de téléphone"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="sujet">Sujet *</Label>
-                  <Select onValueChange={(value) => handleSelectChange('sujet', value)} value={formData.sujet}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choisissez un sujet" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Demande d'information">Demande d'information</SelectItem>
-                      <SelectItem value="Support technique">Support technique</SelectItem>
-                      <SelectItem value="Partenariat">Partenariat</SelectItem>
-                      <SelectItem value="Autre">Autre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="contenu">Message *</Label>
-                  <Textarea
-                    id="contenu"
-                    name="contenu"
-                    value={formData.contenu}
-                    onChange={handleChange}
-                    placeholder="Décrivez votre demande en détail..."
-                    rows={5}
-                    required
-                  />
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>Envoi en cours...</>
-                  ) : (
-                    <>
-                      <Send className="mr-2 h-4 w-4" />
-                      Envoyer le message
-                    </>
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Informations de contact */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Nos coordonnées</CardTitle>
+                  <span className="bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent">
+                    Envoyez-nous un message
+                  </span>
+                </CardTitle>
+                <CardDescription className="text-lg text-slate-600 dark:text-slate-300 mt-3">
+                  Remplissez le formulaire ci-dessous. Chaque message est traité avec soin par notre équipe dédiée.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-purple-600" />
+              <CardContent className="pb-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <Label htmlFor="expediteurNom" className="text-base font-semibold text-slate-700 dark:text-slate-200">
+                        Nom complet *
+                      </Label>
+                      <Input
+                        id="expediteurNom"
+                        name="expediteurNom"
+                        value={formData.expediteurNom}
+                        onChange={handleChange}
+                        placeholder="Votre nom complet"
+                        required
+                        className="h-12 px-4 bg-slate-50/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all duration-200 text-base"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="expediteurEmail" className="text-base font-semibold text-slate-700 dark:text-slate-200">
+                        Adresse email *
+                      </Label>
+                      <Input
+                        id="expediteurEmail"
+                        name="expediteurEmail"
+                        type="email"
+                        value={formData.expediteurEmail}
+                        onChange={handleChange}
+                        placeholder="votre@email.com"
+                        required
+                        className="h-12 px-4 bg-slate-50/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all duration-200 text-base"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="expediteurTelephone" className="text-base font-semibold text-slate-700 dark:text-slate-200">
+                      Numéro de téléphone
+                    </Label>
+                    <Input
+                      id="expediteurTelephone"
+                      name="expediteurTelephone"
+                      value={formData.expediteurTelephone}
+                      onChange={handleChange}
+                      placeholder="Votre numéro de téléphone"
+                      className="h-12 px-4 bg-slate-50/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all duration-200 text-base"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="sujet" className="text-base font-semibold text-slate-700 dark:text-slate-200">
+                      Sujet de votre demande *
+                    </Label>
+                    <Select onValueChange={(value) => handleSelectChange('sujet', value)} value={formData.sujet}>
+                      <SelectTrigger className="h-12 px-4 bg-slate-50/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all duration-200 text-base">
+                        <SelectValue placeholder="Choisissez le sujet de votre demande" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-0 shadow-2xl">
+                        <SelectItem value="Demande d'information">💡 Demande d'information</SelectItem>
+                        <SelectItem value="Support technique">🔧 Support technique</SelectItem>
+                        <SelectItem value="Partenariat">🤝 Partenariat</SelectItem>
+                        <SelectItem value="Consultation">👨‍💼 Consultation personnalisée</SelectItem>
+                        <SelectItem value="Autre">📧 Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="contenu" className="text-base font-semibold text-slate-700 dark:text-slate-200">
+                      Votre message *
+                    </Label>
+                    <Textarea
+                      id="contenu"
+                      name="contenu"
+                      value={formData.contenu}
+                      onChange={handleChange}
+                      placeholder="Décrivez votre demande en détail. Plus vous serez précis, mieux nous pourrons vous aider..."
+                      rows={6}
+                      required
+                      className="p-4 bg-slate-50/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50 transition-all duration-200 text-base resize-none"
+                    />
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full h-14 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white text-lg font-semibold shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 rounded-xl"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                        Envoi en cours...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-3 h-5 w-5" />
+                        Envoyer le message premium
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Informations de contact premium */}
+          <div className="space-y-8">
+            <Card className="shadow-2xl border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl shadow-lg">
+                    <Globe className="h-5 w-5 text-white" />
+                  </div>
+                  Nos coordonnées
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200/30 dark:border-blue-700/30">
+                  <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                    <Mail className="h-5 w-5 text-white" />
+                  </div>
                   <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-sm text-gray-600">contact@gestionvente.com</p>
+                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-base">Email Premium</div>
+                    <div className="text-slate-600 dark:text-slate-300">contact@gestionvente.com</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-purple-600" />
+                
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200/30 dark:border-emerald-700/30">
+                  <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl shadow-lg">
+                    <Phone className="h-5 w-5 text-white" />
+                  </div>
                   <div>
-                    <p className="font-medium">Téléphone</p>
-                    <p className="text-sm text-gray-600">+262 692 XX XX XX</p>
+                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-base">Ligne Directe</div>
+                    <div className="text-slate-600 dark:text-slate-300">+262 692 XX XX XX</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-purple-600" />
+                
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-orange-50/50 to-red-50/50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl border border-orange-200/30 dark:border-orange-700/30">
+                  <div className="p-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl shadow-lg">
+                    <MapPin className="h-5 w-5 text-white" />
+                  </div>
                   <div>
-                    <p className="font-medium">Adresse</p>
-                    <p className="text-sm text-gray-600">La Réunion, France</p>
+                    <div className="font-semibold text-slate-800 dark:text-slate-100 text-base">Siège Social</div>
+                    <div className="text-slate-600 dark:text-slate-300">La Réunion, France</div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-2xl border-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-2xl">
               <CardHeader>
-                <CardTitle>Horaires d'ouverture</CardTitle>
+                <CardTitle className="flex items-center gap-3 text-xl">
+                  <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+                    <Clock className="h-5 w-5 text-white" />
+                  </div>
+                  Horaires Premium
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Lundi - Vendredi</span>
-                    <span>8h00 - 18h00</span>
+                <div className="space-y-4 text-base">
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-slate-50/50 to-blue-50/50 dark:from-slate-700/50 dark:to-blue-900/20 rounded-xl">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">Lundi - Vendredi</span>
+                    <span className="text-slate-600 dark:text-slate-300 font-medium">8h00 - 18h00</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Samedi</span>
-                    <span>9h00 - 12h00</span>
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-slate-50/50 to-blue-50/50 dark:from-slate-700/50 dark:to-blue-900/20 rounded-xl">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">Samedi</span>
+                    <span className="text-slate-600 dark:text-slate-300 font-medium">9h00 - 12h00</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Dimanche</span>
-                    <span>Fermé</span>
+                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-red-50/50 to-pink-50/50 dark:from-red-900/20 dark:to-pink-900/20 rounded-xl">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">Dimanche</span>
+                    <span className="text-red-600 dark:text-red-400 font-medium">Fermé</span>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Carte de garantie premium */}
+            <Card className="shadow-2xl border-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 dark:from-purple-900/20 dark:to-pink-900/20 backdrop-blur-2xl border border-purple-200/30 dark:border-purple-700/30">
+              <CardContent className="p-6 text-center">
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full blur-xl opacity-20"></div>
+                  <Sparkles className="relative h-12 w-12 text-purple-600 mx-auto" />
+                </div>
+                <h3 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                  Garantie Premium
+                </h3>
+                <div className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                  Réponse garantie sous 24h avec un suivi personnalisé par nos experts.
                 </div>
               </CardContent>
             </Card>
