@@ -25,8 +25,8 @@ import NotFound from '@/pages/NotFound';
 function App() {
   return (
     <ErrorBoundary>
-      <AccessibilityProvider>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <ThemeProvider>
+        <AccessibilityProvider>
           <AuthProvider>
             <AppProvider>
               <RealtimeWrapper>
@@ -79,8 +79,8 @@ function App() {
               <Toaster />
             </AppProvider>
           </AuthProvider>
-        </ThemeProvider>
-      </AccessibilityProvider>
+        </AccessibilityProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
