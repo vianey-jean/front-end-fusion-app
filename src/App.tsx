@@ -7,7 +7,6 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AccessibilityProvider } from '@/components/accessibility/AccessibilityProvider';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { Toaster } from '@/components/ui/toaster';
-import { RealtimeWrapper } from '@/components/common/RealtimeWrapper';
 import Layout from '@/components/Layout';
 
 // Pages
@@ -32,17 +31,19 @@ function App() {
             <AppProvider>
               <Router>
                 <Routes>
-                  {/* Routes publiques */}
+                  {/* Routes publiques avec Layout standard */}
                   <Route path="/" element={<Layout />}>
                     <Route index element={<HomePage />} />
                     <Route path="about" element={<AboutPage />} />
-                    <Route path="contact" element={<ContactPage />} />
                     <Route path="login" element={<LoginPage />} />
                     <Route path="register" element={<RegisterPage />} />
                     <Route path="reset-password" element={<ResetPasswordPage />} />
                   </Route>
 
-                  {/* Routes protégées */}
+                  {/* Page Contact sans navbar */}
+                  <Route path="/contact" element={<ContactPage />} />
+
+                  {/* Routes protégées avec Layout d'authentification */}
                   <Route path="/" element={<Layout requireAuth />}>
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="tendances" element={<TendancesPage />} />

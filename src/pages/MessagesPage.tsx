@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   MessageSquare, 
@@ -18,7 +18,7 @@ import {
   Archive,
   Star,
   Reply,
-  Forward,
+  Send,
   MoreVertical
 } from 'lucide-react';
 import { useMessages, Message } from '@/hooks/use-messages';
@@ -238,7 +238,7 @@ const MessagesPage: React.FC = () => {
                           </Badge>
                         )}
                       </CardTitle>
-                      <CardDescription className="space-y-3 text-base">
+                      <div className="space-y-3 text-base">
                         <div className="flex items-center gap-3 p-3 bg-slate-50/50 dark:bg-slate-700/50 rounded-xl">
                           <User className="h-4 w-4 text-slate-500" />
                           <span className="font-semibold text-slate-700 dark:text-slate-200">De:</span>
@@ -261,7 +261,7 @@ const MessagesPage: React.FC = () => {
                           <span className="font-semibold text-slate-700 dark:text-slate-200">Reçu le:</span>
                           <span className="text-slate-600 dark:text-slate-300">{new Date(selectedMessage.dateEnvoi).toLocaleString('fr-FR')}</span>
                         </div>
-                      </CardDescription>
+                      </div>
                     </div>
                     
                     <div className="flex items-center gap-3">
