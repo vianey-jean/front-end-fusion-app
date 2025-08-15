@@ -2,14 +2,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AppProvider } from '@/contexts/AppContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AccessibilityProvider } from '@/components/accessibility/AccessibilityProvider';
-import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { Toaster } from '@/components/ui/toaster';
 import { RealtimeWrapper } from '@/components/common/RealtimeWrapper';
 import Layout from '@/components/Layout';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+
+// Pages
 import HomePage from '@/pages/HomePage';
 import AboutPage from '@/pages/AboutPage';
 import ContactPage from '@/pages/ContactPage';
@@ -29,53 +30,30 @@ function App() {
         <AccessibilityProvider>
           <AuthProvider>
             <AppProvider>
-              <RealtimeWrapper>
-                <Router>
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<HomePage />} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/contact" element={<ContactPage />} />
-                      <Route path="/login" element={<LoginPage />} />
-                      <Route path="/register" element={<RegisterPage />} />
-                      <Route path="/reset-password" element={<ResetPasswordPage />} />
-                      <Route 
-                        path="/dashboard" 
-                        element={
-                          <ProtectedRoute>
-                            <DashboardPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/tendances" 
-                        element={
-                          <ProtectedRoute>
-                            <TendancesPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/clients" 
-                        element={
-                          <ProtectedRoute>
-                            <ClientsPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route 
-                        path="/messages" 
-                        element={
-                          <ProtectedRoute>
-                            <MessagesPage />
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Layout>
-                </Router>
-              </RealtimeWrapper>
+              <Router>
+                <Routes>
+                  {/* Routes publiques */}
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<HomePage />} />
+                    <Route path="about" element={<AboutPage />} />
+                    <Route path="contact" element={<ContactPage />} />
+                    <Route path="login" element={<LoginPage />} />
+                    <Route path="register" element={<RegisterPage />} />
+                    <Route path="reset-password" element={<ResetPasswordPage />} />
+                  </Route>
+
+                  {/* Routes protégées */}
+                  <Route path="/" element={<Layout requireAuth />}>
+                    <Route path="dashboard" element={<DashboardPage />} />
+                    <Route path="tendances" element={<TendancesPage />} />
+                    <Route path="clients" element={<ClientsPage />} />
+                    <Route path="messages" element={<MessagesPage />} />
+                  </Route>
+
+                  {/* Route 404 */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Router>
               <Toaster />
             </AppProvider>
           </AuthProvider>

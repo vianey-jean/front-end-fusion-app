@@ -28,7 +28,7 @@ export const useMessages = () => {
     
     setIsLoading(true);
     try {
-      const response = await api.get('/messages');
+      const response = await api.get('/api/messages');
       setMessages(response.data);
     } catch (error) {
       console.error('Erreur lors de la récupération des messages:', error);
@@ -42,7 +42,7 @@ export const useMessages = () => {
     if (!isAuthenticated) return;
     
     try {
-      const response = await api.get('/messages/unread-count');
+      const response = await api.get('/api/messages/unread-count');
       setUnreadCount(response.data.count);
     } catch (error) {
       console.error('Erreur lors de la récupération du compteur:', error);
@@ -52,7 +52,7 @@ export const useMessages = () => {
   // Marquer un message comme lu
   const markAsRead = async (messageId: string) => {
     try {
-      await api.put(`/messages/${messageId}/read`);
+      await api.put(`/api/messages/${messageId}/read`);
       setMessages(prev => 
         prev.map(msg => 
           msg.id === messageId ? { ...msg, lu: true } : msg
@@ -67,7 +67,7 @@ export const useMessages = () => {
   // Marquer un message comme non lu
   const markAsUnread = async (messageId: string) => {
     try {
-      await api.put(`/messages/${messageId}/unread`);
+      await api.put(`/api/messages/${messageId}/unread`);
       setMessages(prev => 
         prev.map(msg => 
           msg.id === messageId ? { ...msg, lu: false } : msg
@@ -82,7 +82,7 @@ export const useMessages = () => {
   // Supprimer un message
   const deleteMessage = async (messageId: string) => {
     try {
-      await api.delete(`/messages/${messageId}`);
+      await api.delete(`/api/messages/${messageId}`);
       const messageToDelete = messages.find(msg => msg.id === messageId);
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
       
@@ -97,7 +97,7 @@ export const useMessages = () => {
   // Envoyer un nouveau message
   const sendMessage = async (messageData: Omit<Message, 'id' | 'dateEnvoi' | 'lu'>) => {
     try {
-      const response = await api.post('/messages', messageData);
+      const response = await api.post('/api/messages', messageData);
       return response.data;
     } catch (error) {
       console.error('Erreur lors de l\'envoi du message:', error);

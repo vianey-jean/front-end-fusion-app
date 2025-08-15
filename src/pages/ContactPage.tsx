@@ -166,10 +166,10 @@ const ContactPage: React.FC = () => {
                       <SelectValue placeholder="Choisissez un sujet" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="information">Demande d'information</SelectItem>
-                      <SelectItem value="support">Support technique</SelectItem>
-                      <SelectItem value="partenariat">Partenariat</SelectItem>
-                      <SelectItem value="autre">Autre</SelectItem>
+                      <SelectItem value="Demande d'information">Demande d'information</SelectItem>
+                      <SelectItem value="Support technique">Support technique</SelectItem>
+                      <SelectItem value="Partenariat">Partenariat</SelectItem>
+                      <SelectItem value="Autre">Autre</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
