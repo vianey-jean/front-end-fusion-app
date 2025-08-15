@@ -1,255 +1,274 @@
-
-import React, { useState } from 'react';
-import Layout from '@/components/Layout';
-import ScrollToTop from '@/components/ScrollToTop';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
-import { messageService } from '@/services/messageService';
 import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/Layout';
+import PremiumLoading from '@/components/ui/premium-loading';
+import { Mail, Phone, MapPin, Send, Clock, MessageCircle } from 'lucide-react';
 
 const ContactPage: React.FC = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    nom: '',
+    name: '',
     email: '',
-    sujet: '',
-    message: ''
+    subject: '',
+    message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
-
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Simulate initial page load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.nom || !formData.email || !formData.sujet || !formData.message) {
-      toast({
-        title: "Champs requis",
-        description: "Veuillez remplir tous les champs obligatoires.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     
-    try {
-      await messageService.sendMessage(formData);
+    setTimeout(() => {
+      toast({
+        title: "Message envoyé",
+        description: "Nous vous répondrons dans les plus brefs délais.",
+        className: "notification-success",
+      });
       
-      // Reset form
       setFormData({
-        nom: '',
+        name: '',
         email: '',
-        sujet: '',
-        message: ''
+        subject: '',
+        message: '',
       });
       
-      toast({
-        title: "Message envoyé !",
-        description: "Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.",
-        className: "bg-green-500 text-white",
-      });
-      
-    } catch (error: any) {
-      console.error('Erreur lors de l\'envoi:', error);
-      toast({
-        title: "Erreur d'envoi",
-        description: error.message || "Une erreur s'est produite lors de l'envoi de votre message.",
-        variant: "destructive",
-      });
-    } finally {
       setIsSubmitting(false);
-    }
+    }, 1000);
   };
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <PremiumLoading 
+          text="Chargement du Contact"
+          size="lg"
+          overlay={true}
+          variant="default"
+        />
+      </Layout>
+    );
+  }
+
+  // Show loading during form submission
+  if (isSubmitting) {
+    return (
+      <Layout>
+        <PremiumLoading 
+          text="Envoi du message..."
+          size="md"
+          overlay={true}
+          variant="default"
+        />
+      </Layout>
+    );
+  }
+  
   return (
     <Layout>
-      <ScrollToTop />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-slate-900">
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 py-20">
+        <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 py-24">
           <div className="absolute inset-0 bg-black/20"></div>
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 left-10 w-4 h-4 bg-white rounded-full animate-pulse"></div>
+            <div className="absolute top-20 right-20 w-2 h-2 bg-white rounded-full animate-ping"></div>
+            <div className="absolute bottom-20 left-1/4 w-3 h-3 bg-white rounded-full animate-bounce"></div>
+          </div>
+          
           <div className="relative container mx-auto px-4 text-center">
             <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium mb-6">
-              <Mail className="h-4 w-4 mr-2" />
-              Centre de Contact
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Nous sommes là pour vous aider
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
               Contactez-nous
             </h1>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Nous sommes là pour vous aider. Envoyez-nous vos questions, suggestions ou commentaires.
+            <p className="text-xl text-blue-100 max-w-2xl mx-auto leading-relaxed">
+              Votre avis compte. Partagez vos questions, suggestions ou demandes d'assistance.
             </p>
           </div>
         </div>
 
         <div className="container mx-auto px-4 py-16">
-          <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            {/* Contact Form */}
-            <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-2xl">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Envoyez-nous un message
-                </CardTitle>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Remplissez le formulaire ci-dessous et nous vous répondrons rapidement.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="nom" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Nom complet *
-                      </label>
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+              {/* Contact Info Cards */}
+              <div className="lg:col-span-1 space-y-6">
+                <div className="group bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/20 hover:scale-105">
+                  <div className="flex items-center mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <MapPin className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">Notre Bureau</h3>
+                      <p className="text-purple-600 dark:text-purple-400">Visitez-nous</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    10 Allée des Beryls Bleus<br />
+                    Bellepierre<br/>
+                    97400, saint-Denis
+                  </p>
+                </div>
+
+                <div className="group bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/20 hover:scale-105">
+                  <div className="flex items-center mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Mail className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">Email</h3>
+                      <p className="text-blue-600 dark:text-blue-400">Écrivez-nous</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300">contact@gestion-vente.com</p>
+                </div>
+
+                <div className="group bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/20 hover:scale-105">
+                  <div className="flex items-center mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <Phone className="h-8 w-8 text-white" />
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">Téléphone</h3>
+                      <p className="text-green-600 dark:text-green-400">Appelez-nous</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-300">+262 6 92 84 23 70</p>
+                </div>
+
+                {/* Horaires */}
+                <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-8 text-white">
+                  <div className="flex items-center mb-6">
+                    <Clock className="h-8 w-8 mr-3" />
+                    <h3 className="text-xl font-bold">Horaires d'ouverture</h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Lundi - Vendredi</span>
+                      <span className="text-indigo-100">9h00 - 18h00</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Samedi</span>
+                      <span className="text-indigo-100">9h00 - 12h00</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Dimanche</span>
+                      <span className="text-indigo-100">Fermé</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Form */}
+              <div className="lg:col-span-2">
+                <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-3xl p-10 shadow-2xl border border-white/20">
+                  <div className="text-center mb-10">
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                      Envoyez-nous un message
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-300 text-lg">
+                      Remplissez le formulaire et nous vous répondrons rapidement
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          Nom complet
+                        </Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          placeholder="Votre nom"
+                          value={formData.name}
+                          onChange={handleChange}
+                          required
+                          className="h-14 bg-white/50 dark:bg-gray-700/50 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 transition-all duration-200"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          Email
+                        </Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="votre@email.com"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          className="h-14 bg-white/50 dark:bg-gray-700/50 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 transition-all duration-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label htmlFor="subject" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Sujet
+                      </Label>
                       <Input
-                        id="nom"
-                        name="nom"
-                        type="text"
-                        value={formData.nom}
+                        id="subject"
+                        name="subject"
+                        placeholder="Sujet de votre message"
+                        value={formData.subject}
                         onChange={handleChange}
-                        placeholder="Votre nom complet"
-                        className="bg-white dark:bg-gray-700"
                         required
+                        className="h-14 bg-white/50 dark:bg-gray-700/50 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 transition-all duration-200"
                       />
                     </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Email *
-                      </label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
+
+                    <div className="space-y-3">
+                      <Label htmlFor="message" className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Message
+                      </Label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        placeholder="Votre message détaillé..."
+                        rows={6}
+                        value={formData.message}
                         onChange={handleChange}
-                        placeholder="votre@email.com"
-                        className="bg-white dark:bg-gray-700"
                         required
+                        className="bg-white/50 dark:bg-gray-700/50 border-2 border-purple-200 dark:border-purple-700 rounded-xl focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 transition-all duration-200 resize-none"
                       />
                     </div>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="sujet" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Sujet *
-                    </label>
-                    <Input
-                      id="sujet"
-                      name="sujet"
-                      type="text"
-                      value={formData.sujet}
-                      onChange={handleChange}
-                      placeholder="Objet de votre message"
-                      className="bg-white dark:bg-gray-700"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Message *
-                    </label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      placeholder="Écrivez votre message ici..."
-                      rows={6}
-                      className="bg-white dark:bg-gray-700 resize-none"
-                      required
-                    />
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Envoi en cours...
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center">
-                        <Send className="h-4 w-4 mr-2" />
-                        Envoyer le message
-                      </div>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
 
-            {/* Contact Info */}
-            <div className="space-y-8">
-              <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-3 rounded-full mr-4">
-                      <Mail className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Email</h3>
-                      <p className="text-gray-600 dark:text-gray-400">contact@gestion-ventes.com</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    <div className="bg-gradient-to-r from-green-500 to-teal-500 p-3 rounded-full mr-4">
-                      <Phone className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Téléphone</h3>
-                      <p className="text-gray-600 dark:text-gray-400">+33 1 23 45 67 89</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 rounded-full mr-4">
-                      <MapPin className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Adresse</h3>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        123 Rue du Commerce<br />
-                        75001 Paris, France
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-purple-500 to-blue-500 text-white border-0 shadow-xl">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    <CheckCircle className="h-8 w-8 mr-4" />
-                    <div>
-                      <h3 className="font-semibold text-lg">Réponse rapide</h3>
-                      <p className="opacity-90">Nous répondons généralement sous 24h</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    <Button
+                      type="submit"
+                      className="w-full h-16 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 hover:from-purple-700 hover:via-pink-700 hover:to-red-700 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+                      disabled={isSubmitting}
+                    >
+                      <Send className="h-5 w-5" />
+                      Envoyer le message
+                    </Button>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>

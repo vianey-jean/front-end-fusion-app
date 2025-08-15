@@ -4,14 +4,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useMessages } from '@/hooks/useMessages';
-import { MessageNotificationBadge } from '@/components/messages/MessageNotificationBadge';
-import { Home, Info, Mail, LogIn, UserCircle, LogOut, LayoutDashboard, Moon, Sun, Sparkles, TrendingUp, Users, MessageCircle } from 'lucide-react';
+import { Home, Info, Mail, LogIn, UserCircle, LogOut, LayoutDashboard, Moon, Sun, Sparkles, TrendingUp, Users } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { unreadCount } = useMessages();
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50">
@@ -81,23 +78,11 @@ const Navbar: React.FC = () => {
                 
                 {isAuthenticated ? (
                   <div className="flex items-center space-x-3 ml-4">
-                    <div className="flex items-center px-3 py-2 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200/50 dark:border-purple-700/50 relative group">
+                    <div className="flex items-center px-3 py-2 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200/50 dark:border-purple-700/50">
                       <UserCircle className="h-4 w-4 text-purple-600 dark:text-purple-400 mr-2" />
                       <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                         {user?.firstName} {user?.lastName}
                       </span>
-                      
-                      {/* Dropdown menu au hover */}
-                      <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <Link 
-                          to="/messages" 
-                          className="flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors relative"
-                        >
-                          <MessageCircle className="h-4 w-4 mr-3 text-blue-600" />
-                          Messages
-                          <MessageNotificationBadge count={unreadCount} />
-                        </Link>
-                      </div>
                     </div>
                     
                     <Button 
@@ -165,17 +150,6 @@ const Navbar: React.FC = () => {
                         className="h-10 w-10 p-0 rounded-xl border-2 border-purple-200 text-purple-600 hover:bg-purple-500 hover:text-white hover:border-purple-500"
                       >
                         <Users className="h-4 w-4" />
-                      </Button>
-                    </Link>
-
-                    <Link to="/messages" className="relative">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-10 w-10 p-0 rounded-xl border-2 border-blue-200 text-blue-600 hover:bg-blue-500 hover:text-white hover:border-blue-500"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        <MessageNotificationBadge count={unreadCount} />
                       </Button>
                     </Link>
                     
