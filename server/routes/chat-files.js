@@ -4,7 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const auth = require('../middlewares/auth');
+const { isAuthenticated } = require('../middlewares/auth');
 const db = require('../core/database');
 
 const router = express.Router();
@@ -53,7 +53,7 @@ const upload = multer({
 });
 
 // Route pour upload de fichiers dans le chat admin
-router.post('/admin/:conversationId/upload', auth, upload.single('file'), (req, res) => {
+router.post('/admin/:conversationId/upload', isAuthenticated, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'Aucun fichier fourni' });
@@ -64,6 +64,10 @@ router.post('/admin/:conversationId/upload', auth, upload.single('file'), (req, 
     
     // Charger les conversations admin
     const adminChatData = db.read('admin-chat.json');
+    
+    if (!adminChatData.conversations) {
+      adminChatData.conversations = {};
+    }
     
     if (!adminChatData.conversations[conversationId]) {
       adminChatData.conversations[conversationId] = {
@@ -106,7 +110,7 @@ router.post('/admin/:conversationId/upload', auth, upload.single('file'), (req, 
 });
 
 // Route pour upload de fichiers dans le chat service client
-router.post('/service/:conversationId/upload', auth, upload.single('file'), (req, res) => {
+router.post('/service/:conversationId/upload', isAuthenticated, upload.single('file'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'Aucun fichier fourni' });
@@ -117,6 +121,10 @@ router.post('/service/:conversationId/upload', auth, upload.single('file'), (req
     
     // Charger les conversations client
     const clientChatData = db.read('client-chat.json');
+    
+    if (!clientChatData.conversations) {
+      clientChatData.conversations = {};
+    }
     
     if (!clientChatData.conversations[conversationId]) {
       clientChatData.conversations[conversationId] = {
@@ -160,7 +168,7 @@ router.post('/service/:conversationId/upload', auth, upload.single('file'), (req
 });
 
 // Route pour télécharger un fichier
-router.get('/download/:type/:filename', auth, (req, res) => {
+router.get('/download/:type/:filename', isAuthenticated, (req, res) => {
   try {
     const { type, filename } = req.params;
     let filePath;
