@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Send, User, Edit, Trash2, Smile, MessageCircle, Headphones, Clock, Chec
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientChatAPI, Message } from '@/services/api';
+import { chatFilesAPI } from '@/services/chatFilesAPI';
 import { toast } from '@/components/ui/sonner';
 import { 
   DropdownMenu, 
@@ -20,6 +20,9 @@ import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Link } from 'react-router-dom';
+import FileUploadButton from '@/components/chat/FileUploadButton';
+import VoiceRecorder from '@/components/chat/VoiceRecorder';
+import FileAttachment from '@/components/chat/FileAttachment';
 
 const ChatPage = () => {
   const { user } = useAuth();
@@ -43,7 +46,7 @@ const ChatPage = () => {
       }
     },
     enabled: !!user,
-    refetchInterval: 5000 // Rafraîchir toutes les 5 secondes
+    refetchInterval: 5000
   });
 
   // Mutation pour envoyer un message
@@ -58,6 +61,22 @@ const ChatPage = () => {
     onError: (error) => {
       console.error("Erreur lors de l'envoi du message:", error);
       toast.error("L'envoi du message a échoué. Veuillez réessayer.");
+    }
+  });
+
+  // Mutation pour upload de fichier
+  const uploadFileMutation = useMutation({
+    mutationFn: async ({ file, messageText }: { file: File; messageText?: string }) => {
+      const conversationId = `client-${user?.id}-service`;
+      return chatFilesAPI.uploadServiceFile(conversationId, file, messageText);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['serviceChat'] });
+      toast.success('Fichier envoyé avec succès');
+    },
+    onError: (error) => {
+      console.error('Erreur lors de l\'upload du fichier:', error);
+      toast.error('Erreur lors de l\'envoi du fichier');
     }
   });
 
@@ -115,6 +134,17 @@ const ChatPage = () => {
   const handleSendMessage = () => {
     if (!messageText.trim()) return;
     sendMessageMutation.mutate(messageText);
+  };
+
+  const handleFileSelect = (file: File) => {
+    uploadFileMutation.mutate({ file });
+  };
+
+  const handleVoiceRecording = (audioBlob: Blob) => {
+    const audioFile = new File([audioBlob], `voice-message-${Date.now()}.wav`, {
+      type: 'audio/wav'
+    });
+    uploadFileMutation.mutate({ file: audioFile, messageText: 'Message vocal' });
   };
 
   const handleEditMessage = (messageId: string) => {
@@ -286,47 +316,56 @@ const ChatPage = () => {
                           </div>
                         </div>
                       ) : (
-                        <div 
-                          className={`max-w-[80%] rounded-2xl px-6 py-4 relative group shadow-lg border ${
-                            message.isSystemMessage 
-                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600' :
-                            message.senderId === user.id 
-                              ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white border-red-200' 
-                              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-200'
-                          }`}
-                        >
-                          {message.senderId === user.id && !message.isSystemMessage && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 h-8 w-8 text-white bg-black/20 hover:bg-black/40 rounded-full transition-all duration-200"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent className="rounded-xl">
-                                <DropdownMenuItem onClick={() => startEditMessage(message)}>
-                                  <Edit className="mr-2 h-4 w-4" /> Modifier
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  onClick={() => handleDeleteMessage(message.id)}
-                                  className="text-red-600"
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                          <p className="mb-2 leading-relaxed">{message.content}</p>
-                          <div className="flex items-center justify-between text-xs opacity-80">
-                            <span>{formatTime(message.timestamp)}</span>
-                            {message.isEdited && (
-                              <span className="italic">modifié</span>
+                        <div className="max-w-[80%]">
+                          <div 
+                            className={`rounded-2xl px-6 py-4 relative group shadow-lg border ${
+                              message.isSystemMessage 
+                                ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600' :
+                              message.senderId === user.id 
+                                ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white border-red-200' 
+                                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-200'
+                            }`}
+                          >
+                            {message.senderId === user.id && !message.isSystemMessage && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 h-8 w-8 text-white bg-black/20 hover:bg-black/40 rounded-full transition-all duration-200"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="rounded-xl">
+                                  <DropdownMenuItem onClick={() => startEditMessage(message)}>
+                                    <Edit className="mr-2 h-4 w-4" /> Modifier
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteMessage(message.id)}
+                                    className="text-red-600"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Supprimer
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             )}
+                            <p className="mb-2 leading-relaxed">{message.content}</p>
+                            <div className="flex items-center justify-between text-xs opacity-80">
+                              <span>{formatTime(message.timestamp)}</span>
+                              {message.isEdited && (
+                                <span className="italic">modifié</span>
+                              )}
+                            </div>
                           </div>
+                          
+                          {/* Affichage des fichiers attachés */}
+                          {message.fileAttachment && (
+                            <div className="mt-2">
+                              <FileAttachment attachment={message.fileAttachment} />
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -338,6 +377,21 @@ const ChatPage = () => {
             
             {/* Input Area */}
             <div className="p-6 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+              {/* Boutons d'upload et micro */}
+              <div className="flex space-x-2 mb-4">
+                <FileUploadButton
+                  onFileSelect={handleFileSelect}
+                  accept="*/*"
+                  maxSize={50}
+                  disabled={uploadFileMutation.isPending}
+                />
+                
+                <VoiceRecorder
+                  onRecordingComplete={handleVoiceRecording}
+                  disabled={uploadFileMutation.isPending}
+                />
+              </div>
+              
               <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex space-x-3">
                 <div className="relative flex-1">
                   <Textarea
