@@ -26,10 +26,10 @@ const FileAttachment: React.FC<FileAttachmentProps> = ({ attachment }) => {
     return <FileText className="h-5 w-5 text-gray-500" />;
   };
 
-  const getFileType = (): 'files' | 'audio' | 'video' => {
-    if (mimetype.startsWith('audio/')) return 'audio';
-    if (mimetype.startsWith('video/')) return 'video';
-    return 'files';
+  const getFileType = (): 'chat-files' | 'chat-audio' | 'chat-video' => {
+    if (mimetype.startsWith('audio/')) return 'chat-audio';
+    if (mimetype.startsWith('video/')) return 'chat-video';
+    return 'chat-files';
   };
 
   const handleDownload = async () => {
