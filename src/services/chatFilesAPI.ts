@@ -33,7 +33,7 @@ export const chatFilesAPI = {
   },
 
   // Télécharger un fichier
-  downloadFile: (type: 'files' | 'audio' | 'video', filename: string) => {
+  downloadFile: (type: 'chat-files' | 'chat-audio' | 'chat-video', filename: string) => {
     return API.get(`/chat-files/download/${type}/${filename}`, {
       responseType: 'blob',
     });
@@ -41,7 +41,7 @@ export const chatFilesAPI = {
 
   // Obtenir l'URL d'un fichier pour prévisualisation
   getFileUrl: (fileUrl: string) => {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:10000';
     return `${baseUrl}${fileUrl}`;
   }
 };

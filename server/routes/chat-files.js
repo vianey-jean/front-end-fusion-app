@@ -166,13 +166,13 @@ router.get('/download/:type/:filename', auth, (req, res) => {
     let filePath;
 
     switch (type) {
-      case 'files':
+      case 'chat-files':
         filePath = path.join(chatFilesDir, filename);
         break;
-      case 'audio':
+      case 'chat-audio':
         filePath = path.join(chatAudioDir, filename);
         break;
-      case 'video':
+      case 'chat-video':
         filePath = path.join(chatVideoDir, filename);
         break;
       default:
