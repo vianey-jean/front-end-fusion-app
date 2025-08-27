@@ -27,7 +27,8 @@ const CartPage = () => {
   useEffect(() => {
     if (cart && cart.length > 0) {
       const initialSelection = cart.reduce((acc, item) => {
-        acc[item.product.id] = true;
+        // Sélectionner automatiquement seulement les produits en stock
+        acc[item.product.id] = !(item.product.stock !== undefined && item.product.stock <= 0);
         return acc;
       }, {} as Record<string, boolean>);
       setSelectedItems(initialSelection);
@@ -55,6 +56,12 @@ const CartPage = () => {
   };
 
   const handleSelectItem = (productId: string, checked: boolean) => {
+    // Vérifier si le produit est en stock avant de le sélectionner
+    const product = cart.find(item => item.product.id === productId);
+    if (product && product.product.stock !== undefined && product.product.stock <= 0) {
+      return; // Ne pas permettre la sélection des produits en rupture de stock
+    }
+    
     setSelectedItems(prev => ({
       ...prev,
       [productId]: checked
@@ -62,7 +69,11 @@ const CartPage = () => {
   };
 
   const handleCheckout = () => {
-    const selectedProducts = cart.filter(item => selectedItems[item.product.id]);
+    // Filtrer les produits sélectionnés ET en stock seulement
+    const selectedProducts = cart.filter(item => 
+      selectedItems[item.product.id] && 
+      !(item.product.stock !== undefined && item.product.stock <= 0)
+    );
     setSelectedCartItems(selectedProducts);
     navigate('/paiement');
   };
@@ -153,15 +164,21 @@ const CartPage = () => {
                         variant="outline" 
                         className="text-sm hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-blue-700 hover:border-blue-300 dark:hover:from-blue-950/20 dark:hover:to-indigo-950/20 dark:hover:text-blue-400"
                         onClick={() => {
-                          const allSelected = cart.every(item => selectedItems[item.product.id]);
+                          const inStockItems = cart.filter(item => !(item.product.stock !== undefined && item.product.stock <= 0));
+                          const allInStockSelected = inStockItems.every(item => selectedItems[item.product.id]);
                           const newSelection = cart.reduce((acc, item) => {
-                            acc[item.product.id] = !allSelected;
+                            // Seuls les produits en stock peuvent être sélectionnés
+                            if (item.product.stock !== undefined && item.product.stock <= 0) {
+                              acc[item.product.id] = false;
+                            } else {
+                              acc[item.product.id] = !allInStockSelected;
+                            }
                             return acc;
                           }, {} as Record<string, boolean>);
                           setSelectedItems(newSelection);
                         }}
                       >
-                        {cart.every(item => selectedItems[item.product.id]) 
+                        {cart.filter(item => !(item.product.stock !== undefined && item.product.stock <= 0)).every(item => selectedItems[item.product.id]) 
                           ? "Désélectionner tout" 
                           : "Sélectionner tout"}
                       </Button>

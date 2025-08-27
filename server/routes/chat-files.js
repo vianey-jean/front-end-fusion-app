@@ -1,4 +1,3 @@
-
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
@@ -164,6 +163,110 @@ router.post('/service/:conversationId/upload', isAuthenticated, upload.single('f
   } catch (error) {
     console.error('Erreur upload service:', error);
     res.status(500).json({ message: 'Erreur lors de l\'upload' });
+  }
+});
+
+// Route pour supprimer un fichier et son message associé dans le chat admin
+router.delete('/admin/:conversationId/message/:messageId', isAuthenticated, (req, res) => {
+  try {
+    const { conversationId, messageId } = req.params;
+    
+    // Charger les conversations admin
+    const adminChatData = db.read('admin-chat.json');
+    
+    if (!adminChatData.conversations || !adminChatData.conversations[conversationId]) {
+      return res.status(404).json({ message: 'Conversation non trouvée' });
+    }
+
+    const conversation = adminChatData.conversations[conversationId];
+    const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
+    
+    if (messageIndex === -1) {
+      return res.status(404).json({ message: 'Message non trouvé' });
+    }
+
+    const message = conversation.messages[messageIndex];
+    
+    // Vérifier que l'utilisateur est l'expéditeur du message
+    if (message.senderId !== req.user.id) {
+      return res.status(403).json({ message: 'Vous ne pouvez supprimer que vos propres fichiers' });
+    }
+
+    // Supprimer le fichier physique s'il existe
+    if (message.fileAttachment && message.fileAttachment.path) {
+      try {
+        if (fs.existsSync(message.fileAttachment.path)) {
+          fs.unlinkSync(message.fileAttachment.path);
+          console.log(`Fichier supprimé: ${message.fileAttachment.path}`);
+        }
+      } catch (fileError) {
+        console.error('Erreur lors de la suppression du fichier physique:', fileError);
+      }
+    }
+
+    // Supprimer le message de la conversation
+    conversation.messages.splice(messageIndex, 1);
+    
+    // Sauvegarder
+    db.write('admin-chat.json', adminChatData);
+
+    res.json({ message: 'Fichier et message supprimés avec succès' });
+
+  } catch (error) {
+    console.error('Erreur suppression admin:', error);
+    res.status(500).json({ message: 'Erreur lors de la suppression' });
+  }
+});
+
+// Route pour supprimer un fichier et son message associé dans le chat service
+router.delete('/service/:conversationId/message/:messageId', isAuthenticated, (req, res) => {
+  try {
+    const { conversationId, messageId } = req.params;
+    
+    // Charger les conversations client
+    const clientChatData = db.read('client-chat.json');
+    
+    if (!clientChatData.conversations || !clientChatData.conversations[conversationId]) {
+      return res.status(404).json({ message: 'Conversation non trouvée' });
+    }
+
+    const conversation = clientChatData.conversations[conversationId];
+    const messageIndex = conversation.messages.findIndex(msg => msg.id === messageId);
+    
+    if (messageIndex === -1) {
+      return res.status(404).json({ message: 'Message non trouvé' });
+    }
+
+    const message = conversation.messages[messageIndex];
+    
+    // Vérifier que l'utilisateur est l'expéditeur du message
+    if (message.senderId !== req.user.id) {
+      return res.status(403).json({ message: 'Vous ne pouvez supprimer que vos propres fichiers' });
+    }
+
+    // Supprimer le fichier physique s'il existe
+    if (message.fileAttachment && message.fileAttachment.path) {
+      try {
+        if (fs.existsSync(message.fileAttachment.path)) {
+          fs.unlinkSync(message.fileAttachment.path);
+          console.log(`Fichier supprimé: ${message.fileAttachment.path}`);
+        }
+      } catch (fileError) {
+        console.error('Erreur lors de la suppression du fichier physique:', fileError);
+      }
+    }
+
+    // Supprimer le message de la conversation
+    conversation.messages.splice(messageIndex, 1);
+    
+    // Sauvegarder
+    db.write('client-chat.json', clientChatData);
+
+    res.json({ message: 'Fichier et message supprimés avec succès' });
+
+  } catch (error) {
+    console.error('Erreur suppression service:', error);
+    res.status(500).json({ message: 'Erreur lors de la suppression' });
   }
 });
 

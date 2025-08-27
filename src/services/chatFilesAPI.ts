@@ -32,6 +32,11 @@ export const chatFilesAPI = {
     });
   },
 
+  // Supprimer un fichier et son message associé
+  deleteFile: (messageId: string, conversationId: string, chatType: 'admin' | 'service') => {
+    return API.delete(`/chat-files/${chatType}/${conversationId}/message/${messageId}`);
+  },
+
   // Télécharger un fichier
   downloadFile: (type: 'chat-files' | 'chat-audio' | 'chat-video', filename: string) => {
     return API.get(`/chat-files/download/${type}/${filename}`, {
