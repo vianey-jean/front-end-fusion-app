@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const ProductDetail = () => {
   const { productId: secureProductId } = useParams<{ productId: string }>();
   const navigate = useNavigate();
-  const { products, addToCart, toggleFavorite, isFavorite, loadingProducts, fetchProducts } = useStore();
+  const { products, addToCart, toggleFavorite, isFavorite } = useStore();
   const { isAuthenticated } = useAuth();
   const AUTH_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const PLACEHOLDER_IMAGE = '/placeholder.svg';
@@ -38,81 +38,44 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   
-  // Valider l'ID sécurisé et gérer le chargement
+  // Valider l'ID sécurisé et rediriger si invalide
   useEffect(() => {
-    const validateAndLoadProduct = async () => {
-      setIsLoading(true);
-      
-      // Vérifier si l'ID existe
-      if (!secureProductId) {
-        setIsValidId(false);
-        navigate('/page/notfound', { replace: true });
-        return;
-      }
-      
-      // Vérifier si c'est un ID produit valide
-      const isValid = isValidSecureId(secureProductId);
-      const entityType = getEntityType(secureProductId);
-      
-      console.log('ProductDetail - Validation:', { isValid, entityType, productId });
-      
-      if (!isValid) {
-        setIsValidId(false);
-        toast.error("Ce lien n'est plus valide");
-        navigate('/page/notfound', { replace: true });
-        return;
-      }
-
-      // Si les produits sont en cours de chargement, attendre
-      if (loadingProducts) {
-        console.log('ProductDetail - En attente du chargement des produits...');
-        return;
-      }
-
-      // Si les produits sont chargés mais vides, recharger
-      if (products.length === 0) {
-        console.log('ProductDetail - Rechargement des produits...');
-        await fetchProducts();
-        return;
-      }
-
+    setIsLoading(true);
+    
+    // Vérifier si l'ID existe
+    if (!secureProductId) {
+      setIsValidId(false);
+      toast.error("Produit non trouvé");
+      navigate('/page/notfound', { replace: true });
+      return;
+    }
+    
+    // Vérifier si c'est un ID produit valide
+    const isValid = isValidSecureId(secureProductId);
+    const entityType = getEntityType(secureProductId);
+    
+    console.log('ProductDetail - Validation:', { isValid, entityType, productId });
+    
+    if (!isValid) {
+      setIsValidId(false);
+      toast.error("Ce lien n'est plus valide");
+      navigate('/page/notfound', { replace: true });
+    } else {
       // Trouver le produit correspondant à l'ID réel
       const foundProduct = products.find(p => p.id === productId);
       if (foundProduct) {
         setProduct(foundProduct);
         setIsValidId(true);
-        console.log('ProductDetail - Produit trouvé:', foundProduct);
       } else {
-        console.log('ProductDetail - Produit non trouvé dans la liste, rechargement...');
-        // Tenter un rechargement des produits avant de considérer que le produit n'existe pas
-        await fetchProducts();
-        const retryProduct = products.find(p => p.id === productId);
-        if (retryProduct) {
-          setProduct(retryProduct);
-          setIsValidId(true);
-        } else {
-          setIsValidId(false);
-          toast.error("Produit introuvable");
-          navigate('/page/notfound', { replace: true });
-        }
-      }
-      
-      setIsLoading(false);
-    };
-
-    validateAndLoadProduct();
-  }, [secureProductId, productId, products, navigate, loadingProducts, fetchProducts]);
-
-  // Mettre à jour le produit quand la liste des produits change
-  useEffect(() => {
-    if (productId && products.length > 0 && !product) {
-      const foundProduct = products.find(p => p.id === productId);
-      if (foundProduct) {
-        setProduct(foundProduct);
-        setIsValidId(true);
+        console.log('ProductDetail - Produit non trouvé:', productId);
+        setIsValidId(false);
+        toast.error("Produit introuvable");
+        navigate('/page/notfound', { replace: true });
       }
     }
-  }, [products, productId, product]);
+    
+    setIsLoading(false);
+  }, [secureProductId, productId, products, navigate]);
 
   // Timer pour les promotions
   useEffect(() => {
@@ -176,7 +139,7 @@ const ProductDetail = () => {
   };
   
   // Si le produit est en cours de chargement, afficher un indicateur
-  if (isLoading || loadingProducts) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-10">
