@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, User, Bot, Minus, Smile } from 'lucide-react';
@@ -6,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientChatAPI } from '@/services/chatAPI';
 import { useAuth } from '@/contexts/AuthContext';
@@ -55,7 +57,7 @@ const ClientServiceChatWidget: React.FC = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       try {
-        const response = await clientChatAPI.getClientConversation(user.id);
+        const response = await clientChatAPI.getServiceChat();
         return response.data;
       } catch (error) {
         console.error(
@@ -77,10 +79,7 @@ const ClientServiceChatWidget: React.FC = () => {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      if (!conversationId) {
-        throw new Error('Conversation ID is not defined.');
-      }
-      return clientChatAPI.sendMessage(conversationId, messageText);
+      return clientChatAPI.sendServiceMessage(messageText);
     },
     onSuccess: () => {
       setMessage('');
@@ -99,7 +98,9 @@ const ClientServiceChatWidget: React.FC = () => {
       if (!conversationId) {
         throw new Error('Conversation ID is not defined.');
       }
-      return clientChatAPI.uploadFile(conversationId, file, messageText);
+      // Use chatFilesAPI for file upload
+      const { chatFilesAPI } = await import('@/services/chatFilesAPI');
+      return chatFilesAPI.uploadServiceFile(conversationId, file, messageText);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
