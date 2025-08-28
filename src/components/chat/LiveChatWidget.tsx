@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, User, Bot, Sparkles, Stars } from 'lucide-react';
+import { MessageCircle, X, Send, User, Bot, Sparkles, Stars, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useChatNotifications } from '@/hooks/useChatNotifications';
 
 interface Message {
   id: string;
@@ -25,6 +25,23 @@ const LiveChatWidget: React.FC = () => {
       timestamp: new Date()
     }
   ]);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  // Calculer le nombre de messages non lus (messages du bot non vus)
+  const totalUnreadCount = React.useMemo(() => {
+    if (isOpen && !isMinimized) return 0;
+    
+    // Compter les messages du bot depuis la dernière ouverture
+    const botMessages = messages.filter(msg => msg.sender === 'bot');
+    return Math.max(0, botMessages.length - 1); // -1 pour exclure le message initial
+  }, [messages, isOpen, isMinimized]);
+
+  // Utiliser le hook de notifications
+  const { unreadCount, resetNotifications } = useChatNotifications(
+    isOpen,
+    isMinimized,
+    totalUnreadCount
+  );
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -51,56 +68,72 @@ const LiveChatWidget: React.FC = () => {
     }, 1000);
   };
 
+  const handleOpenWidget = () => {
+    setIsOpen(true);
+    resetNotifications();
+  };
+
+  const handleMinimize = () => {
+    setIsMinimized(!isMinimized);
+    if (!isMinimized) {
+      resetNotifications();
+    }
+  };
+
   return (
     <>
       {/* Bouton flottant ultra moderne */}
-      <motion.div
-        className="fixed bottom-6 right-6 z-50"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <div className="relative">
-          {/* Cercles d'animation de fond */}
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.1, 0.3]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-          >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-pink-500/30 blur-md" />
-          </motion.div>
-          
-          <Button
-            onClick={() => setIsOpen(true)}
-            className="relative w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 shadow-2xl border-2 border-white/20 backdrop-blur-sm transition-all duration-500 hover:shadow-3xl"
-          >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              <Sparkles className="h-7 w-7 text-white" />
-            </motion.div>
-          </Button>
-        </div>
-        
-        {/* Badge de notification premium */}
+      {!isOpen && (
         <motion.div
-          animate={{ 
-            scale: [1, 1.3, 1],
-            boxShadow: [
-              "0 0 0 0 rgba(59, 130, 246, 0.7)",
-              "0 0 0 10px rgba(59, 130, 246, 0)",
-              "0 0 0 0 rgba(59, 130, 246, 0)"
-            ]
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg border-2 border-white"
+          className="fixed bottom-6 right-6 z-50"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
         >
-          1
+          <div className="relative">
+            {/* Cercles d'animation de fond */}
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.1, 0.3]
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-pink-500/30 blur-md" />
+            </motion.div>
+            
+            <Button
+              onClick={handleOpenWidget}
+              className="relative w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 shadow-2xl border-2 border-white/20 backdrop-blur-sm transition-all duration-500 hover:shadow-3xl"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="h-7 w-7 text-white" />
+              </motion.div>
+            </Button>
+
+            {/* Badge de notification premium */}
+            {unreadCount > 0 && (
+              <motion.div
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  boxShadow: [
+                    "0 0 0 0 rgba(239, 68, 68, 0.7)",
+                    "0 0 0 10px rgba(239, 68, 68, 0)",
+                    "0 0 0 0 rgba(239, 68, 68, 0)"
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-lg border-2 border-white"
+              >
+                {unreadCount}
+              </motion.div>
+            )}
+          </div>
         </motion.div>
-      </motion.div>
+      )}
 
       {/* Fenêtre de chat ultra moderne */}
       <AnimatePresence>
@@ -109,9 +142,20 @@ const LiveChatWidget: React.FC = () => {
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="fixed bottom-24 right-6 z-50 w-96 h-[500px]"
+            className={`fixed bottom-24 right-6 z-50 ${isMinimized ? "w-96 h-16" : "w-96 h-[500px]"}`}
           >
             <div className="relative h-full">
+              {/* Badge de notification quand minimisé */}
+              {isMinimized && unreadCount > 0 && (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center shadow-md font-bold z-10"
+                >
+                  {unreadCount}
+                </motion.div>
+              )}
+
               {/* Fond animé */}
               <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-2xl rounded-3xl" />
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-pulse rounded-3xl" />
@@ -134,15 +178,31 @@ const LiveChatWidget: React.FC = () => {
                         <span className="font-bold text-white text-lg">Support Premium Elite</span>
                         <p className="text-white/80 text-sm">Assistant IA avancé</p>
                       </div>
+                      {/* Badge de notification dans l'en-tête */}
+                      {!isMinimized && unreadCount > 0 && (
+                        <div className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                          {unreadCount}
+                        </div>
+                      )}
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsOpen(false)}
-                      className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/20"
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
+                    <div className="flex space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleMinimize}
+                        className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/20"
+                      >
+                        <Minus className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsOpen(false)}
+                        className="text-white hover:bg-white/20 p-2 rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/20"
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
