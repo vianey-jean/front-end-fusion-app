@@ -41,8 +41,6 @@ const SalesNotification: React.FC = () => {
     year: 0
   });
   const [lastCheckTime, setLastCheckTime] = useState<string>(new Date().toISOString());
-  const [isVisible, setIsVisible] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     // Ne pas afficher si pas admin ou pas sur la page d'accueil
@@ -65,17 +63,11 @@ const SalesNotification: React.FC = () => {
             console.log('Nouvelle notification de vente reçue:', data.notification);
             setCurrentNotification(data.notification);
             setLastCheckTime(new Date().toISOString());
-            setIsVisible(true);
             
-            // Cacher automatiquement après 10 secondes si pas survolé
+            // Afficher la notification pendant 5 secondes
             setTimeout(() => {
-              if (!isHovered) {
-                setIsVisible(false);
-                setTimeout(() => {
-                  setCurrentNotification(null);
-                }, 300); // Attendre la fin de l'animation
-              }
-            }, 10000);
+              setCurrentNotification(null);
+            }, 5000);
           }
         }
       } catch (error) {
@@ -83,30 +75,14 @@ const SalesNotification: React.FC = () => {
       }
     };
 
-    // Vérifier les nouvelles ventes toutes les 2 secondes
-    const interval = setInterval(checkForNewSales, 2000);
+    // Vérifier les nouvelles ventes toutes les secondes pour une réactivité maximale
+    const interval = setInterval(checkForNewSales, 1000);
 
     // Vérification initiale
     checkForNewSales();
 
     return () => clearInterval(interval);
-  }, [isAdmin, location.pathname, lastCheckTime, isHovered]);
-
-  // Gérer le survol
-  useEffect(() => {
-    if (isHovered && currentNotification) {
-      setIsVisible(true);
-      // Cacher après 10 secondes même en survol
-      const timeout = setTimeout(() => {
-        setIsVisible(false);
-        setTimeout(() => {
-          setCurrentNotification(null);
-        }, 300);
-      }, 10000);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [isHovered, currentNotification]);
+  }, [isAdmin, location.pathname, lastCheckTime]);
 
   // Ne pas afficher si pas admin ou pas sur la page d'accueil
   if (!isAdmin || location.pathname !== '/') {
@@ -117,10 +93,11 @@ const SalesNotification: React.FC = () => {
     <>
       {/* Statistiques de commandes - repositionnées pour mobile */}
       <div
-        className="fixed right-4 z-40 bg-white dark:bg-neutral-900 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-3 max-w-xs lg:top-20"
-        style={{ marginTop: '100px' }}
-      >
+  className="fixed right-4 z-40 bg-white dark:bg-neutral-900 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-800 p-3 max-w-xs lg:top-20"
+  style={{ marginTop: '100px' }}
+>
         <div className="space-y-2">
+
           <div className="flex items-center space-x-2 text-center">
             <TrendingUp className="h-4 w-4 text-blue-600" />
             <span className="text-xs font-semibold text-blue-600">Statistiques</span>
@@ -154,25 +131,20 @@ const SalesNotification: React.FC = () => {
         </div>
       </div>
 
-      {/* Notification de vente */}
+      {/* Notification de vente - améliorée pour tous les écrans */}
       <AnimatePresence>
         {currentNotification && (
           <motion.div
-            initial={{ opacity: 0, x: 400 }}
-            animate={{ 
-              opacity: 1, 
-              x: isVisible ? 0 : 300
-            }}
-            exit={{ opacity: 0, x: 400 }}
+            initial={{ opacity: 0, x: -400 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -400 }}
             transition={{ 
               type: "spring",
               stiffness: 100,
               damping: 20,
-              duration: 0.3
+              duration: 0.6
             }}
-            className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-xl p-4 max-w-xs sm:max-w-sm border-2 border-green-300"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            className="fixed mt-100px bottom-4  left-4 z-50 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-xl p-4 max-w-xs sm:max-w-sm border-2 border-green-300 mt-16 sm:mt-0"
           >
             <div className="flex items-start space-x-3">
               <div className="bg-white/20 rounded-full p-2 animate-pulse flex-shrink-0">
@@ -216,7 +188,7 @@ const SalesNotification: React.FC = () => {
             <motion.div
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}
-              transition={{ duration: 10, ease: "linear" }}
+              transition={{ duration: 5, ease: "linear" }}
               className="absolute bottom-0 left-0 h-1 bg-white/30 rounded-b-xl"
             />
           </motion.div>
