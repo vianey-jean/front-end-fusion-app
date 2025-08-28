@@ -1,494 +1,368 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
 import { useStore } from '@/contexts/StoreContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { Heart, ShoppingCart, Check, Truck, ArrowLeft, Share2, Shield, Clock } from 'lucide-react';
-import FeaturedProductsSlider from '@/components/products/FeaturedProductsSlider';
-import ProductReviews from '@/components/reviews/ProductReviews';
-import { getRealId, isValidSecureId, getEntityType } from '@/services/secureIds';
-import { toast } from '@/components/ui/sonner';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
-import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent } from '@/components/ui/card';
+import { toast } from '@/components/ui/sonner';
+import LoadingSpinner from '@/components/ui/loading-spinner';
+import { 
+  ShoppingCart, 
+  Heart, 
+  Share2, 
+  Star, 
+  Plus, 
+  Minus, 
+  Truck, 
+  Shield, 
+  RotateCcw,
+  MessageCircle,
+  GitCompare
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import ProductQuickActions from '@/components/ecommerce/ProductQuickActions';
+import WishlistManager from '@/components/ecommerce/WishlistManager';
+import LiveChatSupport from '@/components/ecommerce/LiveChatSupport';
+import CustomerReviews from '@/components/ecommerce/CustomerReviews';
+import SecurityBadges from '@/components/trust/SecurityBadges';
 
 const ProductDetail = () => {
-  const { productId: secureProductId } = useParams<{ productId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { products, addToCart, toggleFavorite, isFavorite } = useStore();
-  const { isAuthenticated } = useAuth();
-  const AUTH_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-  const PLACEHOLDER_IMAGE = '/placeholder.svg';
-  
-  console.log('ProductDetail - Secure ID:', secureProductId);
-  
-  // Récupérer l'ID réel à partir de l'ID sécurisé
-  const productId = secureProductId ? getRealId(secureProductId) : undefined;
-  
-  console.log('ProductDetail - Real ID:', productId);
-  
-  // Définir tous les useState au début du composant
-  const [product, setProduct] = useState(products.find(p => p.id === productId));
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [remainingTime, setRemainingTime] = useState<string>("");
-  const [isValidId, setIsValidId] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const { products, addToCart, loading, fetchProducts } = useStore();
   const [quantity, setQuantity] = useState(1);
-  const [addedToCart, setAddedToCart] = useState(false);
-  
-  // Valider l'ID sécurisé et rediriger si invalide
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLiked, setIsLiked] = useState(false);
+  const [showWishlist, setShowWishlist] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+
+  // Sample data for components
+  const [wishlistItems] = useState([
+    {
+      id: '1',
+      productId: id || '1',
+      name: 'Produit exemple',
+      price: 29.99,
+      originalPrice: 39.99,
+      image: '/placeholder.svg',
+      inStock: true,
+      category: 'Électronique',
+      rating: 4.5,
+      priceChange: 'down' as const,
+      addedDate: new Date().toISOString()
+    }
+  ]);
+
+  const [reviews] = useState([
+    {
+      id: '1',
+      userId: '1',
+      userName: 'Marie Dubois',
+      userAvatar: '/placeholder.svg',
+      rating: 5,
+      title: 'Excellent produit !',
+      content: 'Je recommande vivement ce produit. La qualité est au rendez-vous et la livraison a été rapide.',
+      images: ['/placeholder.svg'],
+      date: new Date().toISOString(),
+      verified: true,
+      helpful: 12,
+      notHelpful: 1,
+      userVote: null as const
+    },
+    {
+      id: '2',
+      userId: '2',
+      userName: 'Jean Martin',
+      rating: 4,
+      title: 'Très satisfait',
+      content: 'Bon rapport qualité-prix. Quelques petits défauts mais rien de rédhibitoire.',
+      date: new Date().toISOString(),
+      verified: true,
+      helpful: 8,
+      notHelpful: 0,
+      userVote: null as const
+    }
+  ]);
+
   useEffect(() => {
-    setIsLoading(true);
-    
-    // Vérifier si l'ID existe
-    if (!secureProductId) {
-      setIsValidId(false);
-      toast.error("Produit non trouvé");
-      navigate('/page/notfound', { replace: true });
-      return;
-    }
-    
-    // Vérifier si c'est un ID produit valide
-    const isValid = isValidSecureId(secureProductId);
-    const entityType = getEntityType(secureProductId);
-    
-    console.log('ProductDetail - Validation:', { isValid, entityType, productId });
-    
-    if (!isValid) {
-      setIsValidId(false);
-      toast.error("Ce lien n'est plus valide");
-      navigate('/page/notfound', { replace: true });
-    } else {
-      // Trouver le produit correspondant à l'ID réel
-      const foundProduct = products.find(p => p.id === productId);
-      if (foundProduct) {
-        setProduct(foundProduct);
-        setIsValidId(true);
-      } else {
-        console.log('ProductDetail - Produit non trouvé:', productId);
-        setIsValidId(false);
-        toast.error("Produit introuvable");
-        navigate('/page/notfound', { replace: true });
-      }
-    }
-    
-    setIsLoading(false);
-  }, [secureProductId, productId, products, navigate]);
-
-  // Timer pour les promotions
-  useEffect(() => {
-    if (product && product.promotion && product.promotionEnd) {
-      const updateRemainingTime = () => {
-        const end = new Date(product.promotionEnd!);
-        const now = new Date();
-        const diffInMs = end.getTime() - now.getTime();
-        
-        if (diffInMs <= 0) {
-          setRemainingTime("Promotion expirée");
-          return;
+    const initializeProduct = async () => {
+      setIsLoading(true);
+      
+      if (products.length === 0) {
+        try {
+          await fetchProducts();
+        } catch (error) {
+          console.error('Error fetching products:', error);
         }
-        
-        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-        const diffInHours = Math.floor((diffInMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const diffInMins = Math.floor((diffInMs % (1000 * 60)) / (1000 * 60));
-        const diffInSecs = Math.floor((diffInMs % (1000 * 60)) / 1000);
-
-        if (diffInDays > 0) {
-          setRemainingTime(`${diffInDays}j ${diffInHours}h ${diffInMins}m ${diffInSecs}s`);
-        } else {
-          setRemainingTime(`${diffInHours}h ${diffInMins}m ${diffInSecs}s`);
-        }
-      };
-      
-      updateRemainingTime();
-      const interval = setInterval(updateRemainingTime, 1000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [product]);
-
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity > 0 && (product?.stock === undefined || newQuantity <= product.stock)) {
-      setQuantity(newQuantity);
-    }
-  };
-
-  const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      toast.error("Vous devez être connecté pour ajouter un produit au panier", {
-        style: { backgroundColor: '#EF4444', color: 'white', fontWeight: 'bold' },
-        duration: 4000,
-        position: 'top-center',
-      });
-      return;
-    }
-
-    if (product) {
-      for (let i = 0; i < quantity; i++) {
-        addToCart(product);
       }
-      setAddedToCart(true);
-      toast.success(`${quantity} ${quantity > 1 ? 'exemplaires' : 'exemplaire'} ajouté${quantity > 1 ? 's' : ''} au panier`);
       
-      setTimeout(() => {
-        setAddedToCart(false);
-      }, 2000);
-    }
-  };
-  
-  // Si le produit est en cours de chargement, afficher un indicateur
-  if (isLoading) {
+      setIsLoading(false);
+    };
+
+    initializeProduct();
+  }, [products, fetchProducts]);
+
+  const product = products.find(p => p.id === id);
+
+  if (isLoading || loading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-10">
-          <div className="flex flex-col lg:flex-row gap-10">
-            <div className="flex-1">
-              <Skeleton className="w-full h-[400px] rounded-xl mb-4" />
-              <div className="flex justify-center space-x-2">
-                {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="w-20 h-20 rounded-md" />
-                ))}
-              </div>
-            </div>
-            <div className="flex-1">
-              <Skeleton className="w-3/4 h-8 mb-3" />
-              <Skeleton className="w-1/2 h-6 mb-6" />
-              <Skeleton className="w-1/4 h-5 mb-8" />
-              <Skeleton className="w-full h-32 mb-6" />
-              <div className="flex space-x-4">
-                <Skeleton className="w-1/3 h-10" />
-                <Skeleton className="w-1/3 h-10" />
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner size="lg" />
         </div>
       </Layout>
     );
   }
 
-  // Si le produit n'est pas trouvé ou l'ID invalide, afficher un message
-  if (!isValidId || !product) {
+  if (!product) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-20 text-center">
-          <h1 className="text-3xl font-bold mb-6">Produit non trouvé</h1>
-          <p className="mb-8 text-gray-600 max-w-md mx-auto">Le produit que vous recherchez n'existe pas ou a été supprimé.</p>
-          <Button asChild>
-            <a href="/">Retour à l'accueil</a>
+        <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+          <h1 className="text-2xl font-bold mb-4">Produit non trouvé</h1>
+          <p className="text-gray-600 mb-6">
+            Le produit que vous recherchez n'existe pas ou a été supprimé.
+          </p>
+          <Button onClick={() => navigate('/products')}>
+            Retour aux produits
           </Button>
         </div>
       </Layout>
     );
   }
 
-  const relatedProducts = products
-    .filter(p => p.category === product?.category && p.id !== product?.id)
-    .slice(0, 8);
+  const handleAddToCart = () => {
+    addToCart(product.id, quantity);
+    toast.success(`${quantity} ${product.name} ajouté${quantity > 1 ? 's' : ''} au panier`);
+  };
 
-  const isProductFavorite = productId ? isFavorite(productId) : false;
-  const isPromotionActive = product.promotion && 
-    product.promotionEnd && 
-    new Date(product.promotionEnd) > new Date();
-  const isInStock = product.isSold && (product.stock === undefined || product.stock > 0);
+  const handleQuantityChange = (delta: number) => {
+    const newQuantity = Math.max(1, quantity + delta);
+    setQuantity(newQuantity);
+  };
 
-  const productImages =
-    product.images && product.images.length > 0
-      ? product.images
-      : product.image
-        ? [product.image]
-        : [];
-        
-  // Fonction pour construire l'URL de l'image de manière sécurisée
-  const getImageUrl = (imagePath: string) => {
-    if (!imagePath) return PLACEHOLDER_IMAGE;
-    
-    // Si l'image commence déjà par http, c'est une URL complète
-    if (imagePath.startsWith('http')) {
-      return imagePath;
+  const handleAddToFavorites = () => {
+    setIsLiked(!isLiked);
+    toast.success(isLiked ? 'Retiré des favoris' : 'Ajouté aux favoris');
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: product.name,
+        text: `Découvrez ${product.name}`,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('Lien copié dans le presse-papiers');
     }
-    
-    // Sinon, on ajoute le BASE_URL
-    return `${AUTH_BASE_URL}${imagePath}`;
+  };
+
+  const productForQuickActions = {
+    ...product,
+    image: product.image ? `${import.meta.env.VITE_API_BASE_URL}${product.image}` : '/placeholder.svg',
+    rating: 4.5,
+    reviews: 123,
+    isNew: false,
+    isBestSeller: true,
+    freeShipping: true,
+    inStock: true
   };
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-10">
-        {/* Bouton retour */}
-        <Button 
-          variant="ghost" 
-          className="mb-6 flex items-center text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100" 
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Retour
-        </Button>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
+          <button onClick={() => navigate('/')} className="hover:text-blue-600">
+            Accueil
+          </button>
+          <span>/</span>
+          <button onClick={() => navigate('/products')} className="hover:text-blue-600">
+            Produits
+          </button>
+          <span>/</span>
+          <span className="text-gray-900">{product.name}</span>
+        </nav>
 
-        <div className="flex flex-col lg:flex-row gap-10">
-          {/* Images produit */}
-          <div className="flex-1">
-            <div className="mb-4 relative bg-neutral-50 dark:bg-neutral-900 rounded-xl overflow-hidden">
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={selectedImageIndex}
-                  src={getImageUrl(productImages[selectedImageIndex])}
-                  alt={product.name}
-                  className="w-full h-[500px] object-contain rounded-lg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  onError={(e) => {
-                    console.log("Erreur de chargement d'image détaillée, utilisation du placeholder");
-                    const target = e.target as HTMLImageElement;
-                    target.src = PLACEHOLDER_IMAGE;
-                  }}
-                />
-              </AnimatePresence>
-              
-              {isPromotionActive && (
-                <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1.5 rounded-full text-sm font-bold">
-                  -{product.promotion}%
-                </div>
-              )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Images */}
+          <div className="space-y-4">
+            <div className="aspect-square bg-white rounded-lg border overflow-hidden">
+              <img
+                src={product.image ? `${import.meta.env.VITE_API_BASE_URL}${product.image}` : '/placeholder.svg'}
+                alt={product.name}
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+
+          {/* Product Info */}
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+              <p className="text-gray-600">{product.description}</p>
             </div>
 
-            {productImages.length > 1 && (
-              <div className="flex justify-center flex-wrap gap-3 mt-4">
-                {productImages.map((image, index) => (
-                  <div
-                    key={index}
-                    className={`w-20 h-20 overflow-hidden rounded-md cursor-pointer border-2 transition-all ${
-                      index === selectedImageIndex ? 'border-red-500 shadow-md' : 'border-transparent hover:border-red-300'
-                    }`}
-                    onClick={() => setSelectedImageIndex(index)}
-                  >
-                    <img
-                      src={getImageUrl(image)}
-                      alt={`${product.name} - image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = PLACEHOLDER_IMAGE;
-                      }}
-                    />
-                  </div>
+            {/* Rating */}
+            <div className="flex items-center space-x-2">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-5 w-5 text-yellow-400 fill-current" />
                 ))}
               </div>
-            )}
-          </div>
-
-          {/* Infos produit */}
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="px-2 py-1 text-xs bg-neutral-100 dark:bg-neutral-800">
-                {product.category}
-              </Badge>
-              {product.dateAjout && new Date().getTime() - new Date(product.dateAjout).getTime() < 7 * 24 * 60 * 60 * 1000 && (
-                <Badge className="bg-blue-600 text-white">Nouveau</Badge>
-              )}
+              <span className="text-sm text-gray-600">(4.5) • 123 avis</span>
             </div>
-            
-            <h1 className="text-3xl font-bold mb-4 text-neutral-900 dark:text-neutral-100">{product.name}</h1>
-            
-            {isPromotionActive ? (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900 rounded-lg border border-red-100 dark:border-red-900/50">
-                <div className="flex items-center gap-3 mb-2">
-                  <p className="text-xl text-gray-500 line-through">
-                    {typeof product.originalPrice === 'number'
-                      ? product.originalPrice.toFixed(2)
-                      : product.price.toFixed(2)}{' '}
-                    €
-                  </p>
-                  <span className="bg-red-600 text-white px-2 py-0.5 text-sm font-bold rounded">
-                    -{product.promotion}%
-                  </span>
-                </div>
-                <p className="text-3xl font-bold text-red-600 dark:text-red-400">
+
+            {/* Price */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3">
+                <span className="text-3xl font-bold text-gray-900">
                   {product.price.toFixed(2)} €
-                </p>
-                {remainingTime && (
-                  <div className="mt-3 flex items-center text-sm">
-                    <Clock className="h-4 w-4 mr-1.5 text-red-600 dark:text-red-400" />
-                    <span className="font-medium">
-                      La promotion se termine dans: <span className="font-bold">{remainingTime}</span>
-                    </span>
-                  </div>
+                </span>
+                {product.promotion && (
+                  <Badge className="bg-red-600 text-white">
+                    -{product.promotion}% de réduction
+                  </Badge>
                 )}
               </div>
-            ) : (
-              <p className="text-2xl font-bold mb-6 text-neutral-900 dark:text-neutral-100">
-                {product.price.toFixed(2)} €
-              </p>
-            )}
+            </div>
 
-            <Tabs defaultValue="description" className="mt-6 mb-8">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="description">Description</TabsTrigger>
-                <TabsTrigger value="details">Détails</TabsTrigger>
-                <TabsTrigger value="delivery">Livraison</TabsTrigger>
-              </TabsList>
-              <TabsContent value="description" className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg mt-2">
-                <p className="text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
-                  {product.description}
-                </p>
-              </TabsContent>
-              <TabsContent value="details" className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg mt-2">
-                <ul className="space-y-2 text-neutral-700 dark:text-neutral-300">
-                  <li className="flex items-start">
-                    <span className="font-medium w-32">Catégorie:</span>
-                    <span>{product.category}</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="font-medium w-32">Disponibilité:</span>
-                    <span className={isInStock ? 'text-green-600' : 'text-red-600'}>
-                      {isInStock ? 'En stock' : 'Rupture de stock'}
-                    </span>
-                  </li>
-                  {product.stock !== undefined && (
-                    <li className="flex items-start">
-                      <span className="font-medium w-32">Stock:</span>
-                      <span>{product.stock} unité{product.stock > 1 ? 's' : ''}</span>
-                    </li>
-                  )}
-                  {product.dateAjout && (
-                    <li className="flex items-start">
-                      <span className="font-medium w-32">Date d'ajout:</span>
-                      <span>{new Date(product.dateAjout).toLocaleDateString('fr-FR')}</span>
-                    </li>
-                  )}
-                </ul>
-              </TabsContent>
-              <TabsContent value="delivery" className="p-4 bg-neutral-50 dark:bg-neutral-900 rounded-lg mt-2">
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Truck className="h-5 w-5 mr-2 text-green-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Livraison standard</p>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">3-5 jours ouvrés</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <Shield className="h-5 w-5 mr-2 text-green-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Retours</p>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">Retours gratuits sous 30 jours</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 mr-2 text-green-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium">Livraison gratuite</p>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">Pour les commandes supérieures à 50€</p>
-                    </div>
-                  </li>
-                </ul>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-center">
-                <span className="mr-4 text-neutral-700 dark:text-neutral-300">Quantité:</span>
-                <div className="flex items-center border border-neutral-300 dark:border-neutral-700 rounded-md">
-                  <button
-                    onClick={() => handleQuantityChange(quantity - 1)}
+            {/* Quantity */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <span className="font-medium">Quantité:</span>
+                <div className="flex items-center border rounded-lg">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleQuantityChange(-1)}
                     disabled={quantity <= 1}
-                    className="px-3 py-2 text-neutral-500 disabled:text-neutral-300 disabled:cursor-not-allowed"
                   >
-                    -
-                  </button>
-                  <span className="px-4 py-2 border-l border-r border-neutral-300 dark:border-neutral-700 min-w-[40px] text-center">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={product.stock !== undefined && quantity >= product.stock}
-                    className="px-3 py-2 text-neutral-500 disabled:text-neutral-300 disabled:cursor-not-allowed"
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="px-4 py-2 font-medium">{quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleQuantityChange(1)}
                   >
-                    +
-                  </button>
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
-                {product.stock !== undefined && product.stock > 0 && product.stock <= 10 && (
-                  <span className="ml-3 text-sm text-orange-600">
-                    ({product.stock} disponible{product.stock > 1 ? 's' : ''})
-                  </span>
-                )}
               </div>
 
-              <div className="flex space-x-4 mt-4">
-                <Button
-                  size="lg"
-                  onClick={handleAddToCart}
-                  disabled={!isInStock}
-                  className={`flex-1 transition-all ${addedToCart ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
-                >
-                  {addedToCart ? (
-                    <>
-                      <Check className="mr-2 h-5 w-5" />
-                      Ajouté
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="mr-2 h-5 w-5" />
-                      Ajouter au panier
-                    </>
-                  )}
+              {/* Actions */}
+              <div className="flex space-x-3">
+                <Button onClick={handleAddToCart} className="flex-1 h-12">
+                  <ShoppingCart className="h-5 w-5 mr-2" />
+                  Ajouter au panier
                 </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-12 w-12 border-neutral-300 dark:border-neutral-700"
-                  onClick={() => toggleFavorite(product)}
+                <Button 
+                  variant="outline" 
+                  onClick={handleAddToFavorites}
+                  className={isLiked ? 'text-red-500 border-red-500' : ''}
                 >
-                  <Heart
-                    className={`h-5 w-5 ${isProductFavorite ? 'fill-red-500 text-red-500' : ''}`}
-                  />
+                  <Heart className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`} />
                 </Button>
-                
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-12 w-12 border-neutral-300 dark:border-neutral-700"
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    toast.success("Lien copié dans le presse-papier");
-                  }}
-                >
+                <Button variant="outline" onClick={handleShare}>
                   <Share2 className="h-5 w-5" />
                 </Button>
+                <Button variant="outline" onClick={() => setShowWishlist(true)}>
+                  <GitCompare className="h-5 w-5" />
+                </Button>
               </div>
             </div>
 
-            {!isInStock && (
-              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-md text-red-700 dark:text-red-400">
-                Ce produit est actuellement en rupture de stock.
+            {/* Features */}
+            <div className="grid grid-cols-1 gap-3">
+              <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+                <Truck className="h-5 w-5 text-green-600" />
+                <span className="text-sm">Livraison gratuite</span>
               </div>
-            )}
+              <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <span className="text-sm">Garantie 2 ans</span>
+              </div>
+              <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+                <RotateCcw className="h-5 w-5 text-purple-600" />
+                <span className="text-sm">Retour sous 30 jours</span>
+              </div>
+            </div>
           </div>
-        </div>
-        
-        {/* Section des commentaires */}
-        <div className="mt-16">
-          <div className="border-b border-neutral-200 dark:border-neutral-800 mb-8">
-            <h2 className="text-2xl font-bold mb-6">Avis clients</h2>
-          </div>
-          {productId && (
-            <ProductReviews productId={productId} />
-          )}
         </div>
 
-        {/* Produits similaires */}
-        {relatedProducts.length > 0 && (
-          <FeaturedProductsSlider 
-            products={relatedProducts} 
-            title="Produits similaires" 
-            description="Vous pourriez également aimer ces produits dans la même catégorie"
-            seeAllLink={`/categorie/${product.category}`}
-            slidesToShow={4}
+        {/* Security Badges */}
+        <div className="mb-12">
+          <SecurityBadges variant="detailed" showStats={true} />
+        </div>
+
+        {/* Product Quick Actions Demo */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6">Actions rapides du produit</h2>
+          <div className="max-w-md">
+            <ProductQuickActions 
+              product={productForQuickActions}
+              onAddToCart={() => toast.success('Produit ajouté au panier')}
+              onAddToFavorites={() => toast.success('Ajouté aux favoris')}
+              onQuickView={() => toast.info('Aperçu rapide ouvert')}
+              onCompare={() => toast.success('Ajouté à la comparaison')}
+              onShare={() => toast.success('Lien partagé')}
+            />
+          </div>
+        </div>
+
+        {/* Customer Reviews */}
+        <div className="mb-12">
+          <CustomerReviews
+            productId={product.id}
+            reviews={reviews}
+            averageRating={4.5}
+            totalReviews={123}
+            onAddReview={(review) => toast.success('Avis ajouté avec succès !')}
+            onVoteReview={(reviewId, vote) => toast.success('Vote enregistré !')}
           />
+        </div>
+
+        {/* Wishlist Manager Modal */}
+        {showWishlist && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-4 border-b flex justify-between items-center">
+                <h2 className="text-xl font-bold">Ma liste de souhaits</h2>
+                <Button variant="outline" onClick={() => setShowWishlist(false)}>
+                  Fermer
+                </Button>
+              </div>
+              <div className="p-4">
+                <WishlistManager
+                  items={wishlistItems}
+                  onRemoveItem={(id) => toast.success('Produit retiré de la liste')}
+                  onAddToCart={(id) => toast.success('Produit ajouté au panier')}
+                  onShareItem={(id) => toast.success('Lien partagé')}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Live Chat Support */}
+        <LiveChatSupport
+          isOpen={showChat}
+          onToggle={() => setShowChat(!showChat)}
+        />
+
+        {/* Chat Support Button */}
+        {!showChat && (
+          <Button
+            onClick={() => setShowChat(true)}
+            className="fixed bottom-4 left-4 z-40 bg-green-600 hover:bg-green-700 text-white rounded-full w-14 h-14"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
         )}
       </div>
     </Layout>

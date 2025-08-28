@@ -16,6 +16,8 @@ import { ShippingAddress, codePromosAPI } from '@/services/api';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ModernCheckoutFlow from '@/components/payment/ModernCheckoutFlow';
+import StripePaymentForm from '@/components/payment/StripePaymentForm';
 
 // Définition des prix de livraison par ville
 const DELIVERY_PRICES = {
@@ -312,94 +314,44 @@ const CheckoutPage = () => {
     );
   }
   
+  // Prepare cart items for ModernCheckoutFlow
+  const cartItemsForCheckout = selectedCartItems.map(item => ({
+    id: item.product.id,
+    name: item.product.name,
+    price: calculateItemPrice(item) / item.quantity,
+    quantity: item.quantity,
+    image: item.product.image ? `${import.meta.env.VITE_API_BASE_URL}${item.product.image}` : undefined
+  }));
+  
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <CheckoutHeader 
-            title="Finaliser votre commande"
-            subtitle="Quelques étapes simples vous séparent de vos produits préférés"
-          />
-
-          <CheckoutSteps currentStep={step} />
+        {/* Modern Checkout Flow */}
+        <ModernCheckoutFlow
+          cartItems={cartItemsForCheckout}
+          totalAmount={orderTotal}
+          onPaymentSuccess={(paymentIntentId) => {
+            toast.success("Paiement effectué avec succès !");
+            navigate('/commandes');
+          }}
+          onBack={() => navigate('/panier')}
+        />
         
-          {showCardForm ? (
-            <motion.div 
-              className="max-w-md mx-auto"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Shield className="h-8 w-8 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Paiement sécurisé</h2>
-                  <p className="text-gray-600">Vos données sont protégées par cryptage SSL</p>
-                </div>
-                <PaymentMethodSelector onPaymentSuccess={handlePaymentSuccess} />
-                <Button 
-                  variant="outline" 
-                  className="mt-6 w-full border-gray-300 hover:border-gray-400"
-                  onClick={() => setShowCardForm(false)}
-                >
-                  Retour aux options de paiement
-                </Button>
-              </div>
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <motion.div 
-                className="lg:col-span-8 space-y-6"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
-                {step === 'shipping' && (
-                  <ShippingForm
-                    shippingData={shippingData}
-                    deliveryCity={deliveryCity}
-                    deliveryPrices={DELIVERY_PRICES}
-                    onShippingDataChange={handleChange}
-                    onCityChange={handleCityChange}
-                    onSubmit={handleShippingSubmit}
-                    onBackToCart={() => navigate('/panier')}
-                  />
-                )}
-                
-                {step === 'payment' && (
-                  <PaymentForm
-                    paymentMethod={paymentMethod}
-                    loading={loading}
-                    onMethodChange={setPaymentMethod}
-                    onSubmit={handlePaymentSubmit}
-                    onBackToShipping={() => setStep('shipping')}
-                  />
-                )}
-              </motion.div>
-              
-              <OrderSummary
-                selectedCartItems={selectedCartItems}
-                subtotal={subtotal}
-                discountedSubtotal={discountedSubtotal}
-                hasPromoDiscount={hasPromoDiscount}
-                taxAmount={taxAmount}
-                deliveryPrice={deliveryPrice}
-                deliveryCity={deliveryCity}
-                orderTotal={orderTotal}
-                codePromo={codePromo}
-                verifyingCode={verifyingCode}
-                verifiedPromo={verifiedPromo}
-                step={step}
-                allProductsOnPromotion={allProductsOnPromotion}
-                hasNonPromotionProduct={hasNonPromotionProduct}
-                calculateItemPrice={calculateItemPrice}
-                onCodePromoChange={setCodePromo}
-                onVerifyCodePromo={handleVerifyCodePromo}
-              />
-            </div>
-          )}
+        {/* Alternative: Direct Stripe Payment Form (for demo) */}
+        <div className="max-w-md mx-auto mt-12 pt-8 border-t">
+          <h2 className="text-xl font-bold text-center mb-6">Ou paiement direct</h2>
+          <StripePaymentForm
+            amount={orderTotal}
+            currency="eur"
+            description={`Commande de ${selectedCartItems.length} article(s)`}
+            onSuccess={(paymentIntentId) => {
+              toast.success("Paiement effectué avec succès !");
+              navigate('/commandes');
+            }}
+            onError={(error) => {
+              toast.error(`Erreur de paiement: ${error}`);
+            }}
+          />
         </div>
       </div>
     </Layout>
