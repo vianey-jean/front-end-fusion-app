@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useChatNotifications } from '@/hooks/useChatNotifications';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Message {
   id: string;
@@ -207,79 +208,83 @@ const LiveChatWidget: React.FC = () => {
                 </div>
 
                 {/* Zone des messages avec scroll personnalisé */}
-                <div className="flex-1 p-6 overflow-y-auto space-y-6 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-                  {messages.map((msg) => (
-                    <motion.div
-                      key={msg.id}
-                      initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className="flex items-start space-x-3 max-w-[85%]">
-                        {msg.sender === 'bot' && (
-                          <motion.div
-                            whileHover={{ scale: 1.1 }}
-                            className="relative"
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur opacity-75" />
-                            <Avatar className="relative w-10 h-10 border-2 border-white/30">
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                                <Stars className="h-5 w-5" />
-                              </AvatarFallback>
-                            </Avatar>
-                          </motion.div>
-                        )}
-                        
+                <div className="flex-1 overflow-hidden">
+                  <ScrollArea className="h-full p-6">
+                    <div className="space-y-6 min-h-0">
+                      {messages.map((msg) => (
                         <motion.div
-                          whileHover={{ scale: 1.02 }}
-                          className={`relative p-4 rounded-3xl backdrop-blur-xl border transition-all duration-300 ${
-                            msg.sender === 'user'
-                              ? 'bg-gradient-to-br from-blue-500/90 to-purple-600/90 text-white border-blue-400/30 ml-auto shadow-lg'
-                              : 'bg-white/10 text-white border-white/20 shadow-xl'
-                          }`}
+                          key={msg.id}
+                          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                          {/* Effet de brillance */}
-                          <div className={`absolute inset-0 rounded-3xl opacity-20 ${
-                            msg.sender === 'user' 
-                              ? 'bg-gradient-to-r from-white/20 to-transparent'
-                              : 'bg-gradient-to-r from-blue-400/20 to-purple-400/20'
-                          }`} />
-                          
-                          <p className="relative text-sm font-medium leading-relaxed">{msg.text}</p>
-                          
-                          <div className="relative mt-2 pt-2 border-t border-white/20">
-                            <span className="text-xs text-white/70 font-medium">
-                              {msg.timestamp.toLocaleTimeString('fr-FR', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
+                          <div className="flex items-start space-x-3 max-w-[85%]">
+                            {msg.sender === 'bot' && (
+                              <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                className="relative"
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur opacity-75" />
+                                <Avatar className="relative w-10 h-10 border-2 border-white/30">
+                                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                                    <Stars className="h-5 w-5" />
+                                  </AvatarFallback>
+                                </Avatar>
+                              </motion.div>
+                            )}
+                            
+                            <motion.div
+                              whileHover={{ scale: 1.02 }}
+                              className={`relative p-4 rounded-3xl backdrop-blur-xl border transition-all duration-300 ${
+                                msg.sender === 'user'
+                                  ? 'bg-gradient-to-br from-blue-500/90 to-purple-600/90 text-white border-blue-400/30 ml-auto shadow-lg'
+                                  : 'bg-white/10 text-white border-white/20 shadow-xl'
+                              }`}
+                            >
+                              {/* Effet de brillance */}
+                              <div className={`absolute inset-0 rounded-3xl opacity-20 ${
+                                msg.sender === 'user' 
+                                  ? 'bg-gradient-to-r from-white/20 to-transparent'
+                                  : 'bg-gradient-to-r from-blue-400/20 to-purple-400/20'
+                              }`} />
+                              
+                              <p className="relative text-sm font-medium leading-relaxed">{msg.text}</p>
+                              
+                              <div className="relative mt-2 pt-2 border-t border-white/20">
+                                <span className="text-xs text-white/70 font-medium">
+                                  {msg.timestamp.toLocaleTimeString('fr-FR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            </motion.div>
+                            
+                            {msg.sender === 'user' && (
+                              <motion.div
+                                whileHover={{ scale: 1.1 }}
+                                className="relative"
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-red-600 rounded-full blur opacity-75" />
+                                <Avatar className="relative w-10 h-10 border-2 border-white/30">
+                                  <AvatarFallback className="bg-gradient-to-br from-pink-500 to-red-600 text-white">
+                                    <User className="h-5 w-5" />
+                                  </AvatarFallback>
+                                </Avatar>
+                              </motion.div>
+                            )}
                           </div>
                         </motion.div>
-                        
-                        {msg.sender === 'user' && (
-                          <motion.div
-                            whileHover={{ scale: 1.1 }}
-                            className="relative"
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-red-600 rounded-full blur opacity-75" />
-                            <Avatar className="relative w-10 h-10 border-2 border-white/30">
-                              <AvatarFallback className="bg-gradient-to-br from-pink-500 to-red-600 text-white">
-                                <User className="h-5 w-5" />
-                              </AvatarFallback>
-                            </Avatar>
-                          </motion.div>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
+                      ))}
+                    </div>
+                  </ScrollArea>
                 </div>
 
                 {/* Zone de saisie premium */}
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="relative p-6 border-t border-white/20 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl"
+                  className="flex-shrink-0 relative p-6 border-t border-white/20 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl"
                 >
                   <div className="flex space-x-3">
                     <div className="relative flex-1">

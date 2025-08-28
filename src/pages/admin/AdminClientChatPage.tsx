@@ -308,30 +308,32 @@ const AdminClientChatPage: React.FC = () => {
               
               <CardContent className="p-0 flex flex-col h-[680px]">
                 {/* Messages Area */}
-                <ScrollArea className="flex-1 p-6" ref={chatContainerRef}>
-                  <div className="space-y-4">
-                    {selectedSession?.messages.map((msg) => (
-                      <div key={msg.id} className={`flex ${msg.type === 'admin' ? 'justify-end' : 'justify-start'}`}>
-                        <div className="max-w-xs lg:max-w-md">
-                          {msg.type === 'admin' && (
-                            <p className="text-xs text-gray-500 mt-2 mr-2 text-right">Vous • {formatDate(msg.timestamp)}</p>
-                          )}
-                          <div className={`p-4 rounded-2xl ${msg.type === 'admin' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-tr-md' : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 rounded-tl-md'} shadow-md`}>
-                            <p>{msg.content}</p>
+                <div className="flex-1 overflow-hidden">
+                  <ScrollArea className="h-full p-6" ref={chatContainerRef}>
+                    <div className="space-y-4 min-h-0">
+                      {selectedSession?.messages.map((msg) => (
+                        <div key={msg.id} className={`flex ${msg.type === 'admin' ? 'justify-end' : 'justify-start'}`}>
+                          <div className="max-w-xs lg:max-w-md">
+                            {msg.type === 'admin' && (
+                              <p className="text-xs text-gray-500 mt-2 mr-2 text-right">Vous • {formatDate(msg.timestamp)}</p>
+                            )}
+                            <div className={`p-4 rounded-2xl ${msg.type === 'admin' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-tr-md' : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 rounded-tl-md'} shadow-md`}>
+                              <p>{msg.content}</p>
+                            </div>
+                            {msg.type === 'user' && selectedSession && (
+                              <p className="text-xs text-gray-500 mt-2 ml-2">{selectedSession.userName} • {formatDate(msg.timestamp)}</p>
+                            )}
                           </div>
-                          {msg.type === 'user' && selectedSession && (
-                            <p className="text-xs text-gray-500 mt-2 ml-2">{selectedSession.userName} • {formatDate(msg.timestamp)}</p>
-                          )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
 
                 <Separator className="bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
 
                 {/* Enhanced Message Input */}
-                <div className="p-6 bg-gradient-to-r from-gray-50 to-white">
+                <div className="flex-shrink-0 p-6 bg-gradient-to-r from-gray-50 to-white">
                   <div className="flex space-x-4">
                     <Input 
                       placeholder="Tapez votre message..." 

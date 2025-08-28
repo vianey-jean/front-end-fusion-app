@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, User, Bot, Minus, Smile } from 'lucide-react';
@@ -274,7 +273,7 @@ const ClientServiceChatWidget: React.FC = () => {
 
                 {/* Messages */}
                 <ScrollArea className="flex-1 p-4 bg-gradient-to-b from-white/60 to-gray-100/70 dark:from-gray-900/60 dark:to-gray-800/70">
-                  <div className="space-y-4">
+                  <div className="space-y-4 min-h-0">
                     {conversation?.messages?.map((msg: Message) => (
                       <motion.div
                         key={msg.id}
@@ -333,7 +332,7 @@ const ClientServiceChatWidget: React.FC = () => {
                 </ScrollArea>
 
                 {/* Zone saisie */}
-                <div className="p-4 border-t bg-white/70 dark:bg-gray-900/70">
+                <div className="flex-shrink-0 p-4 border-t bg-white/70 dark:bg-gray-900/70">
                   <div className="flex space-x-2">
                     <FileUploadButton
                       onFileSelect={handleFileSelect}

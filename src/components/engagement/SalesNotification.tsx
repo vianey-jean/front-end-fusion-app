@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, MapPin, Clock, TrendingUp, Calendar, Award } from 'lucide-react';
@@ -239,3 +240,4 @@ const SalesNotification: React.FC = () => {
 };
 
 export default SalesNotification;
+
