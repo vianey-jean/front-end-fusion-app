@@ -31,7 +31,7 @@ import SecurityBadges from '@/components/trust/SecurityBadges';
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { products, addToCart, loading, fetchProducts } = useStore();
+  const { products, addToCart, loadingProducts, fetchProducts } = useStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,7 +70,7 @@ const ProductDetail = () => {
       verified: true,
       helpful: 12,
       notHelpful: 1,
-      userVote: null as const
+      userVote: null
     },
     {
       id: '2',
@@ -83,7 +83,7 @@ const ProductDetail = () => {
       verified: true,
       helpful: 8,
       notHelpful: 0,
-      userVote: null as const
+      userVote: null
     }
   ]);
 
@@ -107,7 +107,7 @@ const ProductDetail = () => {
 
   const product = products.find(p => p.id === id);
 
-  if (isLoading || loading) {
+  if (isLoading || loadingProducts) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-screen">
@@ -134,7 +134,7 @@ const ProductDetail = () => {
   }
 
   const handleAddToCart = () => {
-    addToCart(product.id, quantity);
+    addToCart(product, quantity);
     toast.success(`${quantity} ${product.name} ajouté${quantity > 1 ? 's' : ''} au panier`);
   };
 

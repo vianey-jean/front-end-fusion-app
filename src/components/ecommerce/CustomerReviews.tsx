@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ import {
   Camera, 
   Send,
   Filter,
-  Sort,
+  ArrowUpDown,
   MoreHorizontal,
   Flag,
   Verified
@@ -286,7 +285,7 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({
             </div>
 
             <div className="flex items-center space-x-2">
-              <Sort className="h-4 w-4" />
+              <ArrowUpDown className="h-4 w-4" />
               <span className="text-sm font-medium">Trier par :</span>
               <select
                 value={sortBy}
