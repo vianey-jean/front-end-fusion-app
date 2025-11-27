@@ -563,7 +563,7 @@ export default function CommandesPage() {
           sellingPrice: p.prixVente,
           profit: productProfit,
           deliveryFee: 0,
-          deliveryLocation: commandeToValidate.clientAddress
+          deliveryLocation: "Saint-Denis"
         });
       }
       
