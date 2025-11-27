@@ -535,17 +535,31 @@ export default function CommandesPage() {
       // 2. Enregistrer la vente dans sales.json
       const today = new Date().toISOString().split('T')[0];
       
-      // Créer les produits pour la vente
-      const saleProducts = commandeToValidate.produits.map(p => ({
-        productId: '', // Pas de productId car c'est une commande/réservation
-        description: p.nom,
-        quantitySold: p.quantite,
-        purchasePrice: p.prixUnitaire,
-        sellingPrice: p.prixVente * p.quantite,
-        profit: (p.prixVente * p.quantite) - (p.prixUnitaire * p.quantite),
-        deliveryFee: 0,
-        deliveryLocation: commandeToValidate.clientAddress
-      }));
+      // Créer ou trouver les produits et construire saleProducts
+      const saleProducts = [];
+      for (const p of commandeToValidate.produits) {
+        // Chercher le produit dans la liste existante
+        let product = products.find(prod => prod.description.toLowerCase() === p.nom.toLowerCase());
+        
+        // Si le produit n'existe pas, le créer
+        if (!product) {
+          const newProductResponse = await api.post('/api/products', {
+            description: p.nom,
+            purchasePrice: p.prixUnitaire,
+            quantity: 0 // Quantité 0 car c'est une commande/réservation
+          });
+          product = newProductResponse.data;
+        }
+        
+        // Ajouter le produit au format attendu par l'API
+        saleProducts.push({
+          productId: product.id,
+          description: p.nom,
+          quantitySold: p.quantite,
+          purchasePrice: p.prixUnitaire,
+          sellingPrice: p.prixVente // Prix unitaire, pas total
+        });
+      }
       
       // Calculer les totaux
       const totalPurchasePrice = commandeToValidate.produits.reduce((sum, p) => sum + (p.prixUnitaire * p.quantite), 0);
@@ -565,6 +579,7 @@ export default function CommandesPage() {
         nextPaymentDate: null
       };
       
+      console.log('Validating commande with sale data:', saleData);
       await api.post('/api/sales', saleData);
       
       toast({
@@ -572,7 +587,9 @@ export default function CommandesPage() {
         description: 'Commande validée et enregistrée comme vente',
         className: "bg-app-green text-white",
       });
-      fetchCommandes();
+      
+      // Rafraîchir les données
+      await Promise.all([fetchCommandes(), fetchProducts()]);
       setValidatingId(null);
     } catch (error) {
       console.error('Error validating:', error);
