@@ -551,16 +551,20 @@ export default function CommandesPage() {
           product = newProductResponse.data;
         }
         
-        // Calculer le bénéfice pour ce produit: (prix de vente * quantité) - (prix d'achat * quantité)
-        const productProfit = (p.prixVente * p.quantite) - (p.prixUnitaire * p.quantite);
+        // Calculer les prix unitaires (diviser par quantité si > 1)
+        const unitPurchasePrice = p.quantite > 1 ? p.prixUnitaire / p.quantite : p.prixUnitaire;
+        const unitSellingPrice = p.quantite > 1 ? p.prixVente / p.quantite : p.prixVente;
+        
+        // Calculer le bénéfice pour ce produit: (prix de vente unitaire * quantité) - (prix d'achat unitaire * quantité)
+        const productProfit = (unitSellingPrice * p.quantite) - (unitPurchasePrice * p.quantite);
         
         // Ajouter le produit au format attendu par l'API
         saleProducts.push({
           productId: product.id,
           description: p.nom,
           quantitySold: p.quantite,
-          purchasePrice: p.prixUnitaire,
-          sellingPrice: p.prixVente,
+          purchasePrice: unitPurchasePrice,
+          sellingPrice: unitSellingPrice,
           profit: productProfit,
           deliveryFee: 0,
           deliveryLocation: "Saint-Denis"
