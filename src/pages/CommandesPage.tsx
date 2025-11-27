@@ -551,13 +551,19 @@ export default function CommandesPage() {
           product = newProductResponse.data;
         }
         
+        // Calculer le bénéfice pour ce produit: (prix de vente * quantité) - (prix d'achat * quantité)
+        const productProfit = (p.prixVente * p.quantite) - (p.prixUnitaire * p.quantite);
+        
         // Ajouter le produit au format attendu par l'API
         saleProducts.push({
           productId: product.id,
           description: p.nom,
           quantitySold: p.quantite,
           purchasePrice: p.prixUnitaire,
-          sellingPrice: p.prixVente // Prix unitaire, pas total
+          sellingPrice: p.prixVente,
+          profit: productProfit,
+          deliveryFee: 0,
+          deliveryLocation: commandeToValidate.clientAddress
         });
       }
       
