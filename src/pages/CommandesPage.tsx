@@ -3,18 +3,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ModernTable, ModernTableHeader, ModernTableRow, ModernTableHead, ModernTableCell, TableBody } from '@/components/dashboard/forms/ModernTable';
+import { Table, TableHeader, TableRow, TableHead, TableCell, TableBody } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Package, Plus, Trash2, Edit, ShoppingCart, TrendingUp, Sparkles, Crown, Star, Gift, Award, Zap, Diamond, ArrowUp, ArrowDown } from 'lucide-react';
-import { Commande, CommandeProduit } from '@/types/commande';
-import api from '@/service/api';
+import api from '@/services/api';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import Layout from '@/components/Layout';
-import PremiumLoading from '@/components/ui/premium-loading';
-import SaleQuantityInput from '@/components/dashboard/forms/SaleQuantityInput';
+import Layout from '@/components/layout/Layout';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
+// Types pour les commandes
+interface CommandeProduit {
+  nom: string;
+  prixUnitaire: number;
+  quantite: number;
+  prixVente: number;
+}
+
+interface Commande {
+  id: string;
+  clientNom: string;
+  clientPhone: string;
+  clientAddress: string;
+  type: 'commande' | 'reservation';
+  produits: CommandeProduit[];
+  dateArrivagePrevue?: string;
+  dateEcheance?: string;
+  dateCommande?: string;
+  statut: 'en_route' | 'arrive' | 'en_attente' | 'valide' | 'annule';
+  createdAt?: string;
+  notificationEnvoyee?: boolean;
+}
 import { motion } from 'framer-motion';
 
 interface Client {
@@ -649,12 +670,10 @@ export default function CommandesPage() {
   if (isLoading) {
     return (
       <Layout>
-        <PremiumLoading 
-          text="Bienvenue sur La page commandes ou reservation"
-          size="xl"
-          overlay={true}
-          variant="default"
-        />
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-muted-foreground">Chargement des commandes...</p>
+        </div>
       </Layout>
     );
   }
@@ -905,11 +924,17 @@ export default function CommandesPage() {
                   </div>
 
                   <div>
-                    <SaleQuantityInput
-                      quantity={quantite}
-                      maxQuantity={1000}
-                      onChange={setQuantite}
-                      showAvailableStock={false}
+                    <Label htmlFor="quantite" className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
+                      📦 Quantité
+                    </Label>
+                    <Input
+                      id="quantite"
+                      type="number"
+                      min="1"
+                      value={quantite}
+                      onChange={(e) => setQuantite(e.target.value)}
+                      placeholder="1"
+                      className="border-2 border-purple-300 dark:border-purple-700 focus:border-purple-500 dark:focus:border-purple-500 bg-white dark:bg-gray-900 shadow-sm"
                     />
                   </div>
 
@@ -1133,15 +1158,15 @@ export default function CommandesPage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <ModernTable className="min-w-full">
-            <ModernTableHeader>
-              <ModernTableRow >
-                <ModernTableHead>Client</ModernTableHead>
-                <ModernTableHead>Contact</ModernTableHead>
-                <ModernTableHead>Produit</ModernTableHead>
-                <ModernTableHead>Prix</ModernTableHead>
-                <ModernTableHead>Type</ModernTableHead>
-                <ModernTableHead>
+            <Table className="min-w-full">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Client</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Produit</TableHead>
+                <TableHead>Prix</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>
                   <button
                     onClick={() => setSortDateAsc(!sortDateAsc)}
                     className="flex items-center gap-2 hover:text-primary transition-colors"
@@ -1154,28 +1179,28 @@ export default function CommandesPage() {
                       <ArrowUp className="h-4 w-4 text-purple-600" />
                     )}
                   </button>
-                </ModernTableHead>
-                <ModernTableHead>Statut</ModernTableHead>
-                <ModernTableHead>Actions</ModernTableHead>
-              </ModernTableRow>
-            </ModernTableHeader>
+                </TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
 
               <TableBody>
                 {filteredCommandes.map((commande) => (
-                  <ModernTableRow
+                  <TableRow
                     key={commande.id}
                     className="bg-background/40 hover:bg-primary/5 transition-colors"
                   >
-                    <ModernTableCell className="align-top">
+                    <TableCell className="align-top">
                       <div className="font-medium">{commande.clientNom}</div>
                       <div className="text-xs text-muted-foreground">
                         {commande.clientAddress}
                       </div>
-                    </ModernTableCell>
-                    <ModernTableCell className="align-top">
+                    </TableCell>
+                    <TableCell className="align-top">
                       <span className="text-sm">{commande.clientPhone}</span>
-                    </ModernTableCell>
-                    <ModernTableCell className="align-top">
+                    </TableCell>
+                    <TableCell className="align-top">
                       {commande.produits.map((p, idx) => (
                         <div key={idx} className="text-sm space-y-0.5">
                           <div className="font-medium">{p.nom}</div>
@@ -1185,8 +1210,8 @@ export default function CommandesPage() {
 
                         </div>
                       ))}
-                    </ModernTableCell>
-                    <ModernTableCell className="align-top">
+                    </TableCell>
+                    <TableCell className="align-top">
                       {commande.produits.map((p, idx) => (
                         <div key={idx} className="text-sm space-y-0.5">
                           <div>Unitaire: {p.prixUnitaire}€</div>
@@ -1201,8 +1226,8 @@ export default function CommandesPage() {
                           Prix Total: {commande.produits.reduce((sum, p) => sum + (p.prixVente * p.quantite), 0).toFixed(2)}€
                         </div>
                       </div>
-                    </ModernTableCell>
-                    <ModernTableCell className="align-top">
+                    </TableCell>
+                    <TableCell className="align-top">
                      <Badge
                       className={
                         commande.type === 'commande'
@@ -1214,9 +1239,9 @@ export default function CommandesPage() {
                       {commande.type === 'commande' ? 'Commande' : 'Réservation'}
                     </Badge>
 
-                    </ModernTableCell>
+                    </TableCell>
 
-                    <ModernTableCell className="align-top text-sm">
+                    <TableCell className="align-top text-sm">
                       {commande.type === 'commande' ? (
                         <div>
                           <div className="text-xs text-muted-foreground">Arrivage:</div>
@@ -1228,8 +1253,8 @@ export default function CommandesPage() {
                           <div>{new Date(commande.dateEcheance || '').toLocaleDateString()}</div>
                         </div>
                       )}
-                    </ModernTableCell>
-                    <ModernTableCell className="align-top">
+                    </TableCell>
+                    <TableCell className="align-top">
                       <Select
                         value={commande.statut}
                         onValueChange={(value) => handleStatusChange(commande.id, value as any)}
@@ -1256,8 +1281,8 @@ export default function CommandesPage() {
                           ))}
                         </SelectContent>
                       </Select>
-                    </ModernTableCell>
-                    <ModernTableCell className="align-top">
+                    </TableCell>
+                    <TableCell className="align-top">
                       <div className="flex gap-2">
                         <Button
                           variant="ghost"
@@ -1278,11 +1303,11 @@ export default function CommandesPage() {
                           <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
                         </Button>
                       </div>
-                    </ModernTableCell>
-                  </ModernTableRow>
+                    </TableCell>
+                  </TableRow>
                 ))}
               </TableBody>
-            </ModernTable>
+            </Table>
           </div>
         </CardContent>
       </Card>
