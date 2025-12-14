@@ -729,19 +729,23 @@ const AdminProductsPage = () => {
                 />
               </div>
               
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="price" className="text-right">
-                  Prix (€)
+              <div className="grid grid-cols-4 items-start gap-4">
+                <label htmlFor="price" className="text-right pt-2">
+                  Prix TTC (€)
                 </label>
-                <Input
-                  id="price"
-                  name="price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={handleChange}
-                  className="col-span-3"
-                />
+                <div className="col-span-3 space-y-1">
+                  <Input
+                    id="price"
+                    name="price"
+                    type="number"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={handleChange}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Le prix saisi inclut déjà la TVA 20%. Ce sera le prix final affiché au client.
+                  </p>
+                </div>
               </div>
               
               <div className="grid grid-cols-4 items-center gap-4">
