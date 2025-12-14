@@ -63,10 +63,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({ product, categories, o
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Calcul du prix réel: B = A - (A * 20 / 100)
+    const priceEntered = parseFloat(formData.price) || 0;
+    const calculatedPrice = priceEntered - (priceEntered * 20 / 100);
+    
     const data = new FormData();
     data.append('name', formData.name);
     data.append('description', formData.description);
-    data.append('price', formData.price);
+    data.append('price', calculatedPrice.toFixed(2));
     data.append('stock', formData.stock);
     data.append('category', formData.category);
     
