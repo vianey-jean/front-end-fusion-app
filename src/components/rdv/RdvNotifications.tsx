@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -117,11 +117,15 @@ const RdvNotifications: React.FC<RdvNotificationsProps> = ({
     setSelectedNotification(null);
   };
 
-  // Aller à la page RDV
+  // Aller à la page RDV avec le rdv à mettre en surbrillance
   const handleGoToRdv = () => {
+    if (selectedNotification) {
+      // Naviguer vers la page RDV avec l'ID du RDV et sa date pour la semaine
+      const rdvDate = selectedNotification.rdvDate;
+      navigate(`/rdv?highlightRdv=${selectedNotification.rdvId}&date=${rdvDate}`);
+    }
     setShowDetailModal(false);
     setIsOpen(false);
-    navigate('/rdv');
   };
 
   return (
