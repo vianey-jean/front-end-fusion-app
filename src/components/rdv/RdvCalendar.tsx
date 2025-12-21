@@ -509,11 +509,6 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
         onConfirm={confirmModify}
         variant="info"
       />
-        confirmText="Modifier"
-        cancelText="Annuler"
-        onConfirm={confirmModify}
-        variant="default"
-      />
 
       {/* Confirm Delete Dialog */}
       <ConfirmDialog
