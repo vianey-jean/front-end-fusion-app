@@ -39,6 +39,8 @@ interface RdvCalendarProps {
   onRdvDrop: (rdv: RDV, newDate: string, newTime: string) => void;
   onRdvDelete?: (rdv: RDV) => void;
   onOpenFormWithDateTime?: (rdv: RDV, date: string, time: string) => void;
+  highlightRdvId?: string | null;
+  onHighlightComplete?: () => void;
 }
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 8);
@@ -66,6 +68,8 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
   onRdvDrop,
   onRdvDelete,
   onOpenFormWithDateTime,
+  highlightRdvId,
+  onHighlightComplete,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [draggedRdv, setDraggedRdv] = useState<RDV | null>(null);
@@ -84,6 +88,10 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [rdvToModify, setRdvToModify] = useState<RDV | null>(null);
   const [rdvToDelete, setRdvToDelete] = useState<RDV | null>(null);
+  
+  // État pour le clignotement du RDV highlight
+  const [blinkingRdvId, setBlinkingRdvId] = useState<string | null>(null);
+  const [blinkCount, setBlinkCount] = useState(0);
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -97,6 +105,28 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
     });
     return map;
   }, [rdvs]);
+
+  // Effet pour le clignotement quand on reçoit un highlightRdvId
+  React.useEffect(() => {
+    if (highlightRdvId) {
+      setBlinkingRdvId(highlightRdvId);
+      setBlinkCount(0);
+    }
+  }, [highlightRdvId]);
+
+  // Effet pour gérer le clignotement 4 fois
+  React.useEffect(() => {
+    if (blinkingRdvId && blinkCount < 8) { // 8 = 4 cycles (on/off)
+      const timer = setTimeout(() => {
+        setBlinkCount(prev => prev + 1);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else if (blinkCount >= 8) {
+      // Après 4 clignotements, garder stable (pas rouge)
+      setBlinkingRdvId(null);
+      onHighlightComplete?.();
+    }
+  }, [blinkingRdvId, blinkCount, onHighlightComplete]);
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => addDays(prev, direction === 'prev' ? -7 : 7));
@@ -293,6 +323,10 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
                 const widthPercent = 100 / 8 - 0.5;
                 const colors = statusColors[rdv.statut] || statusColors.planifie;
                 
+                // Vérifier si ce RDV doit clignoter
+                const isBlinking = blinkingRdvId === rdv.id;
+                const showRedBlink = isBlinking && blinkCount % 2 === 0;
+                
                 return (
                   <motion.div
                     key={rdv.id}
@@ -305,8 +339,9 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
                       "absolute rounded-lg border-l-4 px-2 py-1.5 cursor-grab active:cursor-grabbing",
                       "text-white text-xs overflow-hidden shadow-lg",
                       "transition-all duration-200 hover:shadow-xl hover:z-20 hover:scale-[1.02]",
-                      colors.bg,
-                      colors.border
+                      showRedBlink ? "bg-gradient-to-r from-red-600 to-red-700 border-red-400" : colors.bg,
+                      showRedBlink ? "border-red-400" : colors.border,
+                      isBlinking && "z-30 scale-105"
                     )}
                     style={{
                       top: pos.top,

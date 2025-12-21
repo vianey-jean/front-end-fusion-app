@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { RdvCalendar, RdvForm, RdvCard } from '@/components/rdv';
 import { ConfirmDialog } from '@/components/shared';
@@ -35,6 +36,7 @@ const ITEMS_PER_PAGE = 20;
 
 const RdvPage: React.FC = () => {
   const { rdvs, loading, createRdv, updateRdv, deleteRdv, markAsNotified, checkConflicts } = useRdv();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedRdv, setSelectedRdv] = useState<RDV | null>(null);
@@ -47,6 +49,9 @@ const RdvPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('calendar');
   const [currentPage, setCurrentPage] = useState(1);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
+  
+  // Pour le highlight du RDV depuis les notifications
+  const [highlightRdvId, setHighlightRdvId] = useState<string | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
   // Fermer les suggestions au clic extérieur
@@ -59,6 +64,24 @@ const RdvPage: React.FC = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Gérer les params URL pour highlight du RDV depuis notification
+  useEffect(() => {
+    const rdvIdToHighlight = searchParams.get('highlightRdv');
+    if (rdvIdToHighlight) {
+      setHighlightRdvId(rdvIdToHighlight);
+      setActiveTab('calendar');
+    }
+  }, [searchParams]);
+
+  // Callback quand le highlight est terminé
+  const handleHighlightComplete = useCallback(() => {
+    setHighlightRdvId(null);
+    // Nettoyer l'URL
+    searchParams.delete('highlightRdv');
+    searchParams.delete('date');
+    setSearchParams(searchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   // Stats
   const stats = useMemo(() => {
@@ -476,6 +499,8 @@ const RdvPage: React.FC = () => {
                 onSlotClick={(date, time) => handleOpenForm(undefined, date, time)}
                 onRdvDrop={handleRdvDrop}
                 onRdvDelete={confirmDelete}
+                highlightRdvId={highlightRdvId}
+                onHighlightComplete={handleHighlightComplete}
               />
             </TabsContent>
 
