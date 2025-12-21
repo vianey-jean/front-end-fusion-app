@@ -1,41 +1,23 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Table, TableHeader, TableRow, TableHead, TableCell, TableBody } from '@/components/ui/table';
+import { ModernTable, ModernTableHeader, ModernTableRow, ModernTableHead, ModernTableCell, TableBody } from '@/components/dashboard/forms/ModernTable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Package, Plus, Trash2, Edit, ShoppingCart, TrendingUp, Sparkles, Crown, Star, Gift, Award, Zap, Diamond, ArrowUp, ArrowDown } from 'lucide-react';
-import api from '@/services/api';
+import { Package, Plus, Trash2, Edit, ShoppingCart, TrendingUp, Sparkles, Crown, Star, Gift, Award, Zap, Diamond, ArrowUp, ArrowDown, Printer, Calendar, CalendarPlus } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Commande, CommandeProduit } from '@/types/commande';
+import api from '@/service/api';
+import { rdvFromReservationService } from '@/services/rdvFromReservationService';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import Layout from '@/components/layout/Layout';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-
-// Types pour les commandes
-interface CommandeProduit {
-  nom: string;
-  prixUnitaire: number;
-  quantite: number;
-  prixVente: number;
-}
-
-interface Commande {
-  id: string;
-  clientNom: string;
-  clientPhone: string;
-  clientAddress: string;
-  type: 'commande' | 'reservation';
-  produits: CommandeProduit[];
-  dateArrivagePrevue?: string;
-  dateEcheance?: string;
-  dateCommande?: string;
-  statut: 'en_route' | 'arrive' | 'en_attente' | 'valide' | 'annule';
-  createdAt?: string;
-  notificationEnvoyee?: boolean;
-}
+import Layout from '@/components/Layout';
+import PremiumLoading from '@/components/ui/premium-loading';
+import SaleQuantityInput from '@/components/dashboard/forms/SaleQuantityInput';
 import { motion } from 'framer-motion';
 
 interface Client {
@@ -49,9 +31,10 @@ interface Product {
   id: string;
   description: string;
   purchasePrice: number;
+  quantity: number;
 }
 
-export default function CommandesPage() {
+const CommandesPage: React.FC = () =>  {
   const [commandes, setCommandes] = useState<Commande[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -71,6 +54,7 @@ export default function CommandesPage() {
   const [prixVente, setPrixVente] = useState('');
   const [dateArrivagePrevue, setDateArrivagePrevue] = useState('');
   const [dateEcheance, setDateEcheance] = useState('');
+  const [horaire, setHoraire] = useState('');
   
   // Liste des produits ajoutés au panier
   const [produitsListe, setProduitsListe] = useState<CommandeProduit[]>([]);
@@ -83,6 +67,7 @@ export default function CommandesPage() {
   const [productSearch, setProductSearch] = useState('');
   const [showClientSuggestions, setShowClientSuggestions] = useState(false);
   const [showProductSuggestions, setShowProductSuggestions] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // État pour gérer l'ordre de tri par date
   const [sortDateAsc, setSortDateAsc] = useState(true); // true = du plus proche au plus loin
@@ -92,6 +77,16 @@ export default function CommandesPage() {
   
   // État pour la confirmation de validation
   const [validatingId, setValidatingId] = useState<string | null>(null);
+  
+  // État pour l'export PDF
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportDate, setExportDate] = useState('');
+  
+  // État pour la modale Reporter
+  const [reporterModalOpen, setReporterModalOpen] = useState(false);
+  const [reporterCommandeId, setReporterCommandeId] = useState<string | null>(null);
+  const [reporterDate, setReporterDate] = useState('');
+  const [reporterHoraire, setReporterHoraire] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -140,18 +135,28 @@ export default function CommandesPage() {
       );
     }
     
-    // Trier par date (échéance ou arrivage)
+    // Trier par date (échéance ou arrivage) puis par horaire
     return [...filtered].sort((a, b) => {
-      const dateA = new Date(a.type === 'commande' ? a.dateArrivagePrevue || '' : a.dateEcheance || '');
-      const dateB = new Date(b.type === 'commande' ? b.dateArrivagePrevue || '' : b.dateEcheance || '');
+      const dateStrA = a.type === 'commande' ? a.dateArrivagePrevue || '' : a.dateEcheance || '';
+      const dateStrB = b.type === 'commande' ? b.dateArrivagePrevue || '' : b.dateEcheance || '';
+      const dateA = new Date(dateStrA);
+      const dateB = new Date(dateStrB);
       
-      if (sortDateAsc) {
-        // Du plus proche au plus loin
-        return dateA.getTime() - dateB.getTime();
-      } else {
-        // Du plus loin au plus proche
-        return dateB.getTime() - dateA.getTime();
+      // Comparer d'abord par date
+      const dateDiff = sortDateAsc 
+        ? dateA.getTime() - dateB.getTime()
+        : dateB.getTime() - dateA.getTime();
+      
+      // Si même date, trier par horaire
+      if (dateDiff === 0) {
+        const horaireA = a.horaire || '23:59';
+        const horaireB = b.horaire || '23:59';
+        return sortDateAsc 
+          ? horaireA.localeCompare(horaireB)
+          : horaireB.localeCompare(horaireA);
       }
+      
+      return dateDiff;
     });
   }, [commandes, commandeSearch, sortDateAsc]);
 
@@ -214,26 +219,29 @@ export default function CommandesPage() {
     );
   }, [clientSearch, clients]);
 
-  // Filter products based on search - exclude products already used in other orders/reservations
+  // Filter products based on search - exclude products already used in other orders/reservations and with quantity = 0
   const filteredProducts = useMemo(() => {
     if (productSearch.length < 3) return [];
     
-    // Get all product names that are already used in other orders/reservations
+    // Get all product names that are already used in other orders/reservations (non validées/annulées)
     const usedProductNames = new Set<string>();
     commandes.forEach(commande => {
       // Skip if we're editing this specific order (allow same products)
       if (editingCommande && commande.id === editingCommande.id) return;
+      // Skip validated or cancelled orders
+      if (commande.statut === 'valide' || commande.statut === 'annule') return;
       
       commande.produits.forEach(produit => {
         usedProductNames.add(produit.nom.toLowerCase());
       });
     });
     
-    // Filter out products that are already used
+    // Filter out products that are already used or have quantity = 0
     return products.filter(product => {
       const matchesSearch = product.description.toLowerCase().includes(productSearch.toLowerCase());
       const isNotUsed = !usedProductNames.has(product.description.toLowerCase());
-      return matchesSearch && isNotUsed;
+      const hasStock = product.quantity > 0;
+      return matchesSearch && isNotUsed && hasStock;
     });
   }, [productSearch, products, commandes, editingCommande]);
 
@@ -250,6 +258,7 @@ export default function CommandesPage() {
     setPrixUnitaire(product.purchasePrice.toString());
     setProductSearch(product.description);
     setShowProductSuggestions(false);
+    setSelectedProduct(product);
   };
 
   const isFormValid = () => {
@@ -272,11 +281,13 @@ export default function CommandesPage() {
     setPrixVente('');
     setDateArrivagePrevue('');
     setDateEcheance('');
+    setHoraire('');
     setType('commande');
     setClientSearch('');
     setProductSearch('');
     setProduitsListe([]);
     setEditingCommande(null);
+    setSelectedProduct(null);
   };
 
   const resetProductFields = () => {
@@ -286,6 +297,7 @@ export default function CommandesPage() {
     setPrixVente('');
     setProductSearch('');
     setEditingProductIndex(null);
+    setSelectedProduct(null);
   };
 
   const handleAddProduit = () => {
@@ -299,10 +311,39 @@ export default function CommandesPage() {
       return;
     }
 
+    const quantiteInt = parseInt(quantite);
+    
+    // Vérifier si le produit existe dans products.json
+    const existingProduct = products.find(p => p.description.toLowerCase() === produitNom.toLowerCase());
+    
+    if (existingProduct) {
+      // Vérifier que la quantité en stock est supérieure à 0
+      if (existingProduct.quantity <= 0) {
+        toast({
+          title: 'Stock insuffisant',
+          description: `${produitNom} n'a plus de stock disponible (stock: ${existingProduct.quantity})`,
+          className: "bg-app-red text-white",
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Vérifier que la quantité demandée ne dépasse pas le stock disponible
+      if (quantiteInt > existingProduct.quantity) {
+        toast({
+          title: 'Quantité insuffisante',
+          description: `Stock disponible pour ${produitNom}: ${existingProduct.quantity} unités`,
+          className: "bg-app-red text-white",
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     const nouveauProduit: CommandeProduit = {
       nom: produitNom,
       prixUnitaire: parseFloat(prixUnitaire),
-      quantite: parseInt(quantite),
+      quantite: quantiteInt,
       prixVente: parseFloat(prixVente),
     };
 
@@ -338,6 +379,10 @@ export default function CommandesPage() {
     setPrixVente(produit.prixVente.toString());
     setProductSearch(produit.nom);
     setEditingProductIndex(index);
+    
+    // Trouver le produit dans la liste des produits pour obtenir la quantité en stock
+    const productFromList = products.find(p => p.description.toLowerCase() === produit.nom.toLowerCase());
+    setSelectedProduct(productFromList || null);
     
     toast({
       title: 'Mode édition',
@@ -392,6 +437,10 @@ export default function CommandesPage() {
     } else {
       commandeData.dateEcheance = dateEcheance;
     }
+    
+    if (horaire) {
+      commandeData.horaire = horaire;
+    }
 
     try {
       // Créer le client s'il n'existe pas
@@ -420,13 +469,39 @@ export default function CommandesPage() {
 
       if (editingCommande) {
         await api.put(`/api/commandes/${editingCommande.id}`, commandeData);
+        
+        // Mettre à jour le RDV lié si c'est une réservation avec date et horaire
+        if (type === 'reservation' && dateEcheance && horaire) {
+          const updatedCommande = { ...editingCommande, ...commandeData } as Commande;
+          try {
+            await rdvFromReservationService.updateRdvFromCommande(updatedCommande);
+          } catch (err) {
+            console.error('Erreur mise à jour RDV:', err);
+          }
+        }
+        
         toast({
           title: 'Succès',
           description: 'Commande modifiée avec succès',
           className: "bg-app-green text-white",
         });
       } else {
-        await api.post('/api/commandes', commandeData);
+        const response = await api.post('/api/commandes', commandeData);
+        const newCommande = response.data as Commande;
+        
+        // Créer automatiquement un RDV si c'est une réservation avec date et horaire
+        if (type === 'reservation' && dateEcheance && horaire) {
+          try {
+            await rdvFromReservationService.createRdvFromCommande(newCommande);
+            toast({
+              title: '📅 Rendez-vous créé',
+              description: `Un RDV a été automatiquement créé pour le ${dateEcheance} à ${horaire}`,
+            });
+          } catch (err) {
+            console.error('Erreur création RDV:', err);
+          }
+        }
+        
         toast({
           title: 'Succès',
           description: 'Commande ajoutée avec succès',
@@ -459,12 +534,20 @@ export default function CommandesPage() {
     
     setDateArrivagePrevue(commande.dateArrivagePrevue || '');
     setDateEcheance(commande.dateEcheance || '');
+    setHoraire(commande.horaire || '');
     setClientSearch(commande.clientNom);
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
     try {
+      // Supprimer le RDV lié si existant
+      try {
+        await rdvFromReservationService.deleteRdvFromCommande(id);
+      } catch (err) {
+        console.error('Erreur suppression RDV lié:', err);
+      }
+      
       await api.delete(`/api/commandes/${id}`);
       toast({
         title: 'Succès',
@@ -487,7 +570,11 @@ export default function CommandesPage() {
   // État pour la confirmation d'annulation
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  const handleStatusChange = async (id: string, newStatus: 'en_route' | 'arrive' | 'en_attente' | 'valide' | 'annule') => {
+  const handleStatusChange = async (id: string, newStatus: 'en_route' | 'arrive' | 'en_attente' | 'valide' | 'annule' | 'reporter') => {
+    // Trouver la commande concernée
+    const commande = commandes.find(c => c.id === id);
+    if (!commande) return;
+    
     // Si on passe à "valide", demander confirmation
     if (newStatus === 'valide') {
       setValidatingId(id);
@@ -498,6 +585,48 @@ export default function CommandesPage() {
     if (newStatus === 'annule') {
       setCancellingId(id);
       return;
+    }
+    
+    // Si on passe à "reporter", ouvrir la modale date/horaire
+    if (newStatus === 'reporter') {
+      // Préremplir avec la date et horaire actuels
+      const currentDate = commande.type === 'commande' ? commande.dateArrivagePrevue : commande.dateEcheance;
+      setReporterDate(currentDate || '');
+      setReporterHoraire(commande.horaire || '');
+      setReporterCommandeId(id);
+      setReporterModalOpen(true);
+      return;
+    }
+    
+    // Si la commande était "valide" et on change vers un autre statut (sauf annule qui a sa propre confirmation)
+    // => Supprimer la vente dans sales.json et restaurer la quantité
+    if (commande.statut === 'valide' && commande.saleId) {
+      try {
+        // Supprimer la vente (le backend restaure automatiquement la quantité)
+        await api.delete(`/api/sales/${commande.saleId}`);
+        console.log('✅ Vente supprimée de sales.json, quantité restaurée');
+        
+        // Mettre à jour le statut et supprimer le saleId
+        await api.put(`/api/commandes/${id}`, { statut: newStatus, saleId: null });
+        
+        toast({
+          title: 'Succès',
+          description: 'Statut mis à jour et vente annulée',
+          className: "bg-app-green text-white",
+        });
+        
+        await Promise.all([fetchCommandes(), fetchProducts()]);
+        return;
+      } catch (error) {
+        console.error('Error reverting validation:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de mettre à jour le statut',
+          className: "bg-app-red text-white",
+          variant: 'destructive',
+        });
+        return;
+      }
     }
     
     try {
@@ -522,14 +651,36 @@ export default function CommandesPage() {
   const confirmCancellation = async () => {
     if (!cancellingId) return;
     
+    // Trouver la commande concernée
+    const commande = commandes.find(c => c.id === cancellingId);
+    
     try {
-      await api.put(`/api/commandes/${cancellingId}`, { statut: 'annule' });
+      // Si la commande était validée, supprimer la vente d'abord
+      if (commande && commande.statut === 'valide' && commande.saleId) {
+        await api.delete(`/api/sales/${commande.saleId}`);
+        console.log('✅ Vente supprimée de sales.json lors de l\'annulation');
+      }
+      
+      await api.put(`/api/commandes/${cancellingId}`, { statut: 'annule', saleId: null });
+      
+      // Marquer le RDV lié comme annulé (invisible mais en DB)
+      if (commande && commande.type === 'reservation') {
+        try {
+          await api.put(`/api/rdv/by-commande/${cancellingId}`, {
+            statut: 'annule'
+          });
+          console.log('✅ RDV marqué comme annulé');
+        } catch (rdvError) {
+          console.log('RDV non trouvé:', rdvError);
+        }
+      }
+      
       toast({
         title: 'Succès',
         description: 'Commande annulée avec succès',
         className: "bg-app-green text-white",
       });
-      fetchCommandes();
+      await Promise.all([fetchCommandes(), fetchProducts()]);
       setCancellingId(null);
     } catch (error) {
       console.error('Error cancelling:', error);
@@ -550,8 +701,19 @@ export default function CommandesPage() {
     if (!commandeToValidate) return;
     
     try {
-      // 1. Mettre à jour le statut de la commande
-      await api.put(`/api/commandes/${validatingId}`, { statut: 'valide' });
+      // 1. Vérifier que tous les produits ont un stock suffisant
+      for (const p of commandeToValidate.produits) {
+        const existingProduct = products.find(prod => prod.description.toLowerCase() === p.nom.toLowerCase());
+        if (existingProduct && existingProduct.quantity < p.quantite) {
+          toast({
+            title: 'Stock insuffisant',
+            description: `Stock disponible pour ${p.nom}: ${existingProduct.quantity} unités (demandé: ${p.quantite})`,
+            className: "bg-app-red text-white",
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
       
       // 2. Enregistrer la vente dans sales.json
       const today = new Date().toISOString().split('T')[0];
@@ -562,37 +724,42 @@ export default function CommandesPage() {
         // Chercher le produit dans la liste existante
         let product = products.find(prod => prod.description.toLowerCase() === p.nom.toLowerCase());
         
-        // Si le produit n'existe pas, le créer
+        // Si le produit n'existe pas, le créer avec la quantité nécessaire
         if (!product) {
           const newProductResponse = await api.post('/api/products', {
             description: p.nom,
             purchasePrice: p.prixUnitaire,
-            quantity: 0 // Quantité 0 car c'est une commande/réservation
+            quantity: p.quantite // Créer avec la quantité de la commande pour permettre la vente
           });
           product = newProductResponse.data;
         }
         
-        // Calculer les prix unitaires (diviser par quantité si > 1)
-        const unitPurchasePrice = p.quantite > 1 ? p.prixUnitaire / p.quantite : p.prixUnitaire;
-        const unitSellingPrice = p.quantite > 1 ? p.prixVente / p.quantite : p.prixVente;
-        
-        // Calculer le bénéfice pour ce produit: (prix de vente unitaire * quantité) - (prix d'achat unitaire * quantité)
-        const productProfit = (unitSellingPrice * p.quantite) - (unitPurchasePrice * p.quantite);
+        // Dans sales.json, on enregistre les prix TOTAUX (comme le formulaire de ventes) :
+        // - purchasePrice = prixUnitaire * quantite (prix total d'achat)
+        // - sellingPrice = prixVente * quantite (prix total de vente)
+        // - quantitySold = quantite
+        // - profit = (prixVente - prixUnitaire) * quantite
+        const productProfit = (p.prixVente - p.prixUnitaire) * p.quantite;
+        const totalPurchasePrice = p.prixUnitaire * p.quantite;
+        const totalSellingPrice = p.prixVente * p.quantite;
         
         // Ajouter le produit au format attendu par l'API
         saleProducts.push({
           productId: product.id,
           description: p.nom,
           quantitySold: p.quantite,
-          purchasePrice: unitPurchasePrice,
-          sellingPrice: unitSellingPrice,
-          profit: productProfit,
+          purchasePrice: totalPurchasePrice,  // Prix TOTAL d'achat (prixUnitaire * quantite)
+          sellingPrice: totalSellingPrice,    // Prix TOTAL de vente (prixVente * quantite)
+          profit: productProfit,              // Profit = (prixVente - prixUnitaire) * quantite
           deliveryFee: 0,
           deliveryLocation: "Saint-Denis"
         });
       }
       
-      // Calculer les totaux
+      // Calculer les totaux pour sales.json :
+      // - totalPurchasePrice = somme de tous (prixUnitaire * quantité)
+      // - totalSellingPrice = somme de tous (prixVente * quantité)
+      // - totalProfit = totalSellingPrice - totalPurchasePrice
       const totalPurchasePrice = commandeToValidate.produits.reduce((sum, p) => sum + (p.prixUnitaire * p.quantite), 0);
       const totalSellingPrice = commandeToValidate.produits.reduce((sum, p) => sum + (p.prixVente * p.quantite), 0);
       const totalProfit = totalSellingPrice - totalPurchasePrice;
@@ -600,9 +767,9 @@ export default function CommandesPage() {
       const saleData = {
         date: today,
         products: saleProducts,
-        totalPurchasePrice,
-        totalSellingPrice,
-        totalProfit,
+        totalPurchasePrice,   // Somme de (prixUnitaire * quantité) de tous les produits
+        totalSellingPrice,    // Somme de (prixVente * quantité) de tous les produits
+        totalProfit,          // totalSellingPrice - totalPurchasePrice
         clientName: commandeToValidate.clientNom,
         clientAddress: commandeToValidate.clientAddress,
         clientPhone: commandeToValidate.clientPhone,
@@ -610,8 +777,15 @@ export default function CommandesPage() {
         nextPaymentDate: null
       };
       
-      console.log('Validating commande with sale data:', saleData);
-      await api.post('/api/sales', saleData);
+      console.log('✅ Validation commande - Données à enregistrer dans sales.json:', saleData);
+      const saleResponse = await api.post('/api/sales', saleData);
+      const createdSale = saleResponse.data;
+      
+      // 2. Mettre à jour le statut de la commande avec le saleId
+      await api.put(`/api/commandes/${validatingId}`, { 
+        statut: 'valide',
+        saleId: createdSale.id // Stocker l'ID de la vente pour pouvoir la supprimer si on annule
+      });
       
       toast({
         title: 'Succès',
@@ -623,7 +797,7 @@ export default function CommandesPage() {
       await Promise.all([fetchCommandes(), fetchProducts()]);
       setValidatingId(null);
     } catch (error) {
-      console.error('Error validating:', error);
+      console.error('❌ Error validating:', error);
       toast({
         title: 'Erreur',
         description: 'Impossible de valider la commande',
@@ -645,6 +819,8 @@ export default function CommandesPage() {
         return <Badge className="text-blue-600 font-semibold">Validé</Badge>;
       case 'annule':
         return <Badge className="text-gray-600 font-semibold">Annulé</Badge>;
+      case 'reporter':
+        return <Badge className="text-blue-500 font-semibold">Reporté</Badge>;
       default:
         return <Badge>{statut}</Badge>;
     }
@@ -655,25 +831,130 @@ export default function CommandesPage() {
       return [
         { value: 'en_route', label: 'En route' },
         { value: 'arrive', label: 'Arrivé' },
+        { value: 'reporter', label: 'Reporter' },
         { value: 'valide', label: 'Validé' },
         { value: 'annule', label: 'Annulé' }
       ];
     } else {
       return [
         { value: 'en_attente', label: 'En attente' },
+        { value: 'reporter', label: 'Reporter' },
         { value: 'valide', label: 'Validé' },
         { value: 'annule', label: 'Annulé' }
       ];
     }
   };
 
+  // Filtrer les commandes par date pour l'export
+  const commandesForExportDate = useMemo(() => {
+    if (!exportDate) return [];
+    return commandes.filter(c => {
+      const dateStr = c.type === 'commande' ? c.dateArrivagePrevue : c.dateEcheance;
+      return dateStr === exportDate;
+    }).sort((a, b) => {
+      const horaireA = a.horaire || '23:59';
+      const horaireB = b.horaire || '23:59';
+      return horaireA.localeCompare(horaireB);
+    });
+  }, [commandes, exportDate]);
+
+  // Export PDF
+  const handleExportPDF = () => {
+    if (commandesForExportDate.length === 0) {
+      toast({
+        title: 'Aucune donnée',
+        description: `Cette date: ${new Date(exportDate).toLocaleDateString('fr-FR')} n'a aucune réservation ou commande`,
+        className: "bg-app-red text-white",
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const doc = new jsPDF('portrait', 'mm', 'a4');
+    const dateFormatted = new Date(exportDate).toLocaleDateString('fr-FR', { 
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+    });
+
+    // Titre
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Commandes & Réservations', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Date: ${dateFormatted}`, 105, 28, { align: 'center' });
+    doc.text(`Total: ${commandesForExportDate.length} commande(s)/réservation(s)`, 105, 35, { align: 'center' });
+
+    // Préparer les données du tableau
+    const tableData = commandesForExportDate.map(c => {
+      const produits = c.produits.map(p => `${p.nom} (Qté: ${p.quantite})`).join('\n');
+      const prixDetail = c.produits.map(p => `${p.prixVente}€ x ${p.quantite}`).join('\n');
+      const total = c.produits.reduce((sum, p) => sum + (p.prixVente * p.quantite), 0).toFixed(2);
+      const dateEch = c.type === 'commande' 
+        ? new Date(c.dateArrivagePrevue || '').toLocaleDateString('fr-FR')
+        : new Date(c.dateEcheance || '').toLocaleDateString('fr-FR');
+      const horaire = c.horaire || '-';
+      
+      return [
+        `${c.clientNom}\n${c.clientAddress}`,
+        c.clientPhone,
+        produits,
+        `${prixDetail}\n\nTotal: ${total}€`,
+        `${dateEch}\n${horaire}`
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 42,
+      head: [['Client', 'Contact', 'Produit', 'Prix', 'Date/Horaire']],
+      body: tableData,
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        overflow: 'linebreak',
+        valign: 'top'
+      },
+      headStyles: {
+        fillColor: [147, 51, 234],
+        textColor: 255,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      columnStyles: {
+        0: { cellWidth: 45 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 45 },
+        3: { cellWidth: 35 },
+        4: { cellWidth: 30 }
+      },
+      alternateRowStyles: {
+        fillColor: [245, 243, 255]
+      }
+    });
+
+    // Télécharger
+    const fileName = `commandes_${exportDate}.pdf`;
+    doc.save(fileName);
+
+    toast({
+      title: 'Succès',
+      description: `L'exportation a été effectuée avec succès`,
+      className: "bg-app-green text-white",
+    });
+    
+    setExportDialogOpen(false);
+    setExportDate('');
+  };
+
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-muted-foreground">Chargement des commandes...</p>
-        </div>
+        <PremiumLoading 
+          text="Bienvenue sur La page commandes ou reservation"
+          size="xl"
+          overlay={true}
+          variant="default"
+        />
       </Layout>
     );
   }
@@ -749,6 +1030,70 @@ export default function CommandesPage() {
               </div>
             )}
           </div>
+          
+          {/* Bouton Imprimer */}
+          <Dialog open={exportDialogOpen} onOpenChange={(open) => {
+            setExportDialogOpen(open);
+            if (!open) setExportDate('');
+          }}>
+            <DialogTrigger asChild>
+              <Button className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white shadow-lg" size="lg">
+                <Printer className="mr-2 h-5 w-5" />
+                Imprimer
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md bg-gradient-to-br from-white via-blue-50/40 to-indigo-50/40 dark:from-gray-900 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-2xl border-2 border-blue-300/50 dark:border-blue-600/50">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  Exporter les commandes
+                </DialogTitle>
+                <DialogDescription>
+                  Sélectionnez une date pour exporter les commandes/réservations en PDF
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 mt-4">
+                <div>
+                  <Label htmlFor="exportDate" className="text-sm font-semibold mb-2 block">
+                    📅 Date à exporter
+                  </Label>
+                  <Input
+                    id="exportDate"
+                    type="date"
+                    value={exportDate}
+                    onChange={(e) => setExportDate(e.target.value)}
+                    className="border-2 border-blue-300 dark:border-blue-700 focus:border-blue-500"
+                  />
+                </div>
+                
+                {exportDate && (
+                  <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700">
+                    <p className="text-sm">
+                      <span className="font-semibold">Date sélectionnée:</span>{' '}
+                      {new Date(exportDate).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                    <p className="text-sm mt-2">
+                      <span className="font-semibold">Nombre de commandes/réservations:</span>{' '}
+                      <span className={commandesForExportDate.length > 0 ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
+                        {commandesForExportDate.length}
+                      </span>
+                    </p>
+                  </div>
+                )}
+                
+                {exportDate && commandesForExportDate.length > 0 && (
+                  <Button 
+                    onClick={handleExportPDF}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Printer className="mr-2 h-4 w-4" />
+                    Exporter en PDF
+                  </Button>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -898,8 +1243,11 @@ export default function CommandesPage() {
                           onClick={() => handleProductSelect(product)}
                         >
                           <div className="font-semibold text-gray-900 dark:text-white">{product.description}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            💰 Prix: {product.purchasePrice}€
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-3">
+                            <span>💰 Prix: {product.purchasePrice}€</span>
+                            <span className="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full text-xs font-medium">
+                              📦 Stock: {product.quantity}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -924,17 +1272,11 @@ export default function CommandesPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="quantite" className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
-                      📦 Quantité
-                    </Label>
-                    <Input
-                      id="quantite"
-                      type="number"
-                      min="1"
-                      value={quantite}
-                      onChange={(e) => setQuantite(e.target.value)}
-                      placeholder="1"
-                      className="border-2 border-purple-300 dark:border-purple-700 focus:border-purple-500 dark:focus:border-purple-500 bg-white dark:bg-gray-900 shadow-sm"
+                    <SaleQuantityInput
+                      quantity={quantite}
+                      maxQuantity={selectedProduct ? selectedProduct.quantity : 1000}
+                      onChange={setQuantite}
+                      showAvailableStock={selectedProduct ? true : false}
                     />
                   </div>
 
@@ -1110,6 +1452,19 @@ export default function CommandesPage() {
                     />
                   </div>
                 )}
+                
+                <div>
+                  <Label htmlFor="horaire" className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
+                    🕐 Horaire (facultatif)
+                  </Label>
+                  <Input
+                    id="horaire"
+                    type="time"
+                    value={horaire}
+                    onChange={(e) => setHoraire(e.target.value)}
+                    className="border-2 border-amber-300 dark:border-amber-700 focus:border-amber-500 dark:focus:border-amber-500 bg-white dark:bg-gray-900 shadow-sm"
+                  />
+                </div>
               </div>
 
               <Button 
@@ -1158,15 +1513,15 @@ export default function CommandesPage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table className="min-w-full">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Produit</TableHead>
-                <TableHead>Prix</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>
+            <ModernTable className="min-w-full">
+            <ModernTableHeader>
+              <ModernTableRow>
+                <ModernTableHead className="w-52">Client</ModernTableHead>
+                <ModernTableHead>Contact</ModernTableHead>
+                <ModernTableHead className="w-52">Produit</ModernTableHead>
+                <ModernTableHead>Prix</ModernTableHead>
+                <ModernTableHead>Type</ModernTableHead>
+                <ModernTableHead>
                   <button
                     onClick={() => setSortDateAsc(!sortDateAsc)}
                     className="flex items-center gap-2 hover:text-primary transition-colors"
@@ -1179,39 +1534,38 @@ export default function CommandesPage() {
                       <ArrowUp className="h-4 w-4 text-purple-600" />
                     )}
                   </button>
-                </TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+                </ModernTableHead>
+                <ModernTableHead>Statut</ModernTableHead>
+                <ModernTableHead>Actions</ModernTableHead>
+              </ModernTableRow>
+            </ModernTableHeader>
 
               <TableBody>
                 {filteredCommandes.map((commande) => (
-                  <TableRow
+                  <ModernTableRow
                     key={commande.id}
                     className="bg-background/40 hover:bg-primary/5 transition-colors"
                   >
-                    <TableCell className="align-top">
-                      <div className="font-medium">{commande.clientNom}</div>
-                      <div className="text-xs text-muted-foreground">
+                    <ModernTableCell className="align-top w-52">
+                      <div className="font-medium whitespace-normal break-words">{commande.clientNom}</div>
+                      <div className="text-xs text-muted-foreground whitespace-normal break-words">
                         {commande.clientAddress}
                       </div>
-                    </TableCell>
-                    <TableCell className="align-top">
-                      <span className="text-sm">{commande.clientPhone}</span>
-                    </TableCell>
-                    <TableCell className="align-top">
+                    </ModernTableCell>
+                    <ModernTableCell className="align-top">
+                      <span className="text-sm whitespace-normal break-words">{commande.clientPhone}</span>
+                    </ModernTableCell>
+                    <ModernTableCell className="align-top w-52">
                       {commande.produits.map((p, idx) => (
                         <div key={idx} className="text-sm space-y-0.5">
-                          <div className="font-medium">{p.nom}</div>
-                         <div className="text-xs text-muted-foreground">
-                          Qté: <span className="font-bold text-red-600">{p.quantite}</span>
-                        </div>
-
+                          <div className="font-medium whitespace-normal break-words">{p.nom}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Qté: <span className="font-bold text-red-600">{p.quantite}</span>
+                          </div>
                         </div>
                       ))}
-                    </TableCell>
-                    <TableCell className="align-top">
+                    </ModernTableCell>
+                    <ModernTableCell className="align-top">
                       {commande.produits.map((p, idx) => (
                         <div key={idx} className="text-sm space-y-0.5">
                           <div>Unitaire: {p.prixUnitaire}€</div>
@@ -1226,8 +1580,8 @@ export default function CommandesPage() {
                           Prix Total: {commande.produits.reduce((sum, p) => sum + (p.prixVente * p.quantite), 0).toFixed(2)}€
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="align-top">
+                    </ModernTableCell>
+                    <ModernTableCell className="align-top">
                      <Badge
                       className={
                         commande.type === 'commande'
@@ -1239,22 +1593,64 @@ export default function CommandesPage() {
                       {commande.type === 'commande' ? 'Commande' : 'Réservation'}
                     </Badge>
 
-                    </TableCell>
+                    </ModernTableCell>
 
-                    <TableCell className="align-top text-sm">
+                    <ModernTableCell className="align-top text-sm">
                       {commande.type === 'commande' ? (
                         <div>
                           <div className="text-xs text-muted-foreground">Arrivage:</div>
                           <div>{new Date(commande.dateArrivagePrevue || '').toLocaleDateString()}</div>
+                          {commande.horaire && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Horaire: {commande.horaire}
+                            </div>
+                          )}
                         </div>
                       ) : (
-                        <div>
-                          <div className="text-xs text-muted-foreground">Échéance:</div>
-                          <div>{new Date(commande.dateEcheance || '').toLocaleDateString()}</div>
-                        </div>
+                        (() => {
+                          const echeance = new Date(commande.dateEcheance || '');
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const echeanceDate = new Date(echeance);
+                          echeanceDate.setHours(0, 0, 0, 0);
+                          
+                          const diffTime = echeanceDate.getTime() - today.getTime();
+                          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                          
+                          // Si la date est dépassée (diffDays < 0), clignoter en rouge
+                          // Si la date est dans 2 jours ou moins (0 <= diffDays <= 2), clignoter en vert
+                          const isOverdue = diffDays < 0;
+                          const isNearDeadline = diffDays >= 0 && diffDays <= 2;
+                          
+                          return (
+                            <div>
+                              <div className="text-xs text-muted-foreground">Échéance:</div>
+                              <div className={
+                                isOverdue 
+                                  ? "animate-pulse text-red-600 dark:text-red-500 font-bold"
+                                  : isNearDeadline 
+                                  ? "animate-pulse text-green-600 dark:text-green-500 font-bold"
+                                  : ""
+                              }>
+                                {echeance.toLocaleDateString()}
+                              </div>
+                              {commande.horaire && (
+                                <div className={`text-xs mt-1 ${
+                                  isOverdue 
+                                    ? "animate-pulse text-red-600 dark:text-red-500 font-semibold"
+                                    : isNearDeadline 
+                                    ? "animate-pulse text-green-600 dark:text-green-500 font-semibold"
+                                    : "text-muted-foreground"
+                                }`}>
+                                  Horaire: {commande.horaire}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()
                       )}
-                    </TableCell>
-                    <TableCell className="align-top">
+                    </ModernTableCell>
+                    <ModernTableCell className="align-top">
                       <Select
                         value={commande.statut}
                         onValueChange={(value) => handleStatusChange(commande.id, value as any)}
@@ -1273,6 +1669,7 @@ export default function CommandesPage() {
                                 option.value === 'en_attente' ? 'text-red-600 font-semibold' :
                                 option.value === 'valide' ? 'text-blue-600 font-semibold' :
                                 option.value === 'annule' ? 'text-gray-600 font-semibold' :
+                                option.value === 'reporter' ? 'text-blue-500 font-semibold' :
                                 ''
                               }
                             >
@@ -1281,8 +1678,8 @@ export default function CommandesPage() {
                           ))}
                         </SelectContent>
                       </Select>
-                    </TableCell>
-                    <TableCell className="align-top">
+                    </ModernTableCell>
+                    <ModernTableCell className="align-top">
                       <div className="flex gap-2">
                         <Button
                           variant="ghost"
@@ -1303,11 +1700,11 @@ export default function CommandesPage() {
                           <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </ModernTableCell>
+                  </ModernTableRow>
                 ))}
               </TableBody>
-            </Table>
+            </ModernTable>
           </div>
         </CardContent>
       </Card>
@@ -1365,7 +1762,149 @@ export default function CommandesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog Reporter - Date et Horaire */}
+      <Dialog open={reporterModalOpen} onOpenChange={(open) => {
+        if (!open) {
+          setReporterModalOpen(false);
+          setReporterCommandeId(null);
+          setReporterDate('');
+          setReporterHoraire('');
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-blue-600">
+              <Calendar className="h-5 w-5" />
+              Reporter la date d'échéance
+            </DialogTitle>
+            <DialogDescription>
+              Modifiez la date et l'horaire pour reporter cette commande/réservation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="reporterDate" className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
+                📅 Nouvelle date d'échéance
+              </Label>
+              <Input
+                id="reporterDate"
+                type="date"
+                value={reporterDate}
+                onChange={(e) => setReporterDate(e.target.value)}
+                className="border-2 border-blue-300 dark:border-blue-700 focus:border-blue-500 dark:focus:border-blue-500 bg-white dark:bg-gray-900 shadow-sm"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="reporterHoraire" className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 block">
+                🕐 Horaire
+              </Label>
+              <Input
+                id="reporterHoraire"
+                type="time"
+                value={reporterHoraire}
+                onChange={(e) => setReporterHoraire(e.target.value)}
+                className="border-2 border-blue-300 dark:border-blue-700 focus:border-blue-500 dark:focus:border-blue-500 bg-white dark:bg-gray-900 shadow-sm"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setReporterModalOpen(false);
+                setReporterCommandeId(null);
+                setReporterDate('');
+                setReporterHoraire('');
+              }}
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!reporterCommandeId || !reporterDate) {
+                  toast({
+                    title: 'Erreur',
+                    description: 'Veuillez sélectionner une date',
+                    className: "bg-app-red text-white",
+                    variant: 'destructive',
+                  });
+                  return;
+                }
+                
+                try {
+                  // Trouver la commande pour déterminer le type
+                  const commande = commandes.find(c => c.id === reporterCommandeId);
+                  if (!commande) return;
+                  
+                  // Préparer les données à mettre à jour
+                  const updateData: any = {
+                    statut: 'reporter',
+                    horaire: reporterHoraire || undefined
+                  };
+                  
+                  // Mettre à jour la bonne date selon le type
+                  if (commande.type === 'commande') {
+                    updateData.dateArrivagePrevue = reporterDate;
+                  } else {
+                    updateData.dateEcheance = reporterDate;
+                  }
+                  
+                  await api.put(`/api/commandes/${reporterCommandeId}`, updateData);
+                  
+                  // Mettre à jour le RDV lié si c'est une réservation
+                  if (commande.type === 'reservation') {
+                    try {
+                      // Calculer la nouvelle heure de fin (1h après le début)
+                      const heureDebut = reporterHoraire || '09:00';
+                      const [h, m] = heureDebut.split(':').map(Number);
+                      const endH = (h + 1) % 24;
+                      const heureFin = `${endH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                      
+                      await api.put(`/api/rdv/by-commande/${reporterCommandeId}`, {
+                        date: reporterDate,
+                        heureDebut,
+                        heureFin,
+                        statut: 'planifie' // Réactiver le RDV
+                      });
+                      console.log('✅ RDV mis à jour avec nouvelle date et horaire');
+                    } catch (rdvError) {
+                      console.log('RDV non trouvé ou erreur:', rdvError);
+                    }
+                  }
+                  
+                  toast({
+                    title: 'Succès',
+                    description: `La date a été reportée au ${new Date(reporterDate).toLocaleDateString('fr-FR')}${reporterHoraire ? ' à ' + reporterHoraire : ''}`,
+                    className: "bg-app-green text-white",
+                  });
+                  
+                  fetchCommandes();
+                  setReporterModalOpen(false);
+                  setReporterCommandeId(null);
+                  setReporterDate('');
+                  setReporterHoraire('');
+                } catch (error) {
+                  console.error('Error updating date:', error);
+                  toast({
+                    title: 'Erreur',
+                    description: 'Impossible de reporter la date',
+                    className: "bg-app-red text-white",
+                    variant: 'destructive',
+                  });
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Enregistrer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       </div>
     </Layout>
   );
 }
+
+export default CommandesPage;
