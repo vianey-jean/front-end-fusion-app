@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import Layout from '@/components/Layout';
-import { RdvCalendar, RdvForm, RdvCard, RdvNotifications } from '@/components/rdv';
+import { RdvCalendar, RdvForm, RdvCard } from '@/components/rdv';
 import { ConfirmDialog } from '@/components/shared';
 import { useRdv } from '@/hooks/useRdv';
 import { RDV, RDVFormData } from '@/types/rdv';
@@ -258,11 +258,6 @@ const RdvPage: React.FC = () => {
                 <Plus className="h-5 w-5 mr-2" />
                 Nouveau rendez-vous
               </Button>
-              <RdvNotifications
-                rdvs={rdvs}
-                onRdvClick={(rdv) => handleOpenForm(rdv)}
-                onMarkAsNotified={markAsNotified}
-              />
             </div>
           </div>
         </motion.div>

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useMessages } from '@/hooks/use-messages';
+import RdvNotifications from '@/components/rdv/RdvNotifications';
 import { 
   Home, 
   Info, 
@@ -94,11 +95,14 @@ const Navbar: React.FC = () => {
                 </Link>
               )}
 
-               <Link to="/rdv" className="group inline-flex items-center px-2 lg:px-4 py-2 rounded-lg lg:rounded-xl text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200">
+              <Link to="/rdv" className="group inline-flex items-center px-2 lg:px-4 py-2 rounded-lg lg:rounded-xl text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200">
                 <CalendarDays className="mr-1.5 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4 text-orange-600 group-hover:scale-110 transition-transform" />
                 <span className="hidden lg:inline">Rendez-vous</span>
                 <span className="lg:hidden">RDV</span>
               </Link>
+              
+              {/* RDV Notifications Bell */}
+              {isAuthenticated && <RdvNotifications />}
 
               {/* Theme toggle */}
               <Button 
