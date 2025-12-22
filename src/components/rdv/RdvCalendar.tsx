@@ -40,6 +40,7 @@ interface RdvCalendarProps {
   onRdvDelete?: (rdv: RDV) => void;
   onOpenFormWithDateTime?: (rdv: RDV, date: string, time: string) => void;
   highlightRdvId?: string | null;
+  highlightDate?: string | null;
   onHighlightComplete?: () => void;
 }
 
@@ -69,6 +70,7 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
   onRdvDelete,
   onOpenFormWithDateTime,
   highlightRdvId,
+  highlightDate,
   onHighlightComplete,
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -105,6 +107,15 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
     });
     return map;
   }, [rdvs]);
+
+  // Effet pour naviguer à la semaine du RDV quand on reçoit highlightDate
+  React.useEffect(() => {
+    if (highlightDate) {
+      // Naviguer vers la semaine contenant cette date
+      const targetDate = parseISO(highlightDate);
+      setCurrentDate(targetDate);
+    }
+  }, [highlightDate]);
 
   // Effet pour le clignotement quand on reçoit un highlightRdvId
   React.useEffect(() => {
@@ -238,17 +249,17 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
               variant="outline" 
               size="sm" 
               onClick={goToToday}
-              className="border-primary/30 hover:bg-primary/10"
+              className="border-blue-800 hover:bg-primary/10"
             >
               Aujourd'hui
             </Button>
-            <Button variant="outline" size="icon" onClick={() => navigateWeek('prev')} className="border-primary/30">
+            <Button variant="outline" size="icon" onClick={() => navigateWeek('prev')} className="border-red-800">
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm font-semibold min-w-[200px] text-center px-3 py-2 bg-primary/10 rounded-lg">
               {format(weekDays[0], 'd MMM', { locale: fr })} - {format(weekDays[6], 'd MMM yyyy', { locale: fr })}
             </span>
-            <Button variant="outline" size="icon" onClick={() => navigateWeek('next')} className="border-primary/30">
+            <Button variant="outline" size="icon" onClick={() => navigateWeek('next')} className="border-green-800">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -381,7 +392,12 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
               Modifier la date et l'horaire
             </DialogTitle>
             <DialogDescription>
-              Vous déplacez "{pendingDrop?.rdv.titre}". Ajustez la date et l'heure avant d'enregistrer.
+              {pendingDrop?.rdv?.titre && (
+                <span className="text-green-600 font-bold">
+                  {pendingDrop.rdv.titre.toUpperCase()}
+                </span>
+              )}
+
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -392,7 +408,7 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                className="h-12"
+                className="h-12 text-blue-800 font-bold"
               />
             </div>
             <div className="space-y-2">
@@ -402,7 +418,7 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
                 type="time"
                 value={newTime}
                 onChange={(e) => setNewTime(e.target.value)}
-                className="h-12"
+                className="h-12 text-red-800 font-bold"
               />
             </div>
           </div>
@@ -411,7 +427,7 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
               Annuler
             </Button>
             <Button onClick={confirmTimeChange} className="bg-gradient-to-r from-primary to-primary/80">
-              Ouvrir le formulaire
+              Porter ce RDV
             </Button>
           </DialogFooter>
         </DialogContent>

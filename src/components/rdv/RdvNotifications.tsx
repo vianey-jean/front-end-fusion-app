@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,7 @@ const RdvNotifications: React.FC<RdvNotificationsProps> = ({
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const previousCountRef = useRef<number>(0);
   
   // Modal pour voir le détail d'un RDV
   const [selectedNotification, setSelectedNotification] = useState<RdvNotification | null>(null);
@@ -58,13 +59,24 @@ const RdvNotifications: React.FC<RdvNotificationsProps> = ({
       setLoading(true);
       const data = await rdvNotificationsApi.getUnread();
       setNotifications(data);
+      
+      // Vérifier si le nombre a augmenté pour afficher un toast
+      if (data.length > previousCountRef.current && previousCountRef.current > 0) {
+        toast({
+          title: '🔔 Nouvelle notification RDV',
+          description: `${data.length - previousCountRef.current} nouveau(x) rendez-vous`,
+          duration: 5000,
+        });
+      }
+      
+      previousCountRef.current = data.length;
       setUnreadCount(data.length);
     } catch (error) {
       console.error('Erreur chargement notifications:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   // Vérifier et créer des notifications pour les RDV dans 24h
   const checkAndCreateNotifications = useCallback(async () => {
@@ -74,7 +86,7 @@ const RdvNotifications: React.FC<RdvNotificationsProps> = ({
         toast({
           title: '🔔 Nouvelles notifications',
           description: `${result.created} rendez-vous dans moins de 24h`,
-          duration: 5000,
+          duration: 800,
         });
         await loadNotifications();
       }
@@ -83,31 +95,34 @@ const RdvNotifications: React.FC<RdvNotificationsProps> = ({
     }
   }, [toast, loadNotifications]);
 
-  // Charger au montage et vérifier périodiquement
+  // Polling pour la synchronisation (SSE désactivé pour éviter erreurs CORS)
   useEffect(() => {
     loadNotifications();
     checkAndCreateNotifications();
-    
-    // Vérifier toutes les 5 minutes
+
+    // Polling toutes les 5 minutes (SSE désactivé pour éviter CORS)
     const interval = setInterval(() => {
       checkAndCreateNotifications();
     }, 5 * 60 * 1000);
-    
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [loadNotifications, checkAndCreateNotifications]);
 
-  // Quand on clique sur une notification, afficher le détail et supprimer
+  // Quand on clique sur une notification, afficher le détail et marquer comme lu
   const handleNotificationClick = async (notification: RdvNotification) => {
     setSelectedNotification(notification);
     setShowDetailModal(true);
     
-    // Supprimer la notification après visualisation
+    // Marquer la notification comme lue (ne pas supprimer)
     try {
-      await rdvNotificationsApi.delete(notification.id);
+      await rdvNotificationsApi.markAsRead(notification.id);
+      // Retirer de la liste affichée (car on affiche seulement les non lus)
       setNotifications(prev => prev.filter(n => n.id !== notification.id));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Erreur suppression notification:', error);
+      console.error('Erreur marquage notification comme lue:', error);
     }
   };
 
@@ -120,7 +135,7 @@ const RdvNotifications: React.FC<RdvNotificationsProps> = ({
   // Aller à la page RDV avec le rdv à mettre en surbrillance
   const handleGoToRdv = () => {
     if (selectedNotification) {
-      // Naviguer vers la page RDV avec l'ID du RDV et sa date pour la semaine
+      // Naviguer vers la page RDV avec l'ID du RDV et sa date pour naviguer à la bonne semaine
       const rdvDate = selectedNotification.rdvDate;
       navigate(`/rdv?highlightRdv=${selectedNotification.rdvId}&date=${rdvDate}`);
     }
@@ -198,7 +213,7 @@ const RdvNotifications: React.FC<RdvNotificationsProps> = ({
                             <p className="font-medium truncate">{notification.rdvTitre}</p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                               <span>{notification.rdvClientNom}</span>
-                              <span>•</span>
+                              <span>:</span>
                               <span>{notification.rdvHeureDebut} - {notification.rdvHeureFin}</span>
                             </div>
                             <Badge variant="outline" className="mt-1 text-xs">
