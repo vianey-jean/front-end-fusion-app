@@ -19,7 +19,6 @@ import {
 import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { toast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -221,116 +220,16 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
     setDropTarget(null);
   };
 
-  const handleDrop = async (e: React.DragEvent, date: string, hour: number) => {
+  const handleDrop = (e: React.DragEvent, date: string, hour: number) => {
     e.preventDefault();
     if (draggedRdv) {
       const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-
-      // Calculate end time (same duration as original rdv)
-      const originalStart = draggedRdv.heureDebut.split(':').map(Number);
-      const originalEnd = draggedRdv.heureFin.split(':').map(Number);
-      const durationMinutes = (originalEnd[0] * 60 + originalEnd[1]) - (originalStart[0] * 60 + originalStart[1]);
-
-      const newStartParts = [hour, 0];
-      const newEndMinutes = newStartParts[0] * 60 + newStartParts[1] + durationMinutes;
-      const newEndHour = Math.floor(newEndMinutes / 60) % 24;
-      const newEndMin = newEndMinutes % 60;
-      const calculatedEndTime = `${newEndHour.toString().padStart(2, '0')}:${newEndMin.toString().padStart(2, '0')}`;
-
-      let shouldOpenTimeDialog = true;
-
-      // Check for conflicts immediately on drop
-      try {
-        const token = localStorage.getItem('token');
-        const params = new URLSearchParams({
-          date: date,
-          heureDebut: timeStr,
-          heureFin: calculatedEndTime,
-          excludeId: draggedRdv.id,
-        });
-
-        const response = await axios.get(`${API_BASE_URL}/api/rdv/conflicts?${params.toString()}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const conflicts: RDV[] = response.data;
-
-        if (conflicts.length > 0) {
-          // Find the next available time slot after all conflicting RDVs
-          const allEndTimes = conflicts.map((c) => {
-            const [h, m] = c.heureFin.split(':').map(Number);
-            return h * 60 + m;
-          });
-          const latestEndMinutes = Math.max(...allEndTimes);
-
-          // Next available time is 1 minute after the latest end time
-          const nextAvailableMinutes = latestEndMinutes + 1;
-          const nextAvailableHour = Math.floor(nextAvailableMinutes / 60) % 24;
-          const nextAvailableMin = nextAvailableMinutes % 60;
-          const nextAvailableTime = `${nextAvailableHour.toString().padStart(2, '0')}:${nextAvailableMin
-            .toString()
-            .padStart(2, '0')}`;
-
-          // Calculate the new end time keeping original duration
-          const newAvailableEndMinutes = nextAvailableMinutes + durationMinutes;
-          const newAvailableEndHour = Math.floor(newAvailableEndMinutes / 60) % 24;
-          const newAvailableEndMin = newAvailableEndMinutes % 60;
-          const newAvailableEndTime = `${newAvailableEndHour.toString().padStart(2, '0')}:${newAvailableEndMin
-            .toString()
-            .padStart(2, '0')}`;
-
-          // Check if this next available slot is also conflicting
-          const checkNextParams = new URLSearchParams({
-            date: date,
-            heureDebut: nextAvailableTime,
-            heureFin: newAvailableEndTime,
-            excludeId: draggedRdv.id,
-          });
-
-          const nextCheckResponse = await axios.get(`${API_BASE_URL}/api/rdv/conflicts?${checkNextParams.toString()}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (nextCheckResponse.data.length > 0) {
-            // Still conflicts => show error and cancel the drop (rdv stays at its original slot)
-            toast({
-              variant: 'destructive',
-              title: 'Créneau déjà pris',
-              description: 'Cette date et cet horaire sont déjà occupés. Déplacez le rendez-vous vers un créneau libre.',
-            });
-
-            setPendingDrop(null);
-            setDropConflicts([]);
-            setHasDropConflict(false);
-            shouldOpenTimeDialog = false;
-          } else {
-            // Next slot is available, pre-fill with suggested time
-            setDropConflicts([]);
-            setHasDropConflict(false);
-            setPendingDrop({ rdv: draggedRdv, date, time: nextAvailableTime });
-            setNewDate(date);
-            setNewTime(nextAvailableTime);
-          }
-        } else {
-          // No conflict, proceed normally
-          setDropConflicts([]);
-          setHasDropConflict(false);
-          setPendingDrop({ rdv: draggedRdv, date, time: timeStr });
-          setNewDate(date);
-          setNewTime(timeStr);
-        }
-      } catch (error) {
-        console.error('Error checking drop conflicts:', error);
-        setPendingDrop({ rdv: draggedRdv, date, time: timeStr });
-        setNewDate(date);
-        setNewTime(timeStr);
-        setDropConflicts([]);
-        setHasDropConflict(false);
-      }
-
-      if (shouldOpenTimeDialog) {
-        setShowTimeDialog(true);
-      }
+      setPendingDrop({ rdv: draggedRdv, date, time: timeStr });
+      setNewDate(date);
+      setNewTime(timeStr);
+      setDropConflicts([]);
+      setHasDropConflict(false);
+      setShowTimeDialog(true);
     }
     setDraggedRdv(null);
     setDropTarget(null);
