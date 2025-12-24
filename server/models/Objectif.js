@@ -3,13 +3,15 @@ const path = require('path');
 
 const dbPath = path.join(__dirname, '../db/objectif.json');
 
+const DEFAULT_OBJECTIF = 2000;
+
 const readData = () => {
   try {
     const data = fs.readFileSync(dbPath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
     return { 
-      objectif: 2000, 
+      objectif: DEFAULT_OBJECTIF, 
       totalVentesMois: 0, 
       mois: new Date().getMonth() + 1, 
       annee: new Date().getFullYear(),
@@ -58,14 +60,16 @@ const Objectif = {
         }
       }
       
-      // Reset for new year
+      // Reset for new year - keep historique but filter for new year display
       if (data.annee !== currentYear) {
-        data.historique = [];
+        // Archive previous year data (keep in historique but will be filtered in display)
       }
       
       data.totalVentesMois = 0;
       data.mois = currentMonth;
       data.annee = currentYear;
+      // Reset objectif to default at the start of each month
+      data.objectif = data.objectif || DEFAULT_OBJECTIF;
       writeData(data);
     }
     
@@ -75,6 +79,25 @@ const Objectif = {
   updateObjectif: (newObjectif) => {
     const data = readData();
     data.objectif = Number(newObjectif);
+    
+    // Also update in current month historique if exists
+    if (data.historique) {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      
+      const existingIndex = data.historique.findIndex(
+        h => h.mois === currentMonth && h.annee === currentYear
+      );
+      
+      if (existingIndex >= 0) {
+        data.historique[existingIndex].objectif = Number(newObjectif);
+        data.historique[existingIndex].pourcentage = data.objectif > 0 
+          ? Math.round((data.historique[existingIndex].totalVentesMois / Number(newObjectif)) * 100)
+          : 0;
+      }
+    }
+    
     writeData(data);
     return data;
   },

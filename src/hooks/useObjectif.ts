@@ -9,6 +9,7 @@ export const useObjectif = () => {
   const fetchObjectif = useCallback(async () => {
     try {
       setLoading(true);
+      // This will fetch and recalculate from sales.json automatically
       const result = await objectifApi.get();
       setData(result);
       setError(null);
@@ -24,7 +25,10 @@ export const useObjectif = () => {
     try {
       const result = await objectifApi.updateObjectif(newObjectif);
       setData(result);
-      return result;
+      // Recalculate after updating to ensure data consistency
+      const recalculated = await objectifApi.recalculate();
+      setData(recalculated);
+      return recalculated;
     } catch (err) {
       console.error('Error updating objectif:', err);
       throw err;
@@ -44,6 +48,13 @@ export const useObjectif = () => {
 
   useEffect(() => {
     fetchObjectif();
+    
+    // Recalculate every 30 seconds to keep in sync with sales
+    const interval = setInterval(() => {
+      objectifApi.recalculate().then(setData).catch(console.error);
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, [fetchObjectif]);
 
   return {
