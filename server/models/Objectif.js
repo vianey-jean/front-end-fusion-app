@@ -8,7 +8,13 @@ const readData = () => {
     const data = fs.readFileSync(dbPath, 'utf8');
     return JSON.parse(data);
   } catch (error) {
-    return { objectif: 2000, totalVentesMois: 0, mois: new Date().getMonth() + 1, annee: new Date().getFullYear() };
+    return { 
+      objectif: 2000, 
+      totalVentesMois: 0, 
+      mois: new Date().getMonth() + 1, 
+      annee: new Date().getFullYear(),
+      historique: []
+    };
   }
 };
 
@@ -23,8 +29,40 @@ const Objectif = {
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
     
-    // Reset total if month changed
+    // Reset total if month changed and save previous month to historique
     if (data.mois !== currentMonth || data.annee !== currentYear) {
+      // Save previous month data to historique before resetting
+      if (data.totalVentesMois > 0 || data.objectif > 0) {
+        if (!data.historique) data.historique = [];
+        
+        const existingIndex = data.historique.findIndex(
+          h => h.mois === data.mois && h.annee === data.annee
+        );
+        
+        const pourcentage = data.objectif > 0 
+          ? Math.round((data.totalVentesMois / data.objectif) * 100) 
+          : 0;
+        
+        const monthData = {
+          mois: data.mois,
+          annee: data.annee,
+          totalVentesMois: data.totalVentesMois,
+          objectif: data.objectif,
+          pourcentage
+        };
+        
+        if (existingIndex >= 0) {
+          data.historique[existingIndex] = monthData;
+        } else {
+          data.historique.push(monthData);
+        }
+      }
+      
+      // Reset for new year
+      if (data.annee !== currentYear) {
+        data.historique = [];
+      }
+      
       data.totalVentesMois = 0;
       data.mois = currentMonth;
       data.annee = currentYear;
@@ -83,9 +121,62 @@ const Objectif = {
     data.totalVentesMois = monthlyTotal;
     data.mois = currentMonth;
     data.annee = currentYear;
+    
+    // Update current month in historique
+    if (!data.historique) data.historique = [];
+    
+    const pourcentage = data.objectif > 0 
+      ? Math.round((monthlyTotal / data.objectif) * 100) 
+      : 0;
+    
+    const existingIndex = data.historique.findIndex(
+      h => h.mois === currentMonth && h.annee === currentYear
+    );
+    
+    const monthData = {
+      mois: currentMonth,
+      annee: currentYear,
+      totalVentesMois: monthlyTotal,
+      objectif: data.objectif,
+      pourcentage
+    };
+    
+    if (existingIndex >= 0) {
+      data.historique[existingIndex] = monthData;
+    } else {
+      data.historique.push(monthData);
+    }
+    
     writeData(data);
     
     return data;
+  },
+
+  getHistorique: () => {
+    const data = readData();
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    
+    // Filter historique for current year only
+    const yearHistorique = (data.historique || [])
+      .filter(h => h.annee === currentYear)
+      .sort((a, b) => a.mois - b.mois);
+    
+    return {
+      currentData: {
+        objectif: data.objectif,
+        totalVentesMois: data.totalVentesMois,
+        mois: data.mois,
+        annee: data.annee
+      },
+      historique: yearHistorique,
+      annee: currentYear
+    };
+  },
+
+  saveMonthlyData: (sales) => {
+    const data = Objectif.recalculateFromSales(sales);
+    return Objectif.getHistorique();
   }
 };
 
