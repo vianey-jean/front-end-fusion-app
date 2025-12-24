@@ -110,13 +110,7 @@ const ObjectifIndicator: React.FC = () => {
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-r from-slate-50 via-white to-violet-50 dark:from-slate-900 dark:via-slate-800 dark:to-violet-950 border border-slate-200/50 dark:border-slate-700/50 shadow-lg shadow-violet-500/5 backdrop-blur-xl">
       {/* Icon */}
-      <div className={cn(
-        "hidden sm:flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br shadow-lg",
-        getProgressGradient()
-      )}>
-        <TrendingUp className="h-4 w-4 text-white" />
-      </div>
-      
+     
       {/* Total Ventes */}
       <div className="flex flex-col">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium hidden sm:block">
@@ -173,7 +167,7 @@ const ObjectifIndicator: React.FC = () => {
       </div>
 
       {/* Mini Progress */}
-      <div className="hidden md:flex flex-col gap-1">
+      {/* <div className="hidden md:flex flex-col gap-1">
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
           {percentage}%
         </span>
@@ -183,10 +177,10 @@ const ObjectifIndicator: React.FC = () => {
             style={{ width: `${Math.min(percentage, 100)}%` }}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Stats Modal Button */}
-      <ObjectifStatsModal />
+     
       
       {/* Add New Objectif Button */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -245,6 +239,7 @@ const ObjectifIndicator: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+       <ObjectifStatsModal />
     </div>
   );
 };
