@@ -21,7 +21,7 @@
     "id": "5",
     "description": "Tissages bouclé noir 20 pouces 12 A",
     "purchasePrice": 14.91,
-    "quantity": 3
+    "quantity": 0
   },
   {
     "id": "6",
@@ -573,7 +573,7 @@
     "id": "1756486622500",
     "description": "Perruque bouclé blonde miel blanche 24 pouces",
     "purchasePrice": 64.84,
-    "quantity": 1
+    "quantity": 0
   },
   {
     "id": "1756657529781",
@@ -615,7 +615,7 @@
     "id": "1758025491344",
     "description": "Colle",
     "purchasePrice": 3,
-    "quantity": 4
+    "quantity": 1
   },
   {
     "id": "1758025563599",
@@ -698,14 +698,14 @@
   {
     "id": "1762441237630",
     "description": "perruque bouclé frange blonde miel14 pouces",
-    "purchasePrice": 40.12,
-    "quantity": 1
+    "purchasePrice": 36.79,
+    "quantity": 2
   },
   {
     "id": "1762441427899",
     "description": "Perruque lisse noir 24 pouces",
     "purchasePrice": 50.46,
-    "quantity": 1
+    "quantity": 0
   },
   {
     "id": "1762516167800",
@@ -820,5 +820,24 @@
     "description": "Perruque bouclé marron 26 pouces",
     "purchasePrice": 43.05,
     "quantity": 0
+  },
+  {
+    "id": "1768104520049",
+    "description": "Perruque lisse blonde miel 4x4",
+    "purchasePrice": 49.88,
+    "quantity": 0
+  },
+  {
+    "id": "1768104913793",
+    "description": "Perruque bouclé rouge bordeaux 24 pouces",
+    "purchasePrice": 57.06,
+    "quantity": 0
+  },
+  {
+    "id": "1769940145473",
+    "description": "Perruque lisse vert noir 24 pouces 220 Densité",
+    "purchasePrice": 115.2,
+    "quantity": 1,
+    "sellingPrice": 0
   }
 ]
