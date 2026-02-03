@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Calendar, Award, AlertTriangle, BarChart3, Euro, ShoppingCart, ArrowUpRight, ArrowDownRight, Minus, X } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from 'recharts';
+import { TrendingUp, TrendingDown, Calendar, Award, AlertTriangle, BarChart3, Euro, ShoppingCart, ArrowUpRight, ArrowDownRight, Minus, CalendarDays } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,7 +15,7 @@ interface MonthlyData {
   monthNum: number;
   monthName: string;
   value: number;
-  prevValue: number | null;
+  prevYearValue: number | null;
   change: number | null;
 }
 
@@ -31,70 +31,78 @@ const YearlyComparison: React.FC = () => {
 
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
-  // Calculer les données mensuelles pour l'année en cours (seulement mois écoulés)
+  // Calculer les données mensuelles pour l'année en cours avec comparaison à l'année précédente
   const monthlyBreakdown = useMemo(() => {
     const currentMonth = new Date().getMonth() + 1; // 1-12
     const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
                         'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
     
-    const monthlyStats: { [key: number]: { revenue: number; profit: number; salesCount: number } } = {};
+    // Stats pour l'année en cours
+    const currentYearStats: { [key: number]: { revenue: number; profit: number; salesCount: number } } = {};
+    // Stats pour l'année précédente
+    const prevYearStats: { [key: number]: { revenue: number; profit: number; salesCount: number } } = {};
     
     // Initialiser les mois écoulés
-    for (let m = 1; m <= currentMonth; m++) {
-      monthlyStats[m] = { revenue: 0, profit: 0, salesCount: 0 };
+    for (let m = 1; m <= 12; m++) {
+      currentYearStats[m] = { revenue: 0, profit: 0, salesCount: 0 };
+      prevYearStats[m] = { revenue: 0, profit: 0, salesCount: 0 };
     }
     
-    // Calculer les stats par mois
+    // Calculer les stats par mois pour les deux années
     allSales.forEach(sale => {
       const saleDate = new Date(sale.date);
-      if (saleDate.getFullYear() === currentYear) {
-        const month = saleDate.getMonth() + 1;
-        if (month <= currentMonth && monthlyStats[month]) {
-          const values = getSaleValues(sale);
-          monthlyStats[month].revenue += values.revenue;
-          monthlyStats[month].profit += values.profit;
-          monthlyStats[month].salesCount += 1;
-        }
+      const year = saleDate.getFullYear();
+      const month = saleDate.getMonth() + 1;
+      const values = getSaleValues(sale);
+      
+      if (year === currentYear) {
+        currentYearStats[month].revenue += values.revenue;
+        currentYearStats[month].profit += values.profit;
+        currentYearStats[month].salesCount += 1;
+      } else if (year === currentYear - 1) {
+        prevYearStats[month].revenue += values.revenue;
+        prevYearStats[month].profit += values.profit;
+        prevYearStats[month].salesCount += 1;
       }
     });
     
-    // Convertir en tableau avec comparaisons
+    // Convertir en tableau avec comparaisons année précédente
     const caData: MonthlyData[] = [];
     const profitData: MonthlyData[] = [];
     const ventesData: MonthlyData[] = [];
     
     for (let m = 1; m <= currentMonth; m++) {
-      const stats = monthlyStats[m];
-      const prevStats = m > 1 ? monthlyStats[m - 1] : null;
+      const currentStats = currentYearStats[m];
+      const prevStats = prevYearStats[m];
+      
+      // Calcul du changement vs même mois année précédente
+      const calcChange = (current: number, prev: number) => {
+        if (prev === 0) return current > 0 ? 100 : 0;
+        return ((current - prev) / prev) * 100;
+      };
       
       caData.push({
         monthNum: m,
         monthName: monthNames[m - 1],
-        value: stats.revenue,
-        prevValue: prevStats ? prevStats.revenue : null,
-        change: prevStats && prevStats.revenue > 0 
-          ? ((stats.revenue - prevStats.revenue) / prevStats.revenue) * 100 
-          : null
+        value: currentStats.revenue,
+        prevYearValue: prevStats.revenue,
+        change: calcChange(currentStats.revenue, prevStats.revenue)
       });
       
       profitData.push({
         monthNum: m,
         monthName: monthNames[m - 1],
-        value: stats.profit,
-        prevValue: prevStats ? prevStats.profit : null,
-        change: prevStats && prevStats.profit > 0 
-          ? ((stats.profit - prevStats.profit) / prevStats.profit) * 100 
-          : null
+        value: currentStats.profit,
+        prevYearValue: prevStats.profit,
+        change: calcChange(currentStats.profit, prevStats.profit)
       });
       
       ventesData.push({
         monthNum: m,
         monthName: monthNames[m - 1],
-        value: stats.salesCount,
-        prevValue: prevStats ? prevStats.salesCount : null,
-        change: prevStats && prevStats.salesCount > 0 
-          ? ((stats.salesCount - prevStats.salesCount) / prevStats.salesCount) * 100 
-          : null
+        value: currentStats.salesCount,
+        prevYearValue: prevStats.salesCount,
+        change: calcChange(currentStats.salesCount, prevStats.salesCount)
       });
     }
     
@@ -123,7 +131,7 @@ const YearlyComparison: React.FC = () => {
     );
   };
 
-  // Rendu d'une ligne mensuelle dans le modal
+  // Rendu d'une ligne mensuelle avec comparaison année précédente
   const renderMonthRow = (data: MonthlyData, formatValue: (v: number) => string, colorClass: string, bgClass: string) => (
     <div 
       key={data.monthNum}
@@ -135,11 +143,10 @@ const YearlyComparison: React.FC = () => {
         </div>
         <div>
           <p className="font-semibold text-gray-900 dark:text-white">{data.monthName}</p>
-          {data.prevValue !== null && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              vs {monthlyBreakdown.ca[data.monthNum - 2]?.monthName}: {formatValue(data.prevValue)}
-            </p>
-          )}
+          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+            <CalendarDays className="h-3 w-3" />
+            {data.monthName} {currentYear - 1}: {formatValue(data.prevYearValue || 0)}
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-4">
@@ -148,28 +155,22 @@ const YearlyComparison: React.FC = () => {
             {formatValue(data.value)}
           </p>
         </div>
-        {data.change !== null ? (
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-            data.change > 0 
-              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
-              : data.change < 0 
-                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-          }`}>
-            {data.change > 0 ? (
-              <ArrowUpRight className="h-3 w-3" />
-            ) : data.change < 0 ? (
-              <ArrowDownRight className="h-3 w-3" />
-            ) : (
-              <Minus className="h-3 w-3" />
-            )}
-            {data.change !== 0 ? `${Math.abs(data.change).toFixed(1)}%` : '0%'}
-          </div>
-        ) : (
-          <div className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">
-            Premier mois
-          </div>
-        )}
+        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+          data.change !== null && data.change > 0 
+            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
+            : data.change !== null && data.change < 0 
+              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+              : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+        }`}>
+          {data.change !== null && data.change > 0 ? (
+            <ArrowUpRight className="h-3 w-3" />
+          ) : data.change !== null && data.change < 0 ? (
+            <ArrowDownRight className="h-3 w-3" />
+          ) : (
+            <Minus className="h-3 w-3" />
+          )}
+          {data.change !== null ? `${data.change >= 0 ? '+' : ''}${data.change.toFixed(1)}%` : '0%'}
+        </div>
       </div>
     </div>
   );
@@ -295,7 +296,7 @@ const YearlyComparison: React.FC = () => {
           </h2>
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Données réinitialisées au 01/01/{currentYear} - Analyse comparative avec les années précédentes
+          Données réinitialisées au 01/01/{currentYear} - Comparaison avec {currentYear - 1}
         </p>
       </div>
 
