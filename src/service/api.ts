@@ -90,8 +90,8 @@ export const authService = {
     return response.data;
   },
 
-  async resetPassword(email: string): Promise<{ success: boolean }> {
-    const response: AxiosResponse<{ success: boolean }> = await api.post('/api/auth/reset-password', { email });
+  async resetPassword(data: { email: string; newPassword: string; confirmPassword: string; token?: string }): Promise<{ success: boolean }> {
+    const response: AxiosResponse<{ success: boolean }> = await api.post('/api/auth/reset-password', data);
     return response.data;
   },
 
@@ -125,12 +125,12 @@ export const authService = {
     }
   },
 
-  resetPasswordRequest: async (data: { email: string }): Promise<boolean> => {
+  resetPasswordRequest: async (data: { email: string }): Promise<{ exists: boolean; token?: string }> => {
     try {
       const response = await api.post('/api/auth/reset-password-request', data);
-      return response.data.exists;
+      return { exists: response.data.exists || response.data.success, token: response.data.token };
     } catch (error) {
-      return false;
+      return { exists: false };
     }
   },
 };
@@ -153,7 +153,7 @@ export const productService = {
     try {
       console.log('📝 Adding new product:', product);
       const response: AxiosResponse<Product> = await api.post('/api/products', product);
-      console.log('✅ Product added successfully:', response.data);
+      console.log('✅ Product added successfully with code:', response.data.code, response.data);
       return response.data;
     } catch (error) {
       console.error('❌ Error adding product:', error);
@@ -176,11 +176,73 @@ export const productService = {
   async deleteProduct(id: string): Promise<boolean> {
     try {
       console.log('🗑️ Deleting product with ID:', id);
-      const response = await api.delete(`/api/products/${id}`);
+      await api.delete(`/api/products/${id}`);
       console.log('✅ Product deleted successfully');
       return true;
     } catch (error) {
       console.error('❌ Error deleting product:', error);
+      throw error;
+    }
+  },
+
+  // Upload photos for a product (up to 6)
+  async uploadProductPhotos(productId: string, photos: File[], mainPhotoIndex: number): Promise<Product> {
+    try {
+      const formData = new FormData();
+      photos.forEach((photo) => {
+        formData.append('photos', photo);
+      });
+      formData.append('mainPhotoIndex', mainPhotoIndex.toString());
+      
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://server-gestion-ventes.onrender.com';
+      const response = await fetch(`${baseURL}/api/products/${productId}/photos`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
+    } catch (error) {
+      console.error('❌ Error uploading product photos:', error);
+      throw error;
+    }
+  },
+
+  // Replace all photos for a product
+  async replaceProductPhotos(productId: string, newPhotos: File[], existingPhotoUrls: string[], mainPhotoIndex: number): Promise<Product> {
+    try {
+      const formData = new FormData();
+      newPhotos.forEach((photo) => {
+        formData.append('photos', photo);
+      });
+      formData.append('photosJson', JSON.stringify(existingPhotoUrls));
+      formData.append('mainPhotoIndex', mainPhotoIndex.toString());
+      
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://server-gestion-ventes.onrender.com';
+      const response = await fetch(`${baseURL}/api/products/${productId}/photos`, {
+        method: 'PUT',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      return response.json();
+    } catch (error) {
+      console.error('❌ Error replacing product photos:', error);
+      throw error;
+    }
+  },
+
+  // Générer les codes pour les produits existants qui n'en ont pas
+  async generateCodesForExistingProducts(): Promise<{ message: string; updatedCount: number }> {
+    try {
+      console.log('🔧 Generating codes for existing products...');
+      const response = await api.post('/api/products/generate-codes');
+      console.log('✅ Codes generated:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error generating codes:', error);
       throw error;
     }
   },
