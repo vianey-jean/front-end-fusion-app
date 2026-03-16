@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import tacheApi, { Tache } from '@/services/api/tacheApi';
 import travailleurApi, { Travailleur } from '@/services/api/travailleurApi';
+import parametresApi, { ParametreTache } from '@/services/api/parametresApi';
 import TacheCalendar from './TacheCalendar';
 import TacheHero from './TacheHero';
 import TacheTicker from './TacheTicker';
