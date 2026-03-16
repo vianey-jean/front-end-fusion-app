@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  CalendarOff, Plus, Trash2, Clock, CalendarDays, AlertTriangle, X
+  CalendarOff, Plus, Trash2, Clock, CalendarDays, AlertTriangle, X, Edit
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,17 @@ const IndisponibiliteSection: React.FC = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Edit state
+  const [editingItem, setEditingItem] = useState<Indisponibilite | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editForm, setEditForm] = useState({
+    date: '',
+    heureDebut: '08:00',
+    heureFin: '18:00',
+    motif: '',
+    journeeComplete: false,
+  });
 
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -63,6 +74,34 @@ const IndisponibiliteSection: React.FC = () => {
     }
   };
 
+  const handleEdit = (item: Indisponibilite) => {
+    setEditingItem(item);
+    setEditForm({
+      date: item.date,
+      heureDebut: item.heureDebut,
+      heureFin: item.heureFin,
+      motif: item.motif,
+      journeeComplete: item.journeeComplete,
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateSubmit = async () => {
+    if (!editingItem) return;
+    try {
+      setSaving(true);
+      await indisponibleApi.update(editingItem.id, editForm);
+      toast({ title: '✅ Modifié', description: 'Indisponibilité mise à jour', className: 'bg-green-600 text-white border-green-600' });
+      setShowEditDialog(false);
+      setEditingItem(null);
+      fetchData();
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de modifier', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await indisponibleApi.delete(id);
@@ -81,6 +120,75 @@ const IndisponibiliteSection: React.FC = () => {
 
   // Sort by date descending
   const sorted = [...indisponibilites].sort((a, b) => b.date.localeCompare(a.date));
+
+  const renderFormFields = (formData: typeof form, setFormData: (f: typeof form) => void) => (
+    <div className="space-y-4 py-2">
+      <div className="space-y-2">
+        <Label className="text-sm font-semibold">Date *</Label>
+        <Input
+          type="date"
+          value={formData.date}
+          onChange={e => setFormData({ ...formData, date: e.target.value })}
+          className="rounded-xl"
+        />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setFormData({ ...formData, journeeComplete: !formData.journeeComplete })}
+          className={`relative w-11 h-6 rounded-full transition-all duration-300 ${formData.journeeComplete ? 'bg-gradient-to-r from-red-500 to-orange-500' : 'bg-muted'}`}
+        >
+          <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${formData.journeeComplete ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+        </button>
+        <span className="text-sm text-foreground">Journée complète</span>
+      </div>
+
+      <AnimatePresence>
+        {!formData.journeeComplete && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="grid grid-cols-2 gap-3 overflow-hidden"
+          >
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-1">
+                <Clock className="w-3 h-3" /> De
+              </Label>
+              <Input
+                type="time"
+                value={formData.heureDebut}
+                onChange={e => setFormData({ ...formData, heureDebut: e.target.value })}
+                className="rounded-xl"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-1">
+                <Clock className="w-3 h-3" /> À
+              </Label>
+              <Input
+                type="time"
+                value={formData.heureFin}
+                onChange={e => setFormData({ ...formData, heureFin: e.target.value })}
+                className="rounded-xl"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-semibold">Motif (optionnel)</Label>
+        <Input
+          value={formData.motif}
+          onChange={e => setFormData({ ...formData, motif: e.target.value })}
+          placeholder="Ex: Congé, Rendez-vous personnel..."
+          className="rounded-xl"
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -122,14 +230,24 @@ const IndisponibiliteSection: React.FC = () => {
                   {item.motif && ` • ${item.motif}`}
                 </p>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setDeleteConfirmId(item.id)}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 h-8 w-8 p-0"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => handleEdit(item)}
+                  className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 h-8 w-8 p-0"
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setDeleteConfirmId(item.id)}
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 h-8 w-8 p-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -143,74 +261,7 @@ const IndisponibiliteSection: React.FC = () => {
               <CalendarOff className="w-5 h-5" /> Ajouter un jour indisponible
             </DialogTitle>
           </DialogHeader>
-
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Date *</Label>
-              <Input
-                type="date"
-                value={form.date}
-                onChange={e => setForm({ ...form, date: e.target.value })}
-                className="rounded-xl"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, journeeComplete: !form.journeeComplete })}
-                className={`relative w-11 h-6 rounded-full transition-all duration-300 ${form.journeeComplete ? 'bg-gradient-to-r from-red-500 to-orange-500' : 'bg-muted'}`}
-              >
-                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${form.journeeComplete ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
-              </button>
-              <span className="text-sm text-foreground">Journée complète</span>
-            </div>
-
-            <AnimatePresence>
-              {!form.journeeComplete && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="grid grid-cols-2 gap-3 overflow-hidden"
-                >
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> De
-                    </Label>
-                    <Input
-                      type="time"
-                      value={form.heureDebut}
-                      onChange={e => setForm({ ...form, heureDebut: e.target.value })}
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> À
-                    </Label>
-                    <Input
-                      type="time"
-                      value={form.heureFin}
-                      onChange={e => setForm({ ...form, heureFin: e.target.value })}
-                      className="rounded-xl"
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">Motif (optionnel)</Label>
-              <Input
-                value={form.motif}
-                onChange={e => setForm({ ...form, motif: e.target.value })}
-                placeholder="Ex: Congé, Rendez-vous personnel..."
-                className="rounded-xl"
-              />
-            </div>
-          </div>
-
+          {renderFormFields(form, setForm)}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)} className="rounded-xl">Annuler</Button>
             <Button
@@ -219,6 +270,28 @@ const IndisponibiliteSection: React.FC = () => {
               className="rounded-xl bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600"
             >
               {saving ? 'Enregistrement...' : '✅ Confirmer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="rounded-3xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-blue-600">
+              <Edit className="w-5 h-5" /> Modifier l'indisponibilité
+            </DialogTitle>
+          </DialogHeader>
+          {renderFormFields(editForm, setEditForm)}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)} className="rounded-xl">Annuler</Button>
+            <Button
+              onClick={handleUpdateSubmit}
+              disabled={!editForm.date || saving}
+              className="rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600"
+            >
+              {saving ? 'Enregistrement...' : '✅ Modifier'}
             </Button>
           </DialogFooter>
         </DialogContent>
