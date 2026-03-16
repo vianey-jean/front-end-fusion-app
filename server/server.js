@@ -288,6 +288,7 @@ const messagerieRoutes = require('./routes/messagerie');
 const settingsRoutes = require('./routes/settings');
 const indisponibleRoutes = require('./routes/indisponible');
 const moduleSettingsRoutes = require('./routes/moduleSettings');
+const parametresRoutes = require('./routes/parametres');
 
 // Use routes
 app.use('/api/auth', authRoutes);
