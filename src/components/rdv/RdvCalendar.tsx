@@ -225,6 +225,25 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
 
   const goToToday = () => setCurrentDate(new Date());
 
+  // Check if a specific hour on a date is indisponible
+  const getIndispoForSlot = (dateStr: string, hour: number) => {
+    return indisponibilites.filter(ind => {
+      if (ind.date !== dateStr) return false;
+      if (ind.journeeComplete) return true;
+      const slotStart = hour * 60;
+      const slotEnd = (hour + 1) * 60;
+      const [indStartH, indStartM] = ind.heureDebut.split(':').map(Number);
+      const [indEndH, indEndM] = ind.heureFin.split(':').map(Number);
+      const indStart = indStartH * 60 + indStartM;
+      const indEnd = indEndH * 60 + indEndM;
+      return slotStart < indEnd && slotEnd > indStart;
+    });
+  };
+
+  const isDayFullyIndisponible = (dateStr: string) => {
+    return indisponibilites.some(ind => ind.date === dateStr && ind.journeeComplete);
+  };
+
   const handleDragStart = (e: React.DragEvent, rdv: RDV) => {
     // Bloquer le drag pour les RDV créés depuis la page Commandes (synchronisés)
     if (rdv.commandeId) {
