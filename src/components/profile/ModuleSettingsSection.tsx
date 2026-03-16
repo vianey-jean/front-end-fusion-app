@@ -6,6 +6,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import moduleSettingsApi, { ModuleSettings } from '@/services/api/moduleSettingsApi';
+import parametresApi from '@/services/api/parametresApi';
 
 const ModuleSettingsSection: React.FC = () => {
   const { toast } = useToast();
@@ -40,6 +41,22 @@ const ModuleSettingsSection: React.FC = () => {
     setSettings(updated);
     try {
       await moduleSettingsApi.updateModule(module, updated[module as keyof ModuleSettings]);
+      
+      // Sync prix to prixpointage.json
+      if (module === 'pointage' && (key === 'defaultPrixHeure' || key === 'defaultPrixJournalier')) {
+        const prixData: any = {};
+        if (key === 'defaultPrixHeure') prixData.prixHeure = value;
+        if (key === 'defaultPrixJournalier') prixData.prixJournalier = value;
+        await parametresApi.updatePrixPointage(prixData);
+      }
+      
+      // Sync tache settings to parametretache.json
+      if (module === 'taches' && (key === 'autoCompleteOnDone' || key === 'showCompletedTasks')) {
+        const tacheData: any = {};
+        if (key === 'autoCompleteOnDone') tacheData.autoCompleteOnDone = value;
+        if (key === 'showCompletedTasks') tacheData.tachesTerminees = value;
+        await parametresApi.updateParametreTache(tacheData);
+      }
     } catch {
       toast({ title: 'Erreur', description: 'Impossible de sauvegarder', variant: 'destructive' });
     }
