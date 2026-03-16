@@ -72,12 +72,14 @@ const TacheView: React.FC = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [tRes, travRes] = await Promise.all([
+      const [tRes, travRes, paramRes] = await Promise.all([
         tacheApi.getByMonth(year, month + 1),
-        travailleurApi.getAll()
+        travailleurApi.getAll(),
+        parametresApi.getParametreTache().catch(() => ({ autoCompleteOnDone: true, tachesTerminees: true }))
       ]);
       setTaches(tRes.data);
       setTravailleurs(travRes.data);
+      setParametreTache(paramRes);
     } catch (err) {
       console.error('Error fetching taches:', err);
     } finally {
@@ -86,6 +88,57 @@ const TacheView: React.FC = () => {
   }, [year, month]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+  
+  // Auto-complete expired taches if setting is enabled
+  useEffect(() => {
+    if (!parametreTache.autoCompleteOnDone) return;
+    
+    const autoComplete = async () => {
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      
+      for (const tache of taches) {
+        if (tache.completed) continue;
+        if (tache.date > todayStr) continue;
+        if (autoCompletedRef.current.has(tache.id)) continue;
+        
+        let isExpired = false;
+        if (tache.date < todayStr) {
+          isExpired = true;
+        } else if (tache.date === todayStr) {
+          const [h, m] = tache.heureFin.split(':').map(Number);
+          const endMinutes = h * 60 + m;
+          const nowMinutes = now.getHours() * 60 + now.getMinutes();
+          if (nowMinutes > endMinutes) {
+            isExpired = true;
+          }
+        }
+        
+        if (isExpired) {
+          autoCompletedRef.current.add(tache.id);
+          try {
+            await tacheApi.update(tache.id, { completed: true });
+          } catch {
+            // silently fail
+          }
+        }
+      }
+      
+      // Refresh if we auto-completed anything
+      if (autoCompletedRef.current.size > 0) {
+        const prevSize = autoCompletedRef.current.size;
+        // Only refetch if we actually auto-completed new ones this cycle
+        const newlyCompleted = taches.filter(t => !t.completed && autoCompletedRef.current.has(t.id));
+        if (newlyCompleted.length > 0) {
+          fetchData();
+        }
+      }
+    };
+    
+    const interval = setInterval(autoComplete, 10000);
+    autoComplete();
+    return () => clearInterval(interval);
+  }, [taches, parametreTache.autoCompleteOnDone, fetchData]);
 
   // Check for expired taches periodically and add notifications
   useEffect(() => {
