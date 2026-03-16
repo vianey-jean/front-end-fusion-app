@@ -58,6 +58,28 @@ router.post('/', authMiddleware, (req, res) => {
   }
 });
 
+// PUT update indisponibilité
+router.put('/:id', authMiddleware, (req, res) => {
+  try {
+    let data = readJson(indisponiblePath);
+    const index = data.findIndex(d => d.id === req.params.id);
+    if (index === -1) return res.status(404).json({ message: 'Non trouvé' });
+    const { date, heureDebut, heureFin, motif, journeeComplete } = req.body;
+    data[index] = {
+      ...data[index],
+      date: date || data[index].date,
+      heureDebut: journeeComplete ? '00:00' : (heureDebut || data[index].heureDebut),
+      heureFin: journeeComplete ? '23:59' : (heureFin || data[index].heureFin),
+      journeeComplete: journeeComplete !== undefined ? !!journeeComplete : data[index].journeeComplete,
+      motif: motif !== undefined ? motif : data[index].motif,
+    };
+    writeJson(indisponiblePath, data);
+    res.json(data[index]);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
 // DELETE indisponibilité
 router.delete('/:id', authMiddleware, (req, res) => {
   try {
