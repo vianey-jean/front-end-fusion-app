@@ -51,6 +51,10 @@ const TacheView: React.FC = () => {
 
   // Follow-up form (pre-filled)
   const [followUpTache, setFollowUpTache] = useState<Tache | null>(null);
+  
+  // Paramètre taches settings
+  const [parametreTache, setParametreTache] = useState<ParametreTache>({ autoCompleteOnDone: true, tachesTerminees: true });
+  const autoCompletedRef = useRef<Set<string>>(new Set());
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
