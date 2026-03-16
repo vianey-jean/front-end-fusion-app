@@ -86,6 +86,13 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
   const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [draggedRdv, setDraggedRdv] = useState<RDV | null>(null);
+  
+  // Indisponibilités
+  const [indisponibilites, setIndisponibilites] = useState<Indisponibilite[]>([]);
+  
+  useEffect(() => {
+    indisponibleApi.getAll().then(setIndisponibilites).catch(() => {});
+  }, []);
   const [dropTarget, setDropTarget] = useState<{ date: string; hour: number } | null>(null);
   const [showTimeDialog, setShowTimeDialog] = useState(false);
   const [pendingDrop, setPendingDrop] = useState<{ rdv: RDV; date: string; time: string } | null>(null);
