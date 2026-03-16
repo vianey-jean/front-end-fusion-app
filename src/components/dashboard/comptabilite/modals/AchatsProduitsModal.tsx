@@ -31,49 +31,58 @@ const AchatsProduitsModal: React.FC<AchatsProduitsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto bg-white/[0.03] backdrop-blur-3xl border border-white/[0.08] shadow-[0_32px_80px_rgba(0,0,0,0.5)] rounded-2xl">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto
+        bg-gradient-to-br from-white to-indigo-50/50 dark:from-gray-900 dark:to-indigo-950/30
+        backdrop-blur-xl border border-indigo-100/50 dark:border-indigo-800/30
+        shadow-[0_40px_120px_rgba(0,0,0,0.15)] dark:shadow-[0_40px_120px_rgba(0,0,0,0.5)]
+        rounded-2xl sm:rounded-3xl">
+
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-indigo-400">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/20 backdrop-blur-sm">
-              <Package className="h-6 w-6 text-indigo-400" />
+          <DialogTitle className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg">
+              <Package className="h-5 w-5" />
             </div>
-            <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent font-black text-xl">
+            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               Achats Produits - {MONTHS[selectedMonth - 1]} {selectedYear}
             </span>
           </DialogTitle>
-          <DialogDescription className="text-white/50">
-            Total: <span className="font-bold text-indigo-400">{formatEuro(achatsTotal)}</span> ({achatsProducts.length} achats)
+          <DialogDescription className="text-gray-500 dark:text-white/50 text-sm sm:text-base">
+            Total: <span className="font-bold text-indigo-600 dark:text-indigo-400">{formatEuro(achatsTotal)}</span> ({achatsProducts.length} achats)
           </DialogDescription>
         </DialogHeader>
+
         <div className="space-y-3 mt-4">
           {achatsProducts.length > 0 ? (
             achatsProducts.map((achat) => (
-              <div 
-                key={achat.id} 
-                className="flex items-center justify-between p-4 bg-white/[0.04] border border-white/[0.08] rounded-xl backdrop-blur-sm transition-all duration-300 hover:scale-[1.01] hover:border-indigo-500/20"
+              <div
+                key={achat.id}
+                className="flex items-center justify-between p-4
+                  rounded-xl bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-indigo-900/20 dark:to-purple-900/20
+                  border border-indigo-100 dark:border-indigo-800/50
+                  transition-all hover:scale-[1.01]"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-indigo-500/20 border border-indigo-500/20">
-                    <Package className="h-4 w-4 text-indigo-400" />
+                  <div className="p-2.5 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/20">
+                    <Package className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div>
-                    <p className="font-semibold text-white/90">
+                    <p className="font-semibold text-gray-800 dark:text-white/90">
                       {achat.productDescription}
                     </p>
-                    <p className="text-sm text-white/40 mt-0.5">
+                    <p className="text-sm text-gray-500 dark:text-white/40 mt-0.5">
                       {new Date(achat.date).toLocaleDateString('fr-FR')}
                       {achat.fournisseur && ` • ${achat.fournisseur}`}
                       {achat.quantity && ` • Qté: ${achat.quantity}`}
                     </p>
                   </div>
                 </div>
-                <p className="text-lg font-black text-indigo-400">
+                <p className="text-lg font-black text-indigo-600 dark:text-indigo-400">
                   {formatEuro(achat.totalCost)}
                 </p>
               </div>
             ))
           ) : (
-            <p className="text-center text-white/40 py-8">Aucun achat de produit ce mois</p>
+            <p className="text-center text-gray-400 dark:text-white/40 py-8">Aucun achat de produit ce mois</p>
           )}
         </div>
       </DialogContent>

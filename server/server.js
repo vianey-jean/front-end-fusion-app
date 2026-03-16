@@ -11,7 +11,7 @@
  * - CORS configuré pour Vercel, Lovable et localhost
  * 
  * @module server
- * @version 4.0.0
+ * @version 4.2.0
  */
 
 const express = require('express');
@@ -43,7 +43,14 @@ const PORT = process.env.PORT || 10000;
 // ===================
 
 // Compression pour performance
-app.use(compression());
+app.use(compression({
+  filter: (req, res) => {
+    if (req.path === '/api/sync/events' || req.path === '/api/messagerie/events') {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
 
 // Security headers
 app.use(securityHeadersMiddleware);
@@ -102,7 +109,7 @@ app.use(cors(corsOptions));
 
 // Ne pas bloquer SSE (connexion longue) avec le rate-limit global
 app.use((req, res, next) => {
-  if (req.path === '/api/sync/events') {
+  if (req.path === '/api/sync/events' || req.path === '/api/messagerie/events') {
     return next();
   }
   return rateLimitMiddleware('general')(req, res, next);
@@ -116,7 +123,13 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Sanitization de tous les inputs
-app.use(sanitizeMiddleware);
+// Skip pour payloads volumineux/chiffrés qui seraient tronqués par la sanitization
+app.use((req, res, next) => {
+  if (req.path === '/api/notes/upload-drawing' || req.path === '/api/settings/restore') {
+    return next();
+  }
+  return sanitizeMiddleware(req, res, next);
+});
 
 // Create db directory if it doesn't exist
 const dbPath = path.join(__dirname, 'db');
@@ -261,6 +274,20 @@ const objectifRoutes = require('./routes/objectif');
 const nouvelleAchatRoutes = require('./routes/nouvelleAchat');
 const comptaRoutes = require('./routes/compta');
 const remboursementsRoutes = require('./routes/remboursements');
+const fournisseursRoutes = require('./routes/fournisseurs');
+const entrepriseRoutes = require('./routes/entreprise');
+const pointageRoutes = require('./routes/pointage');
+const travailleurRoutes = require('./routes/travailleur');
+const tacheRoutes = require('./routes/tache');
+const notesRoutes = require('./routes/notes');
+const notesShareRoutes = require('./routes/notesShare');
+const shareLinksRoutes = require('./routes/shareLinks');
+const avanceRoutes = require('./routes/avance');
+const profileRoutes = require('./routes/profile');
+const messagerieRoutes = require('./routes/messagerie');
+const settingsRoutes = require('./routes/settings');
+const indisponibleRoutes = require('./routes/indisponible');
+const moduleSettingsRoutes = require('./routes/moduleSettings');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -281,6 +308,20 @@ app.use('/api/objectif', objectifRoutes);
 app.use('/api/nouvelle-achat', nouvelleAchatRoutes);
 app.use('/api/compta', comptaRoutes);
 app.use('/api/remboursements', remboursementsRoutes);
+app.use('/api/fournisseurs', fournisseursRoutes);
+app.use('/api/entreprises', entrepriseRoutes);
+app.use('/api/pointages', pointageRoutes);
+app.use('/api/travailleurs', travailleurRoutes);
+app.use('/api/taches', tacheRoutes);
+app.use('/api/notes', notesRoutes);
+app.use('/api/notes-share', notesShareRoutes);
+app.use('/api/share-links', shareLinksRoutes);
+app.use('/api/avances', avanceRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/messagerie', messagerieRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/indisponible', indisponibleRoutes);
+app.use('/api/module-settings', moduleSettingsRoutes);
 
 // Static file serving for uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
