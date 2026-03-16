@@ -15,7 +15,8 @@ import {
   Trash2,
   X,
   AlertTriangle,
-  Lock
+  Lock,
+  CalendarOff
 } from 'lucide-react';
 import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -37,6 +38,7 @@ import { motion } from 'framer-motion';
 import { ConfirmDialog } from '@/components/shared';
 import axios from 'axios';
 import { toast } from 'sonner';
+import indisponibleApi, { Indisponibilite } from '@/services/api/indisponibleApi';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://server-gestion-ventes.onrender.com';
 
