@@ -26,6 +26,11 @@ const indisponibleApi = {
     return response.data;
   },
 
+  async update(id: string, data: { date?: string; heureDebut?: string; heureFin?: string; motif?: string; journeeComplete?: boolean }): Promise<Indisponibilite> {
+    const response = await api.put(`/api/indisponible/${id}`, data);
+    return response.data;
+  },
+
   async delete(id: string): Promise<void> {
     await api.delete(`/api/indisponible/${id}`);
   },
