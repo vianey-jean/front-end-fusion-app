@@ -384,7 +384,7 @@ const TacheView: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 pb-12">
         <TacheCalendar
           currentDate={currentDate}
-          taches={taches}
+          taches={parametreTache.tachesTerminees ? taches : taches.filter(t => !t.completed)}
           onPrevMonth={() => setCurrentDate(new Date(year, month - 1, 1))}
           onNextMonth={() => setCurrentDate(new Date(year, month + 1, 1))}
           onDayClick={handleDayClick}
