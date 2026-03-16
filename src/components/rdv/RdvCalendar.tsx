@@ -436,16 +436,27 @@ const RdvCalendar: React.FC<RdvCalendarProps> = ({
                 {weekDays.map((day, dayIdx) => {
                   const dateStr = format(day, 'yyyy-MM-dd');
                   const isDropTarget = dropTarget?.date === dateStr && dropTarget?.hour === hour;
+                  const slotIndispos = getIndispoForSlot(dateStr, hour);
+                  const isIndispo = slotIndispos.length > 0;
                   
                   return (
                     <div
                       key={dayIdx}
                       className={cn(
-                        "relative border-r border-primary/10 last:border-r-0 cursor-pointer transition-all duration-200",
-                        isDropTarget && "bg-primary/30 ring-2 ring-primary ring-inset",
-                        isSameDay(day, new Date()) && "bg-primary/5"
+                        "relative border-r border-primary/10 last:border-r-0 transition-all duration-200",
+                        isIndispo 
+                          ? "bg-red-500/15 dark:bg-red-900/25 cursor-not-allowed" 
+                          : "cursor-pointer",
+                        isDropTarget && !isIndispo && "bg-primary/30 ring-2 ring-primary ring-inset",
+                        isSameDay(day, new Date()) && !isIndispo && "bg-primary/5"
                       )}
-                      onClick={() => onSlotClick(dateStr, `${hour.toString().padStart(2, '0')}:00`)}
+                      onClick={() => {
+                        if (isIndispo) {
+                          toast.error(`Créneau indisponible${slotIndispos[0]?.motif ? ` : ${slotIndispos[0].motif}` : ''}`);
+                          return;
+                        }
+                        onSlotClick(dateStr, `${hour.toString().padStart(2, '0')}:00`);
+                      }}
                       onDragOver={(e) => handleDragOver(e, dateStr, hour)}
                       onDragLeave={handleDragLeave}
                       onDrop={(e) => handleDrop(e, dateStr, hour)}
