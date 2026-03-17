@@ -272,7 +272,7 @@ const NotesKanbanView: React.FC = () => {
                   onDeleteNote={handleDeleteNote}
                   onDragStart={handleDragStart}
                   onDragOver={(e) => handleDragOver(e, col.id)}
-                  onDrop={(e) => handleDrop(e, col.id)}
+                  onDrop={(e, dropIndex) => handleDrop(e, col.id, dropIndex)}
                   onEditColumn={() => { setEditingCol(col); setShowColForm(true); }}
                   onDeleteColumn={() => handleDeleteColumn(col)}
                   isDragOver={dragOverColId === col.id}
