@@ -575,6 +575,9 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
                 value={backupCode}
                 onChange={e => setBackupCode(e.target.value)}
                 placeholder="Créez un code de cryptage sécurisé"
+                autoComplete="new-password"
+                data-lpignore="true"
+                data-form-type="other"
                 className="rounded-xl border-emerald-200/30 dark:border-emerald-800/20 pr-10"
               />
               <button type="button" onClick={() => setShowBackupCode(!showBackupCode)}
