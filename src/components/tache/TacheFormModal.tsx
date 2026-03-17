@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { ListTodo, CalendarDays, Clock, FileText, AlertTriangle, X } from 'lucide-react';
+import { ListTodo, CalendarDays, Clock, FileText, AlertTriangle, X, Ban } from 'lucide-react';
 import { Tache } from '@/services/api/tacheApi';
 import tacheApi from '@/services/api/tacheApi';
 import rdvApiService from '@/services/api/rdvApi';
 import { Travailleur } from '@/services/api/travailleurApi';
 import TravailleurSearchInput from '@/components/pointage/TravailleurSearchInput';
 import { useToast } from '@/hooks/use-toast';
+import indisponibleApi, { Indisponibilite } from '@/services/api/indisponibleApi';
 
 interface TacheFormModalProps {
   open: boolean;
