@@ -241,18 +241,22 @@ const TacheDayModal: React.FC<TacheDayModalProps> = ({
         <div className="overflow-y-auto max-h-[60vh] pr-2 space-y-0.5">
           {HOURS.map(hour => {
             const hourTaches = getTachesAtHour(hour);
+            const hourIndispo = isHourIndispo(hour);
             return (
               <div
                 key={hour}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, hour)}
+                onDragOver={hourIndispo ? undefined : handleDragOver}
+                onDrop={hourIndispo ? undefined : (e) => handleDrop(e, hour)}
                 className={cn(
                   'flex gap-3 py-2 px-3 rounded-xl transition-all border border-transparent',
-                  hourTaches.length > 0 ? 'bg-white/5' : 'hover:bg-white/5',
+                  hourIndispo
+                    ? 'bg-red-500/10 border-red-500/20 opacity-60 cursor-not-allowed'
+                    : hourTaches.length > 0 ? 'bg-white/5' : 'hover:bg-white/5',
                 )}
               >
-                <div className="w-14 shrink-0 text-right">
-                  <span className="text-xs font-bold text-white/40">{String(hour).padStart(2, '0')}:00</span>
+                <div className="w-14 shrink-0 text-right flex items-start gap-1 justify-end">
+                  {hourIndispo && <Ban className="h-3 w-3 text-red-400 mt-0.5" />}
+                  <span className={cn("text-xs font-bold", hourIndispo ? "text-red-400" : "text-white/40")}>{String(hour).padStart(2, '0')}:00</span>
                 </div>
                 <div className="flex-1 min-h-[36px] flex flex-col gap-1">
                   {hourTaches.length === 0 && (
