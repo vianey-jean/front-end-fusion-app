@@ -61,6 +61,13 @@ const TacheFormModal: React.FC<TacheFormModalProps> = ({
   });
   const [occupiedSlots, setOccupiedSlots] = useState<OccupiedSlot[]>([]);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [indisponibilites, setIndisponibilites] = useState<Indisponibilite[]>([]);
+
+  // Fetch indisponibilités
+  useEffect(() => {
+    if (!open) return;
+    indisponibleApi.getAll().then(setIndisponibilites).catch(() => {});
+  }, [open]);
 
   useEffect(() => {
     if (editingTache) {
