@@ -223,9 +223,15 @@ const TacheDayModal: React.FC<TacheDayModalProps> = ({
           <DialogTitle className="text-lg font-black bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
             📋 {formatDate(selectedDay)}
           </DialogTitle>
+          {isDayFullyIndispo && (
+            <div className="flex items-center justify-center gap-2 text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
+              <Ban className="h-4 w-4" /> Journée indisponible
+            </div>
+          )}
           <div className="flex justify-center">
             <Button onClick={onAddTache}
-              className={cn(premiumBtnClass, "bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-300/40 text-white shadow-lg !py-1.5 !px-3 !text-xs")}>
+              disabled={isDayFullyIndispo}
+              className={cn(premiumBtnClass, "bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-300/40 text-white shadow-lg !py-1.5 !px-3 !text-xs", isDayFullyIndispo && "opacity-50 cursor-not-allowed")}>
               <span className={mirrorShine} />
               <span className="relative flex items-center"><Plus className="h-3 w-3 mr-1" /> Ajouter</span>
             </Button>
