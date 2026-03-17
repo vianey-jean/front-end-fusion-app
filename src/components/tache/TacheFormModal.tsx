@@ -199,8 +199,17 @@ const TacheFormModal: React.FC<TacheFormModalProps> = ({
     return ranges;
   })();
 
+  // Check indisponibilité for selected date
+  const indispoForDate = form.date ? indisponibilites.filter(i => i.date === form.date) : [];
+  const isDayFullyIndispo = indispoForDate.some(i => i.journeeComplete);
+
   const validationMessage = (() => {
     if (!form.heureDebut || !form.heureFin) return '';
+
+    // Check full day indispo
+    if (isDayFullyIndispo) {
+      return '🚫 Cette journée est marquée comme indisponible. Impossible d\'ajouter une tâche.';
+    }
 
     const startMinutes = timeToMinutes(form.heureDebut);
     const endMinutes = timeToMinutes(form.heureFin);
@@ -211,6 +220,18 @@ const TacheFormModal: React.FC<TacheFormModalProps> = ({
 
     if (endMinutes < startMinutes + 1) {
       return "L'heure de fin doit être au moins 1 minute après l'heure de début.";
+    }
+
+    // Check partial indisponibilité overlap
+    const indispoConflict = indispoForDate.find(i => {
+      if (i.journeeComplete) return false;
+      const iStart = timeToMinutes(i.heureDebut);
+      const iEnd = timeToMinutes(i.heureFin);
+      return startMinutes < iEnd && endMinutes > iStart;
+    });
+
+    if (indispoConflict) {
+      return `🚫 Ce créneau chevauche une indisponibilité (${indispoConflict.heureDebut} - ${indispoConflict.heureFin}${indispoConflict.motif ? ' : ' + indispoConflict.motif : ''}).`;
     }
 
     const overlapConflict = sortedSlots.find(slot => {
