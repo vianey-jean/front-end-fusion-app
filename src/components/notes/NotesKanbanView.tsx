@@ -128,6 +128,7 @@ const NotesKanbanView: React.FC = () => {
 
   const handleDragStart = (e: React.DragEvent, noteId: string) => {
     e.dataTransfer.setData('noteId', noteId);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: React.DragEvent, colId: string) => {
