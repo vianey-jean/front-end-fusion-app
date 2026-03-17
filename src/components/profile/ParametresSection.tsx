@@ -630,6 +630,9 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
                 value={restoreCode}
                 onChange={e => setRestoreCode(e.target.value)}
                 placeholder="Saisissez le code de sauvegarde"
+                autoComplete="new-password"
+                data-lpignore="true"
+                data-form-type="other"
                 className="rounded-xl border-blue-200/30 dark:border-blue-800/20 pr-10"
               />
               <button type="button" onClick={() => setShowRestoreCode(!showRestoreCode)}
