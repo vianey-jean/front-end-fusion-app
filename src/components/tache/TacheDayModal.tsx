@@ -95,6 +95,28 @@ const TacheDayModal: React.FC<TacheDayModalProps> = ({
   const { toast } = useToast();
   const dayTaches = taches.filter(t => t.date === selectedDay);
   const dragRef = useRef<{ tacheId: string; originHeure: string } | null>(null);
+  const [indisponibilites, setIndisponibilites] = useState<Indisponibilite[]>([]);
+
+  useEffect(() => {
+    if (!open || !selectedDay) return;
+    indisponibleApi.getAll().then(data => {
+      setIndisponibilites(data.filter(i => i.date === selectedDay));
+    }).catch(() => {});
+  }, [open, selectedDay]);
+
+  const isDayFullyIndispo = indisponibilites.some(i => i.journeeComplete);
+
+  const isHourIndispo = (hour: number) => {
+    if (isDayFullyIndispo) return true;
+    const hourStart = hour * 60;
+    const hourEnd = (hour + 1) * 60;
+    return indisponibilites.some(i => {
+      if (i.journeeComplete) return true;
+      const iStart = timeToMinutes(i.heureDebut);
+      const iEnd = timeToMinutes(i.heureFin);
+      return hourStart < iEnd && hourEnd > iStart;
+    });
+  };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '';
