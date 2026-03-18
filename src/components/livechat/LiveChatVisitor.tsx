@@ -44,18 +44,18 @@ const LiveChatVisitor: React.FC<LiveChatVisitorProps> = ({ visitorNom, adminId, 
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
+  const pseudo = useRef(localStorage.getItem('livechat_pseudo') || visitorNom);
+  const visitorId = useRef(
+    localStorage.getItem('livechat_visitor_id') || 
+    `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  );
+
   const webrtc = useWebRTC({
     visitorId: visitorId.current,
     adminId,
     from: 'visitor',
     eventSourceRef,
   });
-
-  const pseudo = useRef(localStorage.getItem('livechat_pseudo') || visitorNom);
-  const visitorId = useRef(
-    localStorage.getItem('livechat_visitor_id') || 
-    `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  );
 
   useEffect(() => {
     localStorage.setItem('livechat_visitor_id', visitorId.current);
