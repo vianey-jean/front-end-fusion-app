@@ -338,6 +338,26 @@ const LiveChatAdmin: React.FC = () => {
         </div>
       </div>
 
+      {/* Call Overlay */}
+      {selectedConv && (
+        <CallOverlay
+          callStatus={webrtc.callStatus}
+          callType={webrtc.callType}
+          isMuted={webrtc.isMuted}
+          isVideoOff={webrtc.isVideoOff}
+          callDuration={webrtc.callDuration}
+          incomingCall={webrtc.incomingCall}
+          localVideoRef={webrtc.localVideoRef}
+          remoteVideoRef={webrtc.remoteVideoRef}
+          callerName={selectedConversation?.visitorNom || 'Visiteur'}
+          onAccept={webrtc.acceptCall}
+          onReject={webrtc.rejectCall}
+          onEnd={() => webrtc.endCall(true)}
+          onToggleMute={webrtc.toggleMute}
+          onToggleVideo={webrtc.toggleVideo}
+        />
+      )}
+
       {/* Conversation list OR Messages */}
       {!selectedConv ? (
         <div className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950">
