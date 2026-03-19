@@ -82,21 +82,60 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
     }
   }, [adminId]);
 
+  const playMediaElement = useCallback((element: HTMLMediaElement | null) => {
+    if (!element) return;
+
+    const tryPlay = () => {
+      element.play().catch(() => {});
+    };
+
+    if (element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      tryPlay();
+      return;
+    }
+
+    element.onloadedmetadata = () => {
+      tryPlay();
+    };
+  }, []);
+
   const attachStream = useCallback((stream: MediaStream) => {
     remoteStreamRef.current = stream;
 
     if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = stream;
+      if (remoteVideoRef.current.srcObject !== stream) {
+        remoteVideoRef.current.srcObject = stream;
+      }
+      remoteVideoRef.current.autoplay = true;
       remoteVideoRef.current.playsInline = true;
-      remoteVideoRef.current.play().catch(() => {});
+      playMediaElement(remoteVideoRef.current);
     }
 
     if (remoteAudioRef.current) {
-      remoteAudioRef.current.srcObject = stream;
+      if (remoteAudioRef.current.srcObject !== stream) {
+        remoteAudioRef.current.srcObject = stream;
+      }
       remoteAudioRef.current.autoplay = true;
-      remoteAudioRef.current.play().catch(() => {});
+      remoteAudioRef.current.muted = false;
+      remoteAudioRef.current.volume = 1;
+      playMediaElement(remoteAudioRef.current);
     }
-  }, []);
+  }, [playMediaElement]);
+
+  const attachLocalPreview = useCallback((stream: MediaStream | null, type: CallType) => {
+    if (!localVideoRef.current) return;
+
+    if (type !== 'video' || !stream) {
+      localVideoRef.current.srcObject = null;
+      return;
+    }
+
+    localVideoRef.current.srcObject = stream;
+    localVideoRef.current.muted = true;
+    localVideoRef.current.autoplay = true;
+    localVideoRef.current.playsInline = true;
+    playMediaElement(localVideoRef.current);
+  }, [playMediaElement]);
 
   const startDurationTimer = useCallback(() => {
     if (durationIntervalRef.current) clearInterval(durationIntervalRef.current);
@@ -107,6 +146,11 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
   }, []);
 
   const markConnected = useCallback(() => {
+    if (ringtoneTimeoutRef.current) {
+      clearTimeout(ringtoneTimeoutRef.current);
+      ringtoneTimeoutRef.current = null;
+    }
+
     if (callStatusRef.current !== 'connected') {
       setCallStatus('connected');
       startDurationTimer();
@@ -128,8 +172,8 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
           adminId: targetAdminId,
           type,
           data,
-          from
-        })
+          from,
+        }),
       });
     } catch (e) {
       console.error('Error sending signal:', e);
@@ -153,6 +197,65 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
     }
   }, []);
 
+  const applyRemoteDescription = useCallback(async (
+    pc: RTCPeerConnection,
+    description?: RTCSessionDescriptionInit | null
+  ) => {
+    if (!description) return false;
+
+    const nextDescription = new RTCSessionDescription(description);
+    const currentDescription = pc.remoteDescription;
+
+    if (
+      currentDescription?.type === nextDescription.type &&
+      currentDescription?.sdp === nextDescription.sdp
+    ) {
+      return false;
+    }
+
+    if (nextDescription.type === 'answer' && pc.signalingState !== 'have-local-offer') {
+      if (pc.currentRemoteDescription?.type === 'answer') {
+        return false;
+      }
+    }
+
+    await pc.setRemoteDescription(nextDescription);
+    await flushPendingCandidates(pc);
+    return true;
+  }, [flushPendingCandidates]);
+
+  const ensureTransceivers = useCallback((pc: RTCPeerConnection, type: CallType) => {
+    const transceivers = pc.getTransceivers();
+    const hasAudio = transceivers.some((transceiver) => {
+      return transceiver.sender.track?.kind === 'audio' || transceiver.receiver.track?.kind === 'audio';
+    });
+    const hasVideo = transceivers.some((transceiver) => {
+      return transceiver.sender.track?.kind === 'video' || transceiver.receiver.track?.kind === 'video';
+    });
+
+    if (!hasAudio) {
+      pc.addTransceiver('audio', { direction: 'sendrecv' });
+    }
+
+    if (type === 'video' && !hasVideo) {
+      pc.addTransceiver('video', { direction: 'sendrecv' });
+    }
+  }, []);
+
+  const addLocalTracks = useCallback((pc: RTCPeerConnection, stream: MediaStream) => {
+    const existingTrackIds = new Set(
+      pc.getSenders()
+        .map((sender) => sender.track?.id)
+        .filter((trackId): trackId is string => Boolean(trackId))
+    );
+
+    stream.getTracks().forEach((track) => {
+      if (!existingTrackIds.has(track.id)) {
+        pc.addTrack(track, stream);
+      }
+    });
+  }, []);
+
   const cleanup = useCallback(() => {
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
@@ -172,7 +275,7 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
     pendingCandidatesRef.current = [];
     pendingOfferRef.current = null;
 
-    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    attachLocalPreview(null, 'audio');
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
 
@@ -192,7 +295,7 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
     activeVisitorIdRef.current = visitorIdRef.current;
     activeAdminIdRef.current = adminIdRef.current;
     setActiveVisitorId(visitorIdRef.current);
-  }, []);
+  }, [attachLocalPreview]);
 
   const createPeerConnection = useCallback(() => {
     if (pcRef.current) {
@@ -215,6 +318,15 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
 
       if (incomingStream) {
         attachStream(incomingStream);
+        if (incomingStream.getTracks().some((track) => track.readyState === 'live')) {
+          markConnected();
+        }
+        incomingStream.getTracks().forEach((track) => {
+          track.onunmute = () => {
+            attachStream(incomingStream);
+            markConnected();
+          };
+        });
         return;
       }
 
@@ -230,6 +342,7 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
       event.track.onunmute = () => {
         const currentStream = remoteStreamRef.current || stream;
         attachStream(currentStream);
+        markConnected();
       };
     };
 
@@ -281,12 +394,14 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: true,
+        channelCount: { ideal: 1 },
       },
       video: type === 'video'
         ? {
             width: { ideal: 1280 },
             height: { ideal: 720 },
-            facingMode: 'user'
+            frameRate: { ideal: 24, max: 30 },
+            facingMode: 'user',
           }
         : false,
     };
@@ -319,22 +434,21 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
 
       const stream = await getMediaStream(type);
       localStreamRef.current = stream;
-
-      if (localVideoRef.current && type === 'video') {
-        localVideoRef.current.srcObject = stream;
-        localVideoRef.current.muted = true;
-        localVideoRef.current.playsInline = true;
-        localVideoRef.current.play().catch(() => {});
-      }
+      attachLocalPreview(stream, type);
 
       const pc = createPeerConnection();
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
+      ensureTransceivers(pc, type);
+      addLocalTracks(pc, stream);
 
-      const offer = await pc.createOffer();
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: type === 'video',
+      });
       await pc.setLocalDescription(offer);
-      await sendSignal('call-offer', { sdp: offer, callType: type });
+      await sendSignal('call-offer', {
+        sdp: pc.localDescription?.toJSON() ?? offer,
+        callType: type,
+      });
 
       ringtoneTimeoutRef.current = setTimeout(() => {
         if (callStatusRef.current === 'calling') {
@@ -350,7 +464,7 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
       setCallStatus('idle');
       setIncomingCall(null);
     }
-  }, [cleanup, createPeerConnection, getMediaStream, sendSignal]);
+  }, [addLocalTracks, attachLocalPreview, cleanup, createPeerConnection, ensureTransceivers, getMediaStream, sendSignal]);
 
   const acceptCall = useCallback(async () => {
     if (!incomingCall) return;
@@ -359,31 +473,29 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
       const type = callTypeRef.current || incomingCall.type;
       const stream = await getMediaStream(type);
       localStreamRef.current = stream;
-
-      if (localVideoRef.current && type === 'video') {
-        localVideoRef.current.srcObject = stream;
-        localVideoRef.current.muted = true;
-        localVideoRef.current.playsInline = true;
-        localVideoRef.current.play().catch(() => {});
-      }
+      attachLocalPreview(stream, type);
 
       const pc = pcRef.current || createPeerConnection();
+      ensureTransceivers(pc, type);
 
       if ((!pc.remoteDescription || !pc.remoteDescription.type) && pendingOfferRef.current) {
-        await pc.setRemoteDescription(new RTCSessionDescription(pendingOfferRef.current));
+        await applyRemoteDescription(pc, pendingOfferRef.current);
       }
 
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream);
-      });
+      addLocalTracks(pc, stream);
 
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      await sendSignal('call-answer', { sdp: answer, callType: type });
+      await sendSignal('call-answer', {
+        sdp: pc.localDescription?.toJSON() ?? answer,
+        callType: type,
+      });
       await flushPendingCandidates(pc);
 
       setIncomingCall(null);
-      markConnected();
+      if (callStatusRef.current !== 'connected') {
+        setCallStatus('calling');
+      }
     } catch (e) {
       console.error('[WebRTC] Error accepting call:', e);
       sendSignal('call-ended');
@@ -391,7 +503,7 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
       setCallStatus('idle');
       setIncomingCall(null);
     }
-  }, [cleanup, createPeerConnection, flushPendingCandidates, getMediaStream, incomingCall, markConnected, sendSignal]);
+  }, [addLocalTracks, applyRemoteDescription, attachLocalPreview, cleanup, createPeerConnection, ensureTransceivers, flushPendingCandidates, getMediaStream, incomingCall, sendSignal]);
 
   const rejectCall = useCallback(() => {
     setIncomingCall(null);
