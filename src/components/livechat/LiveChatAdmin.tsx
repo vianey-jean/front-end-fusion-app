@@ -300,7 +300,8 @@ const LiveChatAdmin: React.FC = () => {
     );
   }
 
-  const selectedConversation = conversations.find(c => c.visitorId === selectedConv);
+  const activeConversationId = selectedConv || webrtc.activeVisitorId || null;
+  const selectedConversation = conversations.find(c => c.visitorId === activeConversationId);
 
   return (
     <motion.div
@@ -347,7 +348,7 @@ const LiveChatAdmin: React.FC = () => {
       </div>
 
       {/* Call Overlay */}
-      {selectedConv && (
+      {activeConversationId && (
         <CallOverlay
           callStatus={webrtc.callStatus}
           callType={webrtc.callType}
