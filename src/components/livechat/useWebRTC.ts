@@ -555,86 +555,85 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
       return signal.visitorId === currentActiveVisitorId;
     };
 
-    const handler = async (e: MessageEvent) => {
-      try {
-        const signal: CallSignal = JSON.parse(e.data);
-        if (signal.from === from) return;
-        if (!isSignalForCurrentSession(signal)) return;
+      const handler = async (e: MessageEvent) => {
+        try {
+          const signal: CallSignal = JSON.parse(e.data);
+          if (signal.from === from) return;
+          if (!isSignalForCurrentSession(signal)) return;
 
-        switch (signal.type) {
-          case 'call-offer': {
-            if (callStatusRef.current !== 'idle' && activeVisitorIdRef.current && activeVisitorIdRef.current !== signal.visitorId) {
-              return;
-            }
+          switch (signal.type) {
+            case 'call-offer': {
+              if (callStatusRef.current !== 'idle' && activeVisitorIdRef.current && activeVisitorIdRef.current !== signal.visitorId) {
+                return;
+              }
 
-            activeVisitorIdRef.current = signal.visitorId;
-            activeAdminIdRef.current = signal.adminId;
-            setActiveVisitorId(signal.visitorId);
-            pendingOfferRef.current = signal.data?.sdp || null;
-            setCallType(signal.data?.callType || 'audio');
-            callTypeRef.current = signal.data?.callType || 'audio';
-            setIncomingCall({ from: signal.from, type: signal.data?.callType || 'audio' });
-            setCallStatus('ringing');
-            onIncomingCallMeta?.({
-              visitorId: signal.visitorId,
-              adminId: signal.adminId,
-              from: signal.from,
-              type: signal.data?.callType || 'audio'
-            });
+              activeVisitorIdRef.current = signal.visitorId;
+              activeAdminIdRef.current = signal.adminId;
+              setActiveVisitorId(signal.visitorId);
+              pendingOfferRef.current = signal.data?.sdp || null;
+              setCallType(signal.data?.callType || 'audio');
+              callTypeRef.current = signal.data?.callType || 'audio';
+              setIncomingCall({ from: signal.from, type: signal.data?.callType || 'audio' });
+              setCallStatus('ringing');
+              onIncomingCallMeta?.({
+                visitorId: signal.visitorId,
+                adminId: signal.adminId,
+                from: signal.from,
+                type: signal.data?.callType || 'audio'
+              });
 
-            const pc = createPeerConnection();
-            if (pendingOfferRef.current) {
-              await pc.setRemoteDescription(new RTCSessionDescription(pendingOfferRef.current));
-              await flushPendingCandidates(pc);
-            }
-            break;
-          }
-
-          case 'call-answer': {
-            const pc = pcRef.current;
-            if (!pc || !signal.data?.sdp) break;
-
-            if (ringtoneTimeoutRef.current) {
-              clearTimeout(ringtoneTimeoutRef.current);
-              ringtoneTimeoutRef.current = null;
-            }
-
-            await pc.setRemoteDescription(new RTCSessionDescription(signal.data.sdp));
-            await flushPendingCandidates(pc);
-            setCallType(signal.data?.callType || callTypeRef.current);
-            markConnected();
-            break;
-          }
-
-          case 'ice-candidate': {
-            if (!signal.data) break;
-
-            const pc = pcRef.current;
-            if (!pc || !pc.remoteDescription || !pc.remoteDescription.type) {
-              pendingCandidatesRef.current.push(signal.data);
+              const pc = createPeerConnection();
+              ensureTransceivers(pc, signal.data?.callType || 'audio');
+              if (pendingOfferRef.current) {
+                await applyRemoteDescription(pc, pendingOfferRef.current);
+              }
               break;
             }
 
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(signal.data));
-            } catch (err) {
-              console.warn('[WebRTC] Error adding ICE candidate:', err);
-            }
-            break;
-          }
+            case 'call-answer': {
+              const pc = pcRef.current;
+              if (!pc || !signal.data?.sdp) break;
 
-          case 'call-ended':
-          case 'call-rejected': {
-            cleanup();
-            setCallStatus('idle');
-            setIncomingCall(null);
-            break;
+              if (ringtoneTimeoutRef.current) {
+                clearTimeout(ringtoneTimeoutRef.current);
+                ringtoneTimeoutRef.current = null;
+              }
+
+              await applyRemoteDescription(pc, signal.data.sdp);
+              setCallType(signal.data?.callType || callTypeRef.current);
+              markConnected();
+              break;
+            }
+
+            case 'ice-candidate': {
+              if (!signal.data) break;
+
+              const pc = pcRef.current;
+              if (!pc || !pc.remoteDescription || !pc.remoteDescription.type) {
+                pendingCandidatesRef.current.push(signal.data);
+                break;
+              }
+
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(signal.data));
+              } catch (err) {
+                console.warn('[WebRTC] Error adding ICE candidate:', err);
+              }
+              break;
+            }
+
+            case 'call-ended':
+            case 'call-rejected': {
+              cleanup();
+              setCallStatus('idle');
+              setIncomingCall(null);
+              break;
+            }
           }
+        } catch (err) {
+          console.error('[WebRTC] Error handling call signal:', err);
         }
-      } catch (err) {
-        console.error('[WebRTC] Error handling call signal:', err);
-      }
-    };
+      };
 
     const checkAndAttach = () => {
       const es = eventSourceRef.current;
