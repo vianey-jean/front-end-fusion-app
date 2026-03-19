@@ -93,6 +93,21 @@ const LiveChatAdmin: React.FC = () => {
     }
   }, [user, loadConversations]);
 
+  const handleIncomingCall = useCallback((payload: { visitorId: string }) => {
+    if (payload.visitorId !== selectedConvRef.current) {
+      setSelectedConv(payload.visitorId);
+      loadMessages(payload.visitorId);
+    }
+  }, [loadMessages]);
+
+  const webrtc = useWebRTC({
+    visitorId: selectedConv || '',
+    adminId: user?.id || '',
+    from: 'admin',
+    eventSourceRef,
+    onIncomingCallMeta: handleIncomingCall,
+  });
+
   useEffect(() => {
     if (!isAuthenticated || !isAdmin || !user) return;
     loadConversations();

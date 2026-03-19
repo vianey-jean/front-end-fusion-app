@@ -94,7 +94,6 @@ export function useWebRTC({ visitorId, adminId, from, eventSourceRef, onIncoming
     if (remoteAudioRef.current) {
       remoteAudioRef.current.srcObject = stream;
       remoteAudioRef.current.autoplay = true;
-      remoteAudioRef.current.playsInline = true;
       remoteAudioRef.current.play().catch(() => {});
     }
   }, []);
