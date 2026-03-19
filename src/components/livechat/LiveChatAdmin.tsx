@@ -57,21 +57,6 @@ const LiveChatAdmin: React.FC = () => {
   useEffect(() => { selectedConvRef.current = selectedConv; }, [selectedConv]);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
-  const handleIncomingCall = useCallback((payload: { visitorId: string }) => {
-    if (payload.visitorId !== selectedConvRef.current) {
-      setSelectedConv(payload.visitorId);
-      loadMessages(payload.visitorId);
-    }
-  }, [loadMessages]);
-
-  const webrtc = useWebRTC({
-    visitorId: selectedConv || '',
-    adminId: user?.id || '',
-    from: 'admin',
-    eventSourceRef,
-    onIncomingCallMeta: handleIncomingCall,
-  });
-
   const isAdmin = user?.role === 'administrateur' || user?.role === 'administrateur principale';
 
   const loadConversations = useCallback(async () => {
