@@ -57,13 +57,6 @@ const LiveChatAdmin: React.FC = () => {
   useEffect(() => { selectedConvRef.current = selectedConv; }, [selectedConv]);
   useEffect(() => { messagesRef.current = messages; }, [messages]);
 
-  const webrtc = useWebRTC({
-    visitorId: selectedConv || '',
-    adminId: user?.id || '',
-    from: 'admin',
-    eventSourceRef,
-  });
-
   const isAdmin = user?.role === 'administrateur' || user?.role === 'administrateur principale';
 
   const loadConversations = useCallback(async () => {
@@ -99,6 +92,21 @@ const LiveChatAdmin: React.FC = () => {
       console.error('Error loading messages:', e);
     }
   }, [user, loadConversations]);
+
+  const handleIncomingCall = useCallback((payload: { visitorId: string }) => {
+    if (payload.visitorId !== selectedConvRef.current) {
+      setSelectedConv(payload.visitorId);
+      loadMessages(payload.visitorId);
+    }
+  }, [loadMessages]);
+
+  const webrtc = useWebRTC({
+    visitorId: selectedConv || '',
+    adminId: user?.id || '',
+    from: 'admin',
+    eventSourceRef,
+    onIncomingCallMeta: handleIncomingCall,
+  });
 
   useEffect(() => {
     if (!isAuthenticated || !isAdmin || !user) return;
@@ -292,7 +300,8 @@ const LiveChatAdmin: React.FC = () => {
     );
   }
 
-  const selectedConversation = conversations.find(c => c.visitorId === selectedConv);
+  const activeConversationId = selectedConv || webrtc.activeVisitorId || null;
+  const selectedConversation = conversations.find(c => c.visitorId === activeConversationId);
 
   return (
     <motion.div
@@ -339,7 +348,7 @@ const LiveChatAdmin: React.FC = () => {
       </div>
 
       {/* Call Overlay */}
-      {selectedConv && (
+      {activeConversationId && (
         <CallOverlay
           callStatus={webrtc.callStatus}
           callType={webrtc.callType}
