@@ -144,7 +144,7 @@ const ContactPage: React.FC = () => {
             {showLiveChat && adminOnline && (
               <LiveChatVisitor
                 visitorNom={submittedName || 'Visiteur'}
-                adminId="1"
+                adminId={liveAdminId}
                 onClose={() => setShowLiveChat(false)}
               />
             )}
