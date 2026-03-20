@@ -470,6 +470,67 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
               )}
             </motion.div>
           )}
+
+          {/* SPECIFICATION MANAGEMENT - Only for administrateur principale */}
+          {isAdminPrincipal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.35 }}
+              className="mt-8 pt-6 border-t border-border/50"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Radio className="w-4 h-4 text-emerald-500" />
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Gestion spécification</span>
+              </div>
+
+              {loadingUsers ? (
+                <div className="flex items-center justify-center py-6">
+                  <div className="animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full" />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {allUsers.filter(u => u.role === 'administrateur').map(u => (
+                    <div key={u.id} className="flex items-center justify-between rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-white/5 dark:to-white/[0.02] border border-border/50 p-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{u.firstName} {u.lastName}</p>
+                        <p className="text-xs text-muted-foreground">{u.email}</p>
+                        <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-bold ${
+                          u.specification === 'live'
+                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'
+                            : 'bg-slate-500/10 text-slate-600 border border-slate-500/20'
+                        }`}>
+                          {u.specification === 'live' ? '🟢 Live' : 'Aucune spécification'}
+                        </span>
+                      </div>
+                      <div>
+                        {u.specification === 'live' ? (
+                          <Button
+                            size="sm"
+                            onClick={() => { setSpecChangeUser(u); setSpecChangeTarget(''); setShowSpecDialog(true); }}
+                            className="rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-300/30 text-orange-600 dark:text-orange-400 text-xs hover:from-orange-500/20 hover:to-red-500/20"
+                          >
+                            Retirer Live
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => { setSpecChangeUser(u); setSpecChangeTarget('live'); setShowSpecDialog(true); }}
+                            className="rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-300/30 text-emerald-600 dark:text-emerald-400 text-xs hover:from-emerald-500/20 hover:to-teal-500/20"
+                          >
+                            <Radio className="w-3 h-3 mr-1" /> Ajouter Live
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {allUsers.filter(u => u.role === 'administrateur').length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucun administrateur à configurer</p>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          )}
         </div>
       </motion.div>
 
