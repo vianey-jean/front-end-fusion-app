@@ -50,6 +50,7 @@ const ContactPage: React.FC = () => {
         if (res.ok) {
           const data = await res.json();
           setAdminOnline(data.online);
+          if (data.adminId) setLiveAdminId(data.adminId);
         }
       } catch { setAdminOnline(false); }
     };
