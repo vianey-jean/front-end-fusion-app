@@ -641,6 +641,43 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* ========== SPECIFICATION CHANGE DIALOG ========== */}
+      <AlertDialog open={showSpecDialog} onOpenChange={v => { setShowSpecDialog(v); if (!v) { setSpecChangeUser(null); } }}>
+        <AlertDialogContent className="rounded-3xl backdrop-blur-2xl bg-white/95 dark:bg-[#0a0020]/95 border border-emerald-200/30 max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-emerald-600">
+              <Radio className="w-5 h-5" /> Modifier la spécification
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {specChangeUser && (
+                <>
+                  <span className="font-semibold">{specChangeUser.firstName} {specChangeUser.lastName}</span>
+                  <br />
+                  {specChangeTarget === 'live'
+                    ? 'Ajouter la spécification Live ? Cet admin pourra recevoir les messages du chat en direct.'
+                    : 'Retirer la spécification Live ? Cet admin ne recevra plus les messages du chat en direct.'
+                  }
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+            <Button
+              onClick={handleSpecChange}
+              disabled={changingSpec}
+              className={`rounded-xl text-white ${
+                specChangeTarget === 'live'
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                  : 'bg-gradient-to-r from-orange-500 to-red-500'
+              }`}
+            >
+              {changingSpec ? 'Modification...' : 'Confirmer'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* ========== BACKUP DIALOG ========== */}
       <AlertDialog open={showBackupDialog} onOpenChange={v => { setShowBackupDialog(v); if (!v) { setBackupCode(''); setIsBackupCodeValid(false); } }}>
         <AlertDialogContent className="rounded-3xl backdrop-blur-2xl bg-white/95 dark:bg-[#0a0020]/95 border border-emerald-200/30 max-w-md">
