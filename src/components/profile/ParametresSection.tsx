@@ -202,6 +202,27 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
     }
   };
 
+  // ========== SPECIFICATION CHANGE ==========
+  const handleSpecChange = async () => {
+    if (!specChangeUser) return;
+    try {
+      setChangingSpec(true);
+      const response = await api.put('/api/settings/user-specification', {
+        userId: specChangeUser.id,
+        specification: specChangeTarget
+      });
+      if (response.data.success) {
+        toast({ title: '✅ Spécification modifiée', description: `La spécification de ${specChangeUser.firstName} a été mise à jour`, className: 'bg-green-600 text-white border-green-600' });
+        setShowSpecDialog(false);
+        fetchUsers();
+      }
+    } catch (e: any) {
+      toast({ title: 'Erreur', description: e?.response?.data?.message || 'Erreur lors du changement de spécification', variant: 'destructive' });
+    } finally {
+      setChangingSpec(false);
+    }
+  };
+
   // ========== BACKUP ==========
   const handleBackup = async () => {
     try {
