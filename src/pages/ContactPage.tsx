@@ -28,6 +28,7 @@ const ContactPage: React.FC = () => {
   const [adminOnline, setAdminOnline] = useState(false);
   const [showLiveChat, setShowLiveChat] = useState(false);
   const [submittedName, setSubmittedName] = useState(localStorage.getItem('livechat_pseudo') || '');
+  const [liveAdminId, setLiveAdminId] = useState<string>('1');
 
   const { toast } = useToast();
   const { sendMessage } = useMessages();
