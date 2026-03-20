@@ -74,6 +74,12 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
   const [roleChangeTarget, setRoleChangeTarget] = useState('');
   const [changingRole, setChangingRole] = useState(false);
 
+  // Specification management state
+  const [showSpecDialog, setShowSpecDialog] = useState(false);
+  const [specChangeUser, setSpecChangeUser] = useState<any>(null);
+  const [specChangeTarget, setSpecChangeTarget] = useState('');
+  const [changingSpec, setChangingSpec] = useState(false);
+
   useEffect(() => {
     fetchSettings();
     if (isAdminPrincipal) {
