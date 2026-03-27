@@ -170,7 +170,7 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
     } finally {
       autoBackupInProgressRef.current = false;
     }
-  }, [clearAutoBackupCountdown, toast]);
+  }, [clearAutoBackupCountdown, toast, autoBackupPaused]);
 
   const startAutoBackupCountdown = useCallback((serverState: any) => {
     if (!serverState?.activationId || manualBackupDoneRef.current || autoBackupPaused) {
@@ -213,7 +213,7 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
         triggerAutoBackup();
       }
     }, 1000);
-  }, [clearAutoBackupCountdown, triggerAutoBackup]);
+  }, [clearAutoBackupCountdown, triggerAutoBackup, autoBackupPaused]);
 
   // ========== AUTO-BACKUP: piloté par l'état stable du serveur ==========
   useEffect(() => {
