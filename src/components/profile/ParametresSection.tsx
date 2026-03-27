@@ -1,3 +1,54 @@
+/**
+ * =============================================================================
+ * ParametresSection — Section de paramètres administrateur
+ * =============================================================================
+ * 
+ * Section complète de gestion administrative, visible uniquement par les administrateurs.
+ * 
+ * Fonctionnalités :
+ * 
+ * 1. INDISPONIBILITÉS / CONGÉS (IndisponibiliteSection)
+ *    - Gestion des jours d'absence avec date, plage horaire, motif
+ * 
+ * 2. PARAMÈTRES DES MODULES (ModuleSettingsSection)
+ *    - Configuration pointage : prix/heure, prix journalier, arrondi
+ *    - Configuration tâches : auto-complétion, affichage terminées
+ * 
+ * 3. ZONE ADMINISTRATEUR (admin + admin principale)
+ *    - Sauvegarde manuelle : chiffrement AES-256 + téléchargement JSON
+ *    - Injection de données : restauration depuis fichier chiffré
+ *    - Sauvegarde automatique : compte à rebours de 5 min après modification
+ *      - Contrôle arrêt/relance persisté dans auto-sauvegarde.json
+ *      - Icône rouge StopCircle pour arrêter, verte PlayCircle pour relancer
+ *      - Badge "Auto-backup arrêté" quand désactivé
+ *    - Suppression totale : réinitialisation complète (admin principale uniquement)
+ * 
+ * 4. GESTION DES RÔLES (admin principale uniquement)
+ *    - Promouvoir un utilisateur en administrateur
+ *    - Rétrograder un administrateur en simple utilisateur
+ * 
+ * 5. GESTION SPÉCIFICATION (admin principale uniquement)
+ *    - Ajouter/retirer la spécification "live" à un administrateur
+ *    - Un admin avec spécification "live" peut recevoir les messages du chat en direct
+ *    - Enregistré dans users.json : "specification": "live"
+ * 
+ * API utilisées :
+ * - settingsApi : getSettings, updateSettings, backupData, restoreData, deleteAllData, autoBackup
+ * - api.get/put('/api/settings/auto-sauvegarde') : état du toggle auto-backup
+ * - api.get('/api/settings/users') : liste des utilisateurs
+ * - api.put('/api/settings/user-role') : changement de rôle
+ * - api.put('/api/settings/user-specification') : changement de spécification
+ * - api.get('/api/sync/status') : état du système auto-backup (polling 5s)
+ * 
+ * Base de données :
+ * - server/db/settings.json : paramètres globaux
+ * - server/db/auto-sauvegarde.json : état auto-sauvegarde (true/false)
+ * - server/db/users.json : comptes utilisateurs (rôles, spécifications)
+ * - server/db/moduleSettings.json : paramètres par module
+ * - server/db/indisponible.json : congés et indisponibilités
+ * =============================================================================
+ */
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
