@@ -47,7 +47,7 @@ const settingsApi = {
     return response.data;
   },
 
-  async restoreData(encryptedData: any, decryptionCode: string): Promise<{ success: boolean; message: string }> {
+  async restoreData(encryptedData: any, decryptionCode: string): Promise<{ success: boolean; message: string; status?: 'updated' | 'unchanged'; updatedFilesCount?: number; unchangedFilesCount?: number; totalAddedEntries?: number }> {
     const response = await api.post('/api/settings/restore', { encryptedData, decryptionCode });
     return response.data;
   },
@@ -59,6 +59,11 @@ const settingsApi = {
 
   async verifyPassword(password: string): Promise<{ valid: boolean }> {
     const response = await api.post('/api/settings/verify-password', { password });
+    return response.data;
+  },
+
+  async autoBackup(encryptionPassword: string): Promise<{ success: boolean; backup: any; filename: string }> {
+    const response = await api.post('/api/settings/auto-backup', { encryptionPassword });
     return response.data;
   }
 };
