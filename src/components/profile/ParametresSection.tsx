@@ -601,10 +601,13 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
                   </button>
                 ) : (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setAutoBackupPaused(false);
                       manualBackupDoneRef.current = false;
                       lastServerChangeAtRef.current = null;
+                      try {
+                        await api.put('/api/settings/auto-sauvegarde', { autoSauvegarde: true });
+                      } catch (e) { console.error('Error saving auto-sauvegarde:', e); }
                       toast({ title: '▶ Sauvegarde auto relancée', description: 'La sauvegarde automatique est réactivée', className: 'bg-green-600 text-white border-green-600' });
                     }}
                     title="Relancer la sauvegarde automatique"
