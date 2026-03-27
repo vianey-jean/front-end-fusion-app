@@ -240,6 +240,17 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
 
     const syncAutoBackupState = async () => {
       try {
+        // Check server-side auto-sauvegarde flag
+        try {
+          const autoSavResponse = await api.get('/api/settings/auto-sauvegarde');
+          if (!isMounted) return;
+          if (autoSavResponse.data && autoSavResponse.data.autoSauvegarde === false) {
+            setAutoBackupPaused(true);
+            clearAutoBackupCountdown();
+            return;
+          }
+        } catch { /* silent */ }
+
         const response = await api.get('/api/sync/status');
         if (!isMounted) return;
 
