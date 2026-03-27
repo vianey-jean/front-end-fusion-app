@@ -93,6 +93,23 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
   const [countdownSeconds, setCountdownSeconds] = useState(0);
   const [autoBackupPaused, setAutoBackupPaused] = useState(false);
 
+  // Load auto-sauvegarde status from server on mount
+  useEffect(() => {
+    const loadAutoSauvegardeStatus = async () => {
+      try {
+        const response = await api.get('/api/settings/auto-sauvegarde');
+        if (response.data && typeof response.data.autoSauvegarde === 'boolean') {
+          setAutoBackupPaused(!response.data.autoSauvegarde);
+        }
+      } catch (e) {
+        console.error('Error loading auto-sauvegarde status:', e);
+      }
+    };
+    if (isAdmin) {
+      loadAutoSauvegardeStatus();
+    }
+  }, [isAdmin]);
+
   useEffect(() => {
     fetchSettings();
     if (isAdminPrincipal) {
