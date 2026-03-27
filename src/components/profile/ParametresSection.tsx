@@ -93,6 +93,23 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
   const [countdownSeconds, setCountdownSeconds] = useState(0);
   const [autoBackupPaused, setAutoBackupPaused] = useState(false);
 
+  // Load auto-sauvegarde status from server on mount
+  useEffect(() => {
+    const loadAutoSauvegardeStatus = async () => {
+      try {
+        const response = await api.get('/api/settings/auto-sauvegarde');
+        if (response.data && typeof response.data.autoSauvegarde === 'boolean') {
+          setAutoBackupPaused(!response.data.autoSauvegarde);
+        }
+      } catch (e) {
+        console.error('Error loading auto-sauvegarde status:', e);
+      }
+    };
+    if (isAdmin) {
+      loadAutoSauvegardeStatus();
+    }
+  }, [isAdmin]);
+
   useEffect(() => {
     fetchSettings();
     if (isAdminPrincipal) {
@@ -223,6 +240,17 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
 
     const syncAutoBackupState = async () => {
       try {
+        // Check server-side auto-sauvegarde flag
+        try {
+          const autoSavResponse = await api.get('/api/settings/auto-sauvegarde');
+          if (!isMounted) return;
+          if (autoSavResponse.data && autoSavResponse.data.autoSauvegarde === false) {
+            setAutoBackupPaused(true);
+            clearAutoBackupCountdown();
+            return;
+          }
+        } catch { /* silent */ }
+
         const response = await api.get('/api/sync/status');
         if (!isMounted) return;
 
@@ -569,9 +597,12 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
                 <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Zone Administrateur</span>
                 {!autoBackupPaused ? (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setAutoBackupPaused(true);
                       clearAutoBackupCountdown();
+                      try {
+                        await api.put('/api/settings/auto-sauvegarde', { autoSauvegarde: false });
+                      } catch (e) { console.error('Error saving auto-sauvegarde:', e); }
                       toast({ title: '⏹ Sauvegarde auto arrêtée', description: 'La sauvegarde automatique est désactivée', className: 'bg-red-600 text-white border-red-600' });
                     }}
                     title="Arrêter la sauvegarde automatique"
@@ -581,10 +612,13 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
                   </button>
                 ) : (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setAutoBackupPaused(false);
                       manualBackupDoneRef.current = false;
                       lastServerChangeAtRef.current = null;
+                      try {
+                        await api.put('/api/settings/auto-sauvegarde', { autoSauvegarde: true });
+                      } catch (e) { console.error('Error saving auto-sauvegarde:', e); }
                       toast({ title: '▶ Sauvegarde auto relancée', description: 'La sauvegarde automatique est réactivée', className: 'bg-green-600 text-white border-green-600' });
                     }}
                     title="Relancer la sauvegarde automatique"
