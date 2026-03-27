@@ -91,6 +91,7 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
   const manualBackupDoneRef = useRef(false);
   const [autoBackupPending, setAutoBackupPending] = useState(false);
   const [countdownSeconds, setCountdownSeconds] = useState(0);
+  const [autoBackupPaused, setAutoBackupPaused] = useState(false);
 
   useEffect(() => {
     fetchSettings();
