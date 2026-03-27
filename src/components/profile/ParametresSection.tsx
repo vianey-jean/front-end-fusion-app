@@ -586,9 +586,12 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
                 <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Zone Administrateur</span>
                 {!autoBackupPaused ? (
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       setAutoBackupPaused(true);
                       clearAutoBackupCountdown();
+                      try {
+                        await api.put('/api/settings/auto-sauvegarde', { autoSauvegarde: false });
+                      } catch (e) { console.error('Error saving auto-sauvegarde:', e); }
                       toast({ title: '⏹ Sauvegarde auto arrêtée', description: 'La sauvegarde automatique est désactivée', className: 'bg-red-600 text-white border-red-600' });
                     }}
                     title="Arrêter la sauvegarde automatique"
