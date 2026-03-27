@@ -173,7 +173,7 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
   }, [clearAutoBackupCountdown, toast]);
 
   const startAutoBackupCountdown = useCallback((serverState: any) => {
-    if (!serverState?.activationId || manualBackupDoneRef.current) {
+    if (!serverState?.activationId || manualBackupDoneRef.current || autoBackupPaused) {
       return;
     }
 
