@@ -115,7 +115,7 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
   }, []);
 
   const triggerAutoBackup = useCallback(async () => {
-    if (manualBackupDoneRef.current || autoBackupInProgressRef.current) {
+    if (manualBackupDoneRef.current || autoBackupInProgressRef.current || autoBackupPaused) {
       setAutoBackupPending(false);
       return;
     }
@@ -567,9 +567,40 @@ const ParametresSection: React.FC<ParametresSectionProps> = ({ userRole }) => {
               <div className="flex items-center gap-2 mb-4">
                 <Shield className="w-4 h-4 text-amber-500" />
                 <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">Zone Administrateur</span>
-                {autoBackupPending && countdownSeconds > 0 && (
+                {!autoBackupPaused ? (
+                  <button
+                    onClick={() => {
+                      setAutoBackupPaused(true);
+                      clearAutoBackupCountdown();
+                      toast({ title: '⏹ Sauvegarde auto arrêtée', description: 'La sauvegarde automatique est désactivée', className: 'bg-red-600 text-white border-red-600' });
+                    }}
+                    title="Arrêter la sauvegarde automatique"
+                    className="p-0.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                  >
+                    <StopCircle className="w-4 h-4 text-red-500" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setAutoBackupPaused(false);
+                      manualBackupDoneRef.current = false;
+                      lastServerChangeAtRef.current = null;
+                      toast({ title: '▶ Sauvegarde auto relancée', description: 'La sauvegarde automatique est réactivée', className: 'bg-green-600 text-white border-green-600' });
+                    }}
+                    title="Relancer la sauvegarde automatique"
+                    className="p-0.5 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                  >
+                    <PlayCircle className="w-4 h-4 text-green-500" />
+                  </button>
+                )}
+                {autoBackupPending && countdownSeconds > 0 && !autoBackupPaused && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 animate-pulse font-mono">
                     Sauvegarde auto dans {Math.floor(countdownSeconds / 60)} min {String(countdownSeconds % 60).padStart(2, '0')} s
+                  </span>
+                )}
+                {autoBackupPaused && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-mono">
+                    Auto-backup arrêté
                   </span>
                 )}
               </div>
